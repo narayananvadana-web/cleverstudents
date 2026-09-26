@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Clever Students | Smart Learning Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet"></noscript>
+  <style>
+    /* మీ పాత CSS స్టైల్స్ అన్నీ యధావిధిగా ఉంటాయి */
+    :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px}
+    body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
+    *,::before,::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
+    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:background .3s,color .3s}
+    .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important}
+    input,textarea,select{user-select:auto!important;-webkit-user-select:auto!important}
+    img{user-drag:none;-webkit-user-drag:none}.img-th,.modal img{pointer-events:auto!important;cursor:pointer}
+
+    .top-info-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd);min-height:50px}
+    .news-ticker-wrap{flex:1;min-width:0;overflow:hidden;background:rgba(0,0,0,.3);border-radius:20px;padding:8px 15px;border:1px solid rgba(255,215,0,.3);display:flex;align-items:center;gap:10px}
+    .news-icon{flex-shrink:0;font-size:1.2rem;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}
+    .ticker-container{width:100%;overflow:hidden;white-space:nowrap;flex:1;min-width:0}
+    #newsTicker{display:inline-block;white-space:nowrap;animation:scrollTicker 40s linear infinite}
+    #newsTicker:hover{animation-play-state:paused}
+    @keyframes scrollTicker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    .news-link{color:#ffd700;font-weight:700;font-size:.9rem;cursor:pointer;margin:0 15px;pointer-events:auto!important;user-select:auto!important}
+    .news-link:hover{color:#fff;text-shadow:0 0 10px rgba(255,215,0,.8)}
+
+    @keyframes redBlink{0%,100%{box-shadow:0 0 5px rgba(255,0,0,.4)}50%{box-shadow:0 0 20px rgba(255,0,0,.9)}}
+    .lang-select{padding:8px 12px;border-radius:20px;border:2px solid rgba(255,0,0,.5);background:var(--srf);color:var(--txt);font-weight:700;font-size:.85rem;cursor:pointer;animation:redBlink 1s ease-in-out infinite;flex-shrink:0;min-width:110px;z-index:10}
+    .goog-te-banner-frame,#goog-gt-tt,.goog-tooltip,.goog-text-highlight,.goog-te-spinner-pos,.goog-logo-link,.goog-te-gadget span,.VIpgJd-ZVi9od-ORHb,.VIpgJd-ZVi9od-l4eHX,.goog-te-gadget img,.skiptranslate{display:none!important}
+    #google_translate_element{position:absolute!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important}
+
+    .top-bar{background:var(--srf);border-bottom:1px solid var(--brd);padding:0 15px;position:sticky;top:0;z-index:999}
+    .top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:15px;flex-wrap:wrap;padding:12px 0;justify-content:space-between}
+    .logo{font-family:'Fredoka One',cursive;font-size:1.5rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .user-info{font-weight:700;font-size:.85rem;color:var(--mut)}
+    .theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:700;font-size:.85rem;cursor:pointer;padding:6px 12px;border-radius:50px}
+
+    .main-wrap{max-width:100%!important;width:100%!important;padding:20px 10px 80px!important;margin:0 auto}
+    .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
+    .banner{padding:12px 20px!important;display:flex;align-items:center;justify-content:center;gap:15px;box-shadow:0 4px 10px rgba(0,0,0,.2);flex-wrap:wrap;text-align:center}
+    .banner h1{font-size:1.4rem!important;font-weight:900!important;color:#fff!important}
+    .banner p{font-size:.95rem!important;font-weight:700!important;color:#fff!important;border-left:2px solid rgba(255,255,255,.6);padding-left:12px}
+    .sub-row{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd)}
+    .btn-sub{padding:8px 20px;border:2px solid transparent;border-radius:6px;color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;opacity:.6;transform:scale(.95);white-space:nowrap}
+    .btn-sub.active{opacity:1;transform:scale(1.05);border-color:#fff;box-shadow:0 0 10px rgba(255,255,255,.3)}
+    .cls-row{display:flex;gap:8px;padding:12px 15px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--brd);overflow-x:auto}
+    .btn-cls{background:0 0;border:2px solid transparent;color:var(--mut);font-weight:700;font-size:.9rem;cursor:pointer;padding:6px 14px;border-radius:4px;white-space:nowrap}
+    .btn-cls.active{background:#3b82f6;color:#fff}
+
+    .study-tabs-row{display:flex;gap:6px;padding:10px 15px;background:rgba(0,0,0,.15);flex-wrap:wrap;justify-content:center;overflow-x:auto}
+    .study-tab-btn{padding:8px 14px;border-radius:50px;border:1px solid var(--brd);background:0 0;color:var(--mut);font-weight:700;font-size:.75rem;cursor:pointer;white-space:nowrap}
+    .study-tab-btn:hover{color:var(--txt);border-color:var(--txt)}
+    .study-tab-btn.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+    .study-tab-btn.skills-active{background:#db2777;color:#fff;border-color:#db2777}
+
+    .content{min-height:150px;background:var(--srf)}
+    .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:12px 15px 0;color:#fff;font-weight:800;border-radius:6px;cursor:pointer}
+    .ch-row:hover{filter:brightness(1.15)}
+    .ch-content{display:none;background:rgba(0,0,0,.25);border:1px solid var(--brd);margin:0 15px 15px;padding:20px;border-radius:0 0 6px 6px;line-height:1.8;color:#f8fafc}
+    body.light-mode .ch-content{color:#334155;background:rgba(0,0,0,.02)}
+    .ch-content.show{display:block;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .img-th{max-width:200px;max-height:150px;object-fit:cover;border-radius:4px;cursor:pointer;margin:5px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:15px}
+    .q-card{border:none;border-radius:8px;padding:20px 12px;text-align:center;cursor:pointer;color:#fff}
+    .q-card:hover{transform:translateY(-4px)}
+    .tag{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.7rem;font-weight:700;margin:2px}
+    .tag-blue{background:#1d4ed8;color:#fff}.tag-orange{background:#c2410c;color:#fff}.tag-green{background:#15803d;color:#fff}.tag-purple{background:#7c3aed;color:#fff}
+
+    .q-player{padding:20px;background:var(--srf);border:1px solid var(--brd);border-radius:8px;max-width:1400px;margin:0 auto}
+    .q-panel{border-radius:16px;padding:20px;background:rgba(0,0,0,.2)}
+    .exam-wrap{display:flex;gap:16px;flex-wrap:wrap}
+    .exam-main{flex:1;min-width:0}
+    .exam-palette{width:280px;flex-shrink:0}
+    .palette-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:8px;padding:14px;background:rgba(0,0,0,.2);border-radius:12px;border:1px solid var(--brd)}
+    .pal-btn{width:40px;height:40px;border-radius:8px;border:2px solid var(--brd);background:var(--srf);color:var(--txt);font-weight:800;cursor:pointer;font-size:.85rem;line-height:1}
+    .pal-btn:hover{border-color:#fff}
+    .pal-btn.nv{background:var(--srf);border-color:var(--brd);color:var(--mut)}
+    .pal-btn.na{background:#b91c1c;border-color:#ef4444;color:#fff}
+    .pal-btn.an{background:#15803d;border-color:#22c55e;color:#fff}
+    .pal-btn.mk{background:#7c3aed;border-color:#a855f7;color:#fff}
+    .pal-btn.cur{outline:3px solid #f59e0b;outline-offset:1px}
+    .exam-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--brd);font-size:.72rem;font-weight:700;color:var(--txt)}
+    .exam-legend span{display:inline-flex;align-items:center;gap:5px}
+    .legend-dot{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid var(--brd)}
+    .legend-dot.na{background:#b91c1c}.legend-dot.an{background:#15803d}.legend-dot.mk{background:#7c3aed}.legend-dot.nv{background:var(--srf)}
+    .exam-opt{display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(255,255,255,.05);border:2px solid var(--brd);border-radius:8px;cursor:pointer;font-weight:700;color:var(--txt);text-align:left;margin-bottom:8px;width:100%;font-size:.95rem}
+    .exam-opt:hover{border-color:#94a3b8}
+    .exam-opt.selected{border-color:#3b82f6;background:rgba(59,130,246,.15)}
+    .exam-opt .opt-letter{width:30px;height:30px;border-radius:50%;background:rgba(59,130,246,.2);color:#60a5fa;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
+    .exam-btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;justify-content:center}
+    .exam-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+    .exam-stats{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;font-weight:700;color:var(--mut)}
+    .exam-stats b{color:var(--txt)}
+    .nested-sub{display:none;padding-left:16px}
+    .nested-sub.show{display:block}
+    .nested-list{border-left:2px solid var(--brd);margin-left:6px;padding-left:12px}
+    .nested-row{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;margin:8px 0 0;color:#fff;font-weight:800;border-radius:6px;cursor:pointer;font-size:.9rem}
+    .nested-row.sub{background:rgba(255,255,255,.08)!important;font-weight:700}
+    .nested-row.sub2{background:rgba(255,255,255,.05)!important;font-weight:600;font-size:.85rem}
+    .q-chip{border:none;border-radius:8px;padding:14px 10px;text-align:center;cursor:pointer;color:#fff;font-weight:800;font-size:.8rem;margin:6px}
+    .q-chip:hover{transform:translateY(-2px)}
+    .opt-btn{padding:14px 18px;background:rgba(255,255,255,.05);border:2px solid var(--brd);border-radius:8px;cursor:pointer;font-weight:700;color:var(--txt);text-align:left;margin-bottom:8px;width:100%}
+    .opt-btn.correct{background:#15803d!important;border-color:#22c55e!important;color:#fff!important}
+    .opt-btn.wrong{background:#b91c1c!important;border-color:#ef4444!important;color:#fff!important}
+    .feedback{display:none;padding:14px;border-radius:8px;font-weight:700;color:#fff!important;margin-bottom:20px}
+    .feedback.show{display:block}.feedback.correct{background:#15803d}.feedback.wrong{background:#b91c1c}
+
+    .results-container{padding:20px;max-height:70vh;overflow-y:auto}
+    .results-header{text-align:center;margin-bottom:30px;padding:20px;background:rgba(0,0,0,.2);border-radius:12px}
+    .results-score{font-size:4rem;font-weight:900}
+    .results-summary{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin:15px 0}
+    .results-summary-item{text-align:center;padding:10px 20px;background:rgba(0,0,0,.3);border-radius:8px;min-width:80px}
+    .results-summary-item .val{font-size:2rem;font-weight:900}
+    .result-item{border:1px solid var(--brd);border-radius:8px;padding:15px;margin-bottom:12px;background:rgba(0,0,0,.1)}
+    .result-qno{display:inline-block;width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;text-align:center;line-height:28px;font-weight:800;margin-right:8px}
+    .result-question{margin:10px 0;font-weight:600}
+    .result-option{padding:4px 0}
+    .correct-answer{color:#4ade80}.user-correct{color:#60a5fa}.user-wrong{color:#f87171}
+    .result-explanation{color:#fbbf24;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
+
+    .btn{padding:10px 20px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:6px}
+    .btn:hover{filter:brightness(1.15)}.btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-orange{background:#f59e0b}.btn-purple{background:#7c3aed}
+    .btn-sm{padding:6px 14px;font-size:.8rem}.btn-xs{padding:4px 10px;font-size:.7rem}
+
+    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
+    .login-box{background:var(--srf);padding:40px 30px;border-radius:var(--r-lg);box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:380px;border:1px solid var(--brd);text-align:center}
+    .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1rem;outline:0}
+    .login-info{background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:20px;font-size:.85rem;color:var(--txt)}
+
+    .mm-theory-view{padding:20px;background:rgba(0,0,0,.15);border-radius:8px;border:1px solid var(--brd);max-height:70vh;overflow-y:auto;line-height:1.8;color:#f8fafc}
+    .mm-theory-view img{max-width:100%;border-radius:8px;margin:10px 0;cursor:pointer}
+    body.light-mode .mm-theory-view{color:#334155;background:rgba(0,0,0,.02)}
+
+    .game-iframe-container{width:100%;min-height:550px;background:#fff;border-radius:0 0 6px 6px;overflow:hidden}
+    .game-iframe-container iframe{width:100%;height:550px;border:none;display:block}
+
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;display:none;justify-content:center;align-items:center}
+    .modal.show{display:flex}.modal img{max-width:92%;max-height:92%;border-radius:8px}
+    .modal-close{position:absolute;top:18px;right:24px;color:#fff;font-size:2rem;cursor:pointer}
+    .spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    @media(max-width:768px){.top-info-bar{flex-wrap:wrap}.news-ticker-wrap{flex:0 0 100%}.banner{flex-direction:column}.results-score{font-size:3rem}.game-iframe-container,.game-iframe-container iframe{min-height:400px;height:400px}.exam-palette{width:100%}.exam-wrap{flex-direction:column-reverse}}
+  </style>
+</head>
+<body class="protected-mode">
+
+  <div id="login-overlay">
+    <div class="login-box">
+      <div class="logo" style="margin-bottom:20px;">⭐ CleverStudents</div>
+      <h2 style="margin-bottom:25px;color:var(--txt);">Student Login</h2>
+      <div class="login-info" id="guest-info-box" style="display:none;"><strong>👤 Guest Auto-Login Active</strong></div>
+      <input type="text" id="login-phone" class="login-inp" placeholder="User ID / Phone">
+      <input type="password" id="login-pass" class="login-inp" placeholder="Password">
+      <button class="btn btn-blue" style="width:100%;padding:14px;font-size:1.1rem;margin-top:10px;" onclick="attemptLogin()">🔐 Login</button>
+      <button class="btn btn-orange" style="width:100%;padding:12px;font-size:.9rem;margin-top:10px;" onclick="loginAsGuest()">👤 Login as Guest</button>
+      <button class="btn btn-dark" style="width:100%;padding:12px;font-size:.9rem;margin-top:10px;" onclick="logout()">🚪 Logout</button>
+      <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:700;display:none;"></div>
+    </div>
+  </div>
+
+  <div class="top-info-bar">
+    <div class="news-ticker-wrap"><span class="news-icon">📢</span><div class="ticker-container"><span id="newsTicker"></span></div></div>
+    <div id="google_translate_element"></div>
+    <select class="lang-select" id="lang-select" onchange="changeLanguage(this.value)">
+      <option value="en">🌐 English</option><option value="te">🔴 తెలుగు</option><option value="hi">🔴 हिन्दी</option><option value="ta">🔴 தமிழ்</option><option value="ml">🔴 മലയാളം</option><option value="kn">🔴 ಕನ್ನಡ</option>
+    </select>
+  </div>
+
+  <div class="top-bar"><div class="top-inner"><div class="logo">⭐ CleverStudents</div><div style="display:flex;align-items:center;gap:15px;flex-wrap:wrap;"><span id="user-display" class="user-info"></span><button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">Light Mode</button><button class="btn btn-red btn-sm" onclick="logout()">Logout</button></div></div></div>
+
+  <div class="main-wrap">
+    <div id="shell" class="shell"><div class="sub-row" id="sub-row"></div><div class="cls-row" id="cls-row"></div><div class="content" id="content-area"></div></div>
+    <div id="quiz-player" class="q-player" style="display:none;"></div>
+    <div id="mm-inline" style="display:none;padding:20px;background:var(--srf);border-radius:8px;border:1px solid var(--brd);max-width:1400px;margin:0 auto;"><button class="btn btn-dark btn-sm" style="margin-bottom:16px;" onclick="closeInlineMM()">← Back</button><div class="mm-theory-view" id="mmTheoryContainer"></div></div>
+  </div>
+
+  <div id="img-modal" class="modal" onclick="closeModal()"><span class="modal-close">×</span><img id="modal-img" src=""></div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
+
+  <script>
+    // --- VERCEL API నుండి కీలు తెచ్చుకునే కొత్త కోడ్ ఇక్కడే ఉంది ---
+    var db;
+    
+    fetch('/api/config')
+      .then(function(response) { return response.json(); })
+      .then(function(config) {
+        firebase.initializeApp(config);
+        db = firebase.database();
+        
+        if(document.readyState==='loading') {
+          document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+          initApp();
+        }
+      })
+      .catch(function(error) {
+        console.error("Config లోడ్ అవ్వలేదు:", error);
+        alert('Database connection failed. Please check Vercel environment variables.');
+      });
+
+    var newsWithLinks=[{text:'🎓 Class 10 Maths - New Study Materials',action:function(){switchMode('learning');sub='Maths';cls=10;studyType='theory';refreshUI()}},{text:'📚 Science Quiz - 500+ Questions',action:function(){switchMode('learning');sub='Science';studyType='quiz';refreshUI()}},{text:'💡 Explore Skills',action:function(){switchMode('skills');refreshUI()}},{text:'🎮 Play Games',action:function(){switchMode('learning');studyType='games';refreshUI()}},{text:'🔬 Science Projects',action:function(){switchMode('learning');studyType='projects';refreshUI()}}];
+
+    function buildNewsTicker(){
+      var t=document.getElementById('newsTicker');
+      if(!t)return;
+      var s=newsWithLinks.slice().sort(function(){return 0.5-Math.random()});
+      var h='';
+      s.forEach(function(i,idx){
+        h+='<a class="news-link" onclick="event.stopPropagation();handleNewsClick('+idx+')">'+i.text+'</a>';
+        if(idx<s.length-1)h+='<span style="color:rgba(255,255,255,.3);margin:0 5px">|</span>'
+      });
+      t.innerHTML=h+h;
+    }
+    function handleNewsClick(i){
+      if(!newsWithLinks[i])return;
+      var n=newsWithLinks[i];
+      if(n&&n.action)n.action();
+    }
+    buildNewsTicker();
+    setInterval(buildNewsTicker,300000);
+
+    window.googleTranslateElementInit=function(){
+      new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'te,hi,ta,ml,kn,en',layout:google.translate.TranslateElement.InlineLayout.HORIZONTAL,autoDisplay:true},'google_translate_element');
+      var ci=setInterval(function(){
+        var gc=document.querySelector('.goog-te-combo');
+        if(gc){
+          clearInterval(ci);
+          gc.addEventListener('change',function(){
+            var ls=document.getElementById('lang-select');
+            if(ls&&this.value!==ls.value)ls.value=this.value;
+          });
+        }
+      },300);
+    };
+
+    function changeLanguage(l){
+      var ls=document.getElementById('lang-select');
+      ls.style.animation='none';
+      ls.offsetHeight;
+      ls.style.animation='redBlink 0.3s ease-in-out 5';
+      var gc=document.querySelector('.goog-te-combo');
+      if(gc){
+        gc.value=l;
+        gc.dispatchEvent(new Event('change',{bubbles:true}));
+        var ns=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set;
+        ns.call(gc,l);
+        setTimeout(function(){ls.style.animation='redBlink 1s ease-in-out infinite'},1800);
+      }
+    }
+
+    var DEFAULT_GUEST_ID='guest',DEFAULT_GUEST_PASS='guest123';
+    var DB={theory:{},quiz:{},mindmap:{},papers:{},games:{},projects:{},videos:{},skills:{}};
+    var settings={loginEnabled:true,users:{},copyEnabled:false,guestAutoLogin:false,guestId:DEFAULT_GUEST_ID,guestPass:DEFAULT_GUEST_PASS};
+    var activeSessions={},currentUser={phone:'',token:'',isGuest:false},userAccess={modes:[],subjects:[],classes:[]};
+    var mode='learning',sub='Maths',cls=6,skillCat='Competitive skills',studyType='theory';
+    var qActive=[],qIdx=0,qTimer=null,qSec=0,qAns=[],qMarked=[],qSaved=[],qVisited=[];
+    var SUBJECTS=[{id:'Maths',name:'Maths',grad:'linear-gradient(135deg,#059669,#047857)'},{id:'Science',name:'Science',grad:'linear-gradient(135deg,#2563eb,#1d4ed8)'},{id:'Telugu',name:'Telugu',grad:'linear-gradient(135deg,#d97706,#b45309)'},{id:'English',name:'English',grad:'linear-gradient(135deg,#7c3aed,#5b21b6)'},{id:'Hindi',name:'Hindi',grad:'linear-gradient(135deg,#dc2626,#b91c1c)'},{id:'Social',name:'Social',grad:'linear-gradient(135deg,#ea580c,#c2410c)'}];
+    var SKILLS=["Competitive skills","Essay writing","Debate concept","Story writing","Speech","Sing a song","Skit related","Games"];
+
+    function sanitizeHTML(s){
+      if(!s)return'';
+      var d=document.createElement('div');
+      d.appendChild(document.createTextNode(s));
+      return d.innerHTML;
+    }
+    function escapeAttr(s){
+      if(!s)return'';
+      return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function initTheme(){
+      var t=localStorage.getItem('cs_st_th')||'dark',b=document.getElementById('theme-toggle');
+      t==='light'?(document.body.classList.add('light-mode'),b.innerText='Dark Mode'):(document.body.classList.remove('light-mode'),b.innerText='Light Mode');
+    }
+    initTheme();
+    function toggleTheme(){
+      var l=document.body.classList.toggle('light-mode');
+      localStorage.setItem('cs_st_th',l?'light':'dark');
+      document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode';
+    }
+    function getArr(o){
+      if(!o)return[];
+      var r=[];
+      Object.keys(o).forEach(function(k){r.push(o[k])});
+      r.sort(function(a,b){
+        var oA=a.order!==undefined?a.order:999999;
+        var oB=b.order!==undefined?b.order:999999;
+        return oA-oB;
+      });
+      return r;
+    }
+    function q(s){
+      if(s===undefined||s===null)return"''";
+      return "'" + String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'\\r') + "'";
+    }
+    function getImgs(u){
+      if(!u||!Array.isArray(u)||!u.length)return'';
+      var h='';
+      u.forEach(function(url){
+        if(url){
+          var escaped=escapeAttr(url);
+          h+='<img src="'+escaped+'" class="img-th" onclick="openModal(\''+encodeURIComponent(escaped)+'\')">';
+        }
+      });
+      return h;
+    }
+    function filterBySubCls(d,s,c){
+      var r={};
+      Object.keys(d).forEach(function(k){
+        var it=d[k];
+        if(it&&String(it.subject)===String(s)&&parseInt(it.class)===parseInt(c))r[k]=it;
+      });
+      return r;
+    }
+    window.tog=function(id){
+      var el=document.getElementById(id);
+      if(el)el.classList.toggle('show');
+    }
+
+    // SECURED: Validate URL before opening modal to prevent XSS
+    function openModal(d){
+      if(!d)return;
+      try{
+        var decoded=decodeURIComponent(d);
+        // Validate it's a safe image URL
+        if(!/^https?:\/\//i.test(decoded)){
+          console.error('Invalid image URL');
+          return;
+        }
+        var m=document.getElementById('img-modal');
+        m.classList.add('show');
+        var img=document.getElementById('modal-img');
+        img.onload=function(){img.onload=null};
+        img.onerror=function(){img.onload=null;closeModal()};
+        img.src=decoded;
+      }catch(e){
+        console.error('Modal open error:',e);
+        closeModal();
+      }
+    }
+    function closeModal(){
+      document.getElementById('img-modal').classList.remove('show');
+    }
+
+    // Auth
+    function checkAuth(){
+      var o=document.getElementById('login-overlay');
+      var ph=localStorage.getItem('cs_st_ph');
+      var tk=localStorage.getItem('cs_st_tk');
+      var ig=localStorage.getItem('cs_st_guest')==='true';
+      updateGuestDisplay();
+
+      if(settings.guestAutoLogin&&!ph){
+        autoLoginAsGuest();
+        return;
+      }
+      if(!settings.loginEnabled){
+        o.style.display='none';
+        currentUser={phone:'guest',token:'',isGuest:true};
+        applyPerms(true);
+        updateUserDisplay();
+        return;
+      }
+      if(ph&&tk&&activeSessions[ph]===tk){
+        currentUser={phone:ph,token:tk,isGuest:ig};
+        o.style.display='none';
+        applyPerms(false);
+        updateUserDisplay();
+      }else{
+        o.style.display='flex';
+        updateUserDisplay();
+      }
+    }
+
+    function autoLoginAsGuest(){
+      var gi=settings.guestId||DEFAULT_GUEST_ID;
+      var gp=settings.guestPass||DEFAULT_GUEST_PASS;
+      if(settings.users&&settings.users[gi]&&settings.users[gi].pass===gp){
+        performLogin(gi,true);
+      }else{
+        var t="sess_"+Date.now()+"_"+Math.floor(Math.random()*10000);
+        currentUser={phone:gi,token:t,isGuest:true};
+        localStorage.setItem('cs_st_ph',gi);
+        localStorage.setItem('cs_st_tk',t);
+        localStorage.setItem('cs_st_guest','true');
+        activeSessions[gi]=t;
+        db.ref('activeSessions').set(activeSessions);
+        document.getElementById('login-overlay').style.display='none';
+        applyPerms(true);
+        updateUserDisplay();
+      }
+    }
+
+    function attemptLogin(){
+      var p=document.getElementById('login-phone').value.trim();
+      var pa=document.getElementById('login-pass').value.trim();
+      var e=document.getElementById('login-error');
+      if(!p||!pa){
+        e.innerText='Enter ID and Password';
+        e.style.display='block';
+        return;
+      }
+      var gi=settings.guestId||DEFAULT_GUEST_ID;
+      var gp=settings.guestPass||DEFAULT_GUEST_PASS;
+      if(p===gi&&pa===gp){
+        performLogin(p,true);
+        return;
+      }
+      if(settings.users&&settings.users[p]&&settings.users[p].pass===pa){
+        performLogin(p,false);
+        return;
+      }
+      e.innerText='Invalid credentials';
+      e.style.display='block';
+    }
+
+    function loginAsGuest(){
+      var gi=settings.guestId||DEFAULT_GUEST_ID;
+      var gp=settings.guestPass||DEFAULT_GUEST_PASS;
+      document.getElementById('login-phone').value=gi;
+      document.getElementById('login-pass').value=gp;
+      attemptLogin();
+    }
+
+    function performLogin(phone,isGuest){
+      var e=document.getElementById('login-error');
+      e.style.display='none';
+      var t="sess_"+Date.now()+"_"+Math.floor(Math.random()*10000);
+      currentUser={phone:phone,token:t,isGuest:isGuest};
+      localStorage.setItem('cs_st_ph',phone);
+      localStorage.setItem('cs_st_tk',t);
+      localStorage.setItem('cs_st_guest',isGuest?'true':'false');
+      activeSessions[phone]=t;
+      db.ref('activeSessions').set(activeSessions);
+      document.getElementById('login-overlay').style.display='none';
+      applyPerms(isGuest);
+      updateUserDisplay();
+    }
+
+    function logout(){
+      if(currentUser.phone){
+        delete activeSessions[currentUser.phone];
+        db.ref('activeSessions').set(activeSessions);
+      }
+      localStorage.removeItem('cs_st_ph');
+      localStorage.removeItem('cs_st_tk');
+      localStorage.removeItem('cs_st_guest');
+      currentUser={phone:'',token:'',isGuest:false};
+      document.getElementById('login-overlay').style.display='flex';
+      updateUserDisplay();
+    }
+
+    function applyPerms(isGuest){
+      if(isGuest||!settings.loginEnabled){
+        userAccess={modes:['ALL'],subjects:['ALL'],classes:['ALL']};
+      }else{
+        var ph=currentUser.phone;
+        userAccess=(settings.users&&settings.users[ph])?settings.users[ph]:{modes:[],subjects:[],classes:[]};
+        if(!userAccess.modes||!userAccess.modes.length){
+          userAccess={modes:['ALL'],subjects:['ALL'],classes:['ALL']};
+        }
+      }
+      refreshUI();
+    }
+
+    function updateUserDisplay(){
+      var el=document.getElementById('user-display');
+      if(el){
+        if(currentUser.phone){
+          var l=currentUser.isGuest?'👤 Guest: ':'👤 User: ';
+          el.innerText=l+sanitizeHTML(currentUser.phone);
+        }else{
+          el.innerText='';
+        }
+      }
+    }
+
+    function updateGuestDisplay(){
+      var b=document.getElementById('guest-info-box');
+      if(b)b.style.display=settings.guestAutoLogin?'block':'none';
+    }
+
+    function loadAllData(cb){
+      var p={theory:'theoryDatabase',quiz:'questionBank',mindmap:'mindMapDatabase',papers:'papersDatabase',games:'gamesDatabase',projects:'projectsDatabase',videos:'videosDatabase',skills:'skillsDatabase'};
+      var k=Object.keys(p),l=0,t=k.length;
+      k.forEach(function(kk){
+        db.ref(p[kk]).once('value').then(function(s){
+          DB[kk]=s.val()||{};
+          l++;
+          if(l>=t&&cb)cb();
+        }).catch(function(){
+          DB[kk]={};
+          l++;
+          if(l>=t&&cb)cb();
+        });
+      });
+    }
+
+    function refreshUI(){
+      if(!currentUser.phone&&settings.loginEnabled){
+        document.getElementById('content-area').innerHTML='<div style="padding:40px;text-align:center;color:#ef4444;">Please login first</div>';
+        return;
+      }
+
+      var sr=document.getElementById('sub-row'),cr=document.getElementById('cls-row'),ca=document.getElementById('content-area');
+      var us=userAccess.subjects||[],uc=userAccess.classes||[];
+      var as=SUBJECTS.slice(),ac=[1,2,3,4,5,6,7,8,9,10];
+      if(us.indexOf('ALL')===-1){as=SUBJECTS.filter(function(s){return us.indexOf(s.id)!==-1})}
+      if(uc.indexOf('ALL')===-1){ac=uc.map(Number)}
+      if(as.length&&!as.find(function(s){return s.id===sub}))sub=as[0].id;
+      if(ac.length&&ac.indexOf(cls)===-1)cls=ac[0];
+
+      // ===== SKILLS MODE =====
+      if(mode==='skills'){
+        sr.innerHTML=SKILLS.map(function(c){
+          return '<button class="btn-sub '+(skillCat===c?'active':'')+'" style="background:linear-gradient(135deg,#db2777,#be185d)" onclick="setSkill('+q(c)+')">'+(skillCat===c?'✔ ':'')+sanitizeHTML(c)+'</button>';
+        }).join('');
+        cr.innerHTML='';
+
+        var tn={theory:'📖 Theory',mindmap:'🧠 Mind Map',quiz:'📝 Quiz',papers:'📄 Papers',games:'🎮 Games',projects:'🔬 Projects',videos:'🎥 Videos',skills:'💡 Skills'};
+        var tabsHTML='<div class="study-tabs-row">'+Object.keys(tn).map(function(t){
+          if(t==='skills')return '<button class="study-tab-btn skills-active" onclick="switchMode(\'skills\')">'+tn[t]+'</button>';
+          return '<button class="study-tab-btn" onclick="switchMode(\'learning\');setStudyType(\''+t+'\')">'+tn[t]+'</button>';
+        }).join('')+'</div>';
+
+        var si=getArr(DB.skills).filter(function(s){return s.category===skillCat});
+        var h='<div class="banner" style="background:linear-gradient(135deg,#db2777,#be185d)"><h1>💡 '+sanitizeHTML(skillCat)+'</h1></div>'+tabsHTML;
+        if(si.length){
+          var cols=['#db2777','#8b5cf6','#3b82f6','#10b981','#f59e0b'];
+          si.forEach(function(t,i){
+            var sid='sk_'+i;
+            h+='<div class="ch-row" style="background:'+cols[i%5]+'" onclick="tog('+q(sid)+')"><span>'+(t.title||'Skill')+'</span><span>View [+]</span></div>';
+            h+='<div id="'+sid+'" class="ch-content">'+(t.content||'')+getImgs(t.imageUrls)+'</div>';
+          });
+        }else{
+          h+='<div style="padding:40px;text-align:center;color:var(--mut)">No skills data</div>';
+        }
+        ca.innerHTML=h;
+        return;
+      }
+
+      // ===== LEARNING MODE =====
+      var so=SUBJECTS.find(function(s){return s.id===sub});
+      sr.innerHTML=as.map(function(s){
+        return '<button class="btn-sub '+(sub===s.id?'active':'')+'" style="background:'+s.grad+'" onclick="setSub('+q(s.id)+')">'+((sub===s.id?'✔ ':'')+s.name)+'</button>';
+      }).join('');
+      cr.innerHTML=ac.map(function(i){
+        return '<button class="btn-cls '+(cls===i?'active':'')+'" onclick="setCls('+i+')">'+(cls===i?'✔ ':'')+'Class '+i+'</button>';
+      }).join('');
+      if(!so||!as.length||!ac.length){
+        ca.innerHTML='<div style="padding:50px;text-align:center;color:#ef4444;">No access</div>';
+        return;
+      }
+
+      // Banner
+      var bannerGrad=so.grad,bannerTitle=so.name,bannerSubtitle='Class '+cls;
+      if(studyType==='games'){bannerGrad='linear-gradient(135deg,#f59e0b,#d97706)';bannerTitle='🎮 Games';bannerSubtitle='Learn & Play - '+so.name+' Class '+cls}
+      else if(studyType==='projects'){bannerGrad='linear-gradient(135deg,#8b5cf6,#6d28d9)';bannerTitle='🔬 Projects';bannerSubtitle='Explore & Create - '+so.name+' Class '+cls}
+      else if(studyType==='videos'){bannerGrad='linear-gradient(135deg,#ef4444,#dc2626)';bannerTitle='🎥 Videos';bannerSubtitle='Watch & Learn - '+so.name+' Class '+cls}
+      else if(studyType==='papers'){bannerTitle=so.name+' - Papers';bannerSubtitle='Class '+cls}
+
+      var tn={theory:'📖 Theory',mindmap:'🧠 Mind Map',quiz:'📝 Quiz',papers:'📄 Papers',games:'🎮 Games',projects:'🔬 Projects',videos:'🎥 Videos',skills:'💡 Skills'};
+      var tabsHTML='<div class="study-tabs-row">'+Object.keys(tn).map(function(t){
+        if(t==='skills')return '<button class="study-tab-btn" onclick="switchMode(\'skills\')">'+tn[t]+'</button>';
+        return '<button class="study-tab-btn '+(studyType===t?'active':'')+'" onclick="setStudyType(\''+t+'\')">'+tn[t]+'</button>';
+      }).join('')+'</div>';
+
+      var fullHTML='<div class="banner" style="background:'+bannerGrad+'"><h1>'+bannerTitle+'</h1><p>'+bannerSubtitle+'</p></div>'+tabsHTML;
+
+      // Content
+      if(studyType==='theory')fullHTML+=renderListHTML(DB.theory,so.grad,true);
+      else if(studyType==='mindmap')fullHTML+=renderMMListHTML(DB.mindmap,so.grad);
+      else if(studyType==='quiz')fullHTML+=renderQuizHTML(DB.quiz,so.grad);
+      else if(studyType==='games')fullHTML+=renderGPHTML(DB.games,'game');
+      else if(studyType==='projects')fullHTML+=renderGPHTML(DB.projects,'project');
+      else if(studyType==='papers')fullHTML+=renderListHTML(DB.papers,so.grad,true);
+      else if(studyType==='videos')fullHTML+=renderCommonHTML(DB.videos,'Videos','linear-gradient(135deg,#ef4444,#dc2626)');
+
+      ca.innerHTML=fullHTML;
+    }
+
+    function renderListHTML(d,g,f){
+      var i=getArr(f?filterBySubCls(d,sub,cls):d);
+      if(!i.length)return '<div style="padding:40px;text-align:center;color:var(--mut)">No content found.</div>';
+      var h='';
+      i.forEach(function(t,idx){
+        var sid='it_'+idx;
+        h+='<div class="ch-row" style="background:'+g+'" onclick="tog('+q(sid)+')"><span>'+sanitizeHTML(t.title||'Item')+'</span><span>View [+]</span></div>';
+        h+='<div id="'+sid+'" class="ch-content">'+(t.content||'')+getImgs(t.imageUrls)+'</div>';
+      });
+      return h;
+    }
+
+    function renderCommonHTML(d,label,grad){
+      var items=getArr(d);
+      if(!items.length)return '<div style="padding:40px;text-align:center;color:var(--mut)">No '+label.toLowerCase()+' found.</div>';
+      var h='';
+      items.forEach(function(t,idx){
+        var sid=label.toLowerCase()+'_'+idx;
+        h+='<div class="ch-row" style="background:'+grad+'" onclick="tog('+q(sid)+')"><span>'+sanitizeHTML(t.title||label)+'</span><span>View [+]</span></div>';
+        h+='<div id="'+sid+'" class="ch-content">'+(t.content||'')+getImgs(t.imageUrls)+'</div>';
+      });
+      return h;
+    }
+
+    function renderMMListHTML(d,g){
+      var i=getArr(filterBySubCls(d,sub,cls));
+      if(!i.length)return '<div style="padding:40px;text-align:center;color:var(--mut)">No mind maps</div>';
+      var h='<div class="grid">';
+      i.forEach(function(m){
+        var mk=m.key||'';
+        h+='<div class="q-card" style="background:'+g+'" onclick="launchMM('+q(mk)+')"><h4>'+(m.title||'Map')+'</h4><small>Open</small></div>';
+      });
+      h+='</div>';
+      return h;
+    }
+
+    function renderGPHTML(d,type){
+      var items=getArr(d);
+      var icon=type==='game'?'🎮':'🔬';
+      var grad=type==='game'?'linear-gradient(135deg,#f59e0b,#d97706)':'linear-gradient(135deg,#8b5cf6,#6d28d9)';
+      var label=type==='game'?'games':'projects';
+      var filtered=items.filter(function(item){
+        if(!item.subject&&!item.class)return true;
+        return(!item.subject||item.subject===sub)&&(!item.class||String(item.class)===String(cls));
+      });
+      if(!filtered.length)return '<div style="padding:40px;text-align:center;color:var(--mut)">No '+label+' found.</div>';
+      var h='<div style="padding:15px">';
+      filtered.forEach(function(item,idx){
+        var ri=items.indexOf(item);
+        var cid=label+'_content_'+ri;
+        h+='<div class="ch-row" style="background:'+grad+';margin-bottom:4px;" onclick="toggleContent('+q(cid)+','+ri+','+q(type)+')"><span>'+icon+' '+(item.title||'Item')+'</span>'+(item.topic?'<span style="font-size:.75rem;opacity:.8">📂 '+sanitizeHTML(item.topic)+'</span>':'')+'<span>▶ Open</span></div>';
+        h+='<div id="'+cid+'" class="ch-content" style="padding:0;overflow:hidden;"></div>';
+      });
+      h+='</div>';
+      return h;
+    }
+
+    function toggleContent(cid,index,type){
+      var cd=document.getElementById(cid);
+      if(!cd)return;
+      if(cd.classList.contains('show')){
+        cd.classList.remove('show');
+        cd.innerHTML='';
+        return;
+      }
+      var allOpen=document.querySelectorAll('.ch-content.show');
+      allOpen.forEach(function(g){g.classList.remove('show');g.innerHTML=''});
+
+      var dataSource=type==='game'?DB.games:DB.projects;
+      var items=getArr(dataSource);
+      var itemData=items[index];
+
+      if(!itemData||!itemData.content){
+        cd.innerHTML='<p style="padding:20px;color:#ef4444;">Content not found!</p>';
+        cd.classList.add('show');
+        return;
+      }
+
+      var content=itemData.content||'';
+      var isFullHTML=content.trim().toLowerCase().indexOf('<!doctype')===0||content.trim().toLowerCase().indexOf('<html')===0;
+
+      if(type==='game'||isFullHTML){
+        var container=document.createElement('div');
+        container.className='game-iframe-container';
+        var iframe=document.createElement('iframe');
+        iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-pointer-lock allow-orientation-lock allow-presentation');
+        iframe.setAttribute('allow','accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+        iframe.setAttribute('allowfullscreen','true');
+        var gh=isFullHTML?content:'<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>body{margin:0;padding:10px;font-family:Arial;background:#fff;color:#000}</style></head><body>'+content+'</body></html>';
+        iframe.srcdoc=gh;
+        container.appendChild(iframe);
+        cd.appendChild(container);
+      }else{
+        cd.style.padding='20px';
+        cd.style.background='rgba(0,0,0,.25)';
+        cd.innerHTML='<div style="line-height:1.8;color:#f8fafc">'+content+'</div>';
+      }
+      cd.classList.add('show');
+      cd.scrollIntoView({behavior:'smooth'});
+    }
+
+    function launchMM(k){
+      var found=null;
+      if(DB.mindmap&&DB.mindmap[k])found=DB.mindmap[k];
+      if(!found){
+        var am=getArr(DB.mindmap);
+        found=am.find(function(m){return m.key===k||m.title===k});
+      }
+      if(!found){
+        alert('Not found');
+        return;
+      }
+
+      document.getElementById('shell').style.display='none';
+      document.getElementById('mm-inline').style.display='block';
+      var tc=document.getElementById('mmTheoryContainer');
+      var c=found.content||found.title||'';
+      var t=found.title||'Content';
+      c=c.replace(/<script[\s\S]*?<\/script>/gi,'');
+      if(!/<[a-z][\s\S]*>/i.test(c)){
+        c='<pre style="white-space:pre-wrap;font-family:var(--font)">'+sanitizeHTML(c)+'</pre>';
+      }
+      tc.innerHTML='<h2 style="margin-bottom:15px;color:var(--txt)">🧠 '+sanitizeHTML(t)+'</h2><div>'+c+'</div>';
+      var imgs=tc.querySelectorAll('img');
+      imgs.forEach(function(img){
+        img.style.maxWidth='100%';
+        img.style.cursor='pointer';
+        img.onclick=function(){
+          var safeSrc=this.src;
+          if(/^https?:\/\//i.test(safeSrc)){
+            openModal(safeSrc);
+          }
+        };
+      });
+      tc.scrollTop=0;
+    }
+
+    function closeInlineMM(){
+      document.getElementById('mm-inline').style.display='none';
+      document.getElementById('shell').style.display='block';
+    }
+
+    // Quiz
+    function renderQuizHTML(d,g){
+      var p='Class'+cls+'_'+sub;
+      var ch={};
+      Object.keys(d).forEach(function(k){
+        if(k.indexOf(p)===0){
+          var m=k.match(/Chapter(.+)$/),cn=m?m[1]:'General';
+          if(!ch[cn])ch[cn]=[];
+          ch[cn].push(k);
+        }
+      });
+      var ck=Object.keys(ch).sort(function(a,b){
+        return(parseInt(a.replace(/\D/g,''))||0)-(parseInt(b.replace(/\D/g,''))||0)||a.localeCompare(b);
+      });
+      if(!ck.length)return '<div style="padding:40px;text-align:center;color:var(--mut)">No quizzes found.</div>';
+
+      var h='';
+      ck.forEach(function(cn){
+        var cid='qc_'+cn.replace(/[^a-z0-9]/gi,'_');
+        h+='<div class="ch-row" style="background:'+g+'" onclick="tog('+q(cid)+')"><span>Chapter '+sanitizeHTML(cn)+'</span><span>View [+]</span></div>';
+        h+='<div id="'+cid+'" class="ch-content">'+renderChapterNested(d,ch[cn],g)+'</div>';
+      });
+      return h;
+    }
+
+    function renderChapterNested(d,keys,g){
+      var topics=[];
+      keys.forEach(function(qk){
+        var qs=d[qk];
+        if(!qs||!Array.isArray(qs)||!qs.length)return;
+        qs.forEach(function(qOne){
+          var tp=qOne.topic||'General';
+          var stp=qOne.subtopic||'All Questions';
+          var tObj=null;
+          for(var i=0;i<topics.length;i++){
+            if(topics[i].name===tp){tObj=topics[i];break}
+          }
+          if(!tObj){
+            tObj={name:tp,subs:[]};
+            topics.push(tObj);
+          }
+          var sObj=null;
+          for(var j=0;j<tObj.subs.length;j++){
+            if(tObj.subs[j].name===stp)sObj=tObj.subs[j];
+          }
+          if(!sObj){
+            sObj={name:stp,keys:[]};
+            tObj.subs.push(sObj);
+          }
+          if(sObj.keys.indexOf(qk)===-1)sObj.keys.push(qk);
+        });
+      });
+
+      if(!topics.length){
+        return '<div style="padding:20px;color:var(--mut)">No questions</div>';
+      }
+
+      var h='';
+      topics.forEach(function(tp,ti){
+        var tid='qt'+ti;
+        h+='<div class="nested-row" style="background:linear-gradient(135deg,'+g+',#1e293b)" onclick="tog('+q(tid)+')"><span>📘 '+sanitizeHTML(tp.name)+'</span><span>['+(tp.subs.length)+'] View [+]</span></div>';
+        h+='<div id="'+tid+'" class="nested-sub"><div class="nested-list">';
+        tp.subs.forEach(function(sb,si){
+          var sid='qs'+ti+'_'+si;
+          h+='<div class="nested-row sub" style="background:'+g+'" onclick="tog('+q(sid)+')"><span>📎 '+sanitizeHTML(sb.name)+' ('+sb.keys.length+' Sets)</span><span>View [+]</span></div>';
+          h+='<div id="'+sid+'" class="nested-sub">';
+          sb.keys.forEach(function(qk){
+            var qsArr=d[qk];
+            if(qsArr&&Array.isArray(qsArr)&&qsArr.length){
+              var cnt=qsArr.filter(function(qOne){return (qOne.topic||'General')===tp.name&&(qOne.subtopic||'All Questions')===sb.name}).length;
+              if(!cnt)return;
+              var tc=Math.ceil(cnt/10);
+              for(var t=1;t<=tc;t++){
+                var st=(t-1)*10,end=Math.min(st+10,cnt);
+                h+='<button class="q-chip" style="background:'+g+'" onclick="launchQ('+q(qk)+','+q(tp.name)+','+q(sb.name)+','+st+','+end+','+q(g.replace(/'/g,"\\'"))+')">Test '+t+'<br><small>Q'+(st+1)+'-'+end+' ('+(end-st)+' Qs)</small></button>';
+              }
+            }
+          });
+          h+='</div>';
+        });
+        h+='</div></div>';
+      });
+      return h;
+    }
+
+    function launchQ(k,tp,stp,s,e,c){
+      var d=DB.quiz[k];
+      if(!d||!Array.isArray(d)){
+        alert('Not found');
+        return;
+      }
+      // Guard against empty quiz
+      if(d.length===0){
+        alert('No questions found in this quiz');
+        return;
+      }
+      // filter by topic/subtopic
+      var sel=[];
+      for(var i=0;i<d.length;i++){
+        var qOne=d[i];
+        if(qOne&&(qOne.topic||'General')===tp&&(qOne.subtopic||'All Questions')===stp)sel.push(qOne);
+      }
+      if(!sel.length)sel=d.slice(s,e);
+      else sel=sel.slice(s,e);
+      if(!sel.length){
+        alert('No questions in this test');
+        return;
+      }
+      qActive=sel;
+      qIdx=0;
+      qMarked=(new Array(qActive.length)).fill(false);
+      qSaved=(new Array(qActive.length)).fill(false);
+      qVisited=(new Array(qActive.length)).fill(false);
+      qAns=new Array(qActive.length).fill(null);
+      document.getElementById('shell').style.display='none';
+      document.getElementById('mm-inline').style.display='none';
+      var p=document.getElementById('quiz-player');
+      p.style.display='block';
+      p.dataset.theme=c;
+      qSec=0;
+      stopQT();
+      qTimer=setInterval(function(){
+        qSec++;
+        var el=document.getElementById('qt');
+        if(el)el.innerText='⏱ '+pad2(Math.floor(qSec/60))+':'+pad2(qSec%60);
+        updateExamStats();
+      },1000);
+      renderQ();
+    }
+
+    function pad2(n){return(n<10?'0':'')+n}
+    function qAnsSel(i){
+      return qAns[i]||null;
+    }
+    function examStatus(i){
+      if(qMarked[i])return'mk';
+      if(qAns[i]&&qSaved[i])return'an';
+      if(qAns[i]&&!qSaved[i])return'na';
+      if(qVisited[i])return'na';
+      return'nv';
+    }
+    function updateExamStats(){
+      var answered=0,mk=0,na=0,nv=0;
+      for(var i=0;i<qActive.length;i++){
+        var st=examStatus(i);
+        if(st==='an')answered++;
+        else if(st==='mk')mk++;
+        else if(st==='na')na++;
+        else nv++;
+      }
+      var el=document.getElementById('exam-stats');
+      if(el)el.innerHTML='<span>✅ Answered: <b>'+answered+'</b></span><span>🟣 Marked: <b>'+mk+'</b></span><span>🔴 Not Answered: <b>'+na+'</b></span><span>⚪ Not Visited: <b>'+nv+'</b></span>';
+    }
+
+    function renderQ(){
+      var currQ=qActive[qIdx];
+      if(!currQ){
+        closeQ();
+        return;
+      }
+      qVisited[qIdx]=true;
+      var c=document.getElementById('quiz-player').dataset.theme||'';
+      var m=pad2(Math.floor(qSec/60)),s=pad2(qSec%60);
+      var selected=qAnsSel(qIdx);
+
+      var pal='<div class="palette-grid">';
+      for(var i=0;i<qActive.length;i++){
+        var st=examStatus(i);
+        pal+='<button class="pal-btn '+st+(i===qIdx?' cur':'')+'" onclick="goQ('+i+')">'+(i+1)+'</button>';
+      }
+      pal+='</div>';
+
+      var html='<div class="q-panel">';
+      html+='<div class="exam-toolbar">';
+      html+='<button class="btn btn-dark" onclick="confirmCloseQ()">← Back</button>';
+      html+='<span class="btn" style="background:'+c+'">Q '+(qIdx+1)+'/'+qActive.length+'</span>';
+      html+='<span class="btn btn-dark notranslate" id="qt">⏱ '+m+':'+s+'</span>';
+      html+='<button class="btn btn-red" onclick="confirmCloseQ()">✕ Exit</button>';
+      html+='</div>';
+      html+='<div class="exam-stats" id="exam-stats"></div>';
+      html+='<div style="font-size:1.15rem;font-weight:800;margin-bottom:18px;">Q'+(qIdx+1)+'. '+sanitizeHTML(currQ.question||'')+'</div>';
+
+      if(currQ.options){
+        ['A','B','C','D'].forEach(function(o){
+          if(currQ.options[o]){
+            html+='<button class="exam-opt '+(selected===o?'selected':'')+'" onclick="answerQ('+q(o)+')"><span class="opt-letter">'+o+'</span><span>'+sanitizeHTML(currQ.options[o])+'</span></button>';
+          }
+        });
+      }
+
+      html+='<div class="exam-btn-row">';
+      html+='<button class="btn btn-dark" onclick="clearQ()">🧹 Clear</button>';
+      html+='<button class="btn btn-purple" onclick="markQ()">🔖 Mark for Review & Next</button>';
+      html+='<button class="btn btn-green" onclick="saveQ()">💾 Save & Next</button>';
+      html+='</div>';
+      html+='<div class="exam-btn-row">';
+      html+='<button class="btn btn-dark" onclick="confirmCloseQ()">← Back</button>';
+      html+='<button class="btn btn-dark" onclick="prevQ()" '+(qIdx===0?'disabled':'')+'>◀ Prev</button>';
+      var hasAnswered=false;
+      for(var j=0;j<qActive.length;j++){
+        if(qAns[j]&&qSaved[j]){hasAnswered=true;break}
+      }
+      html+='<button class="btn btn-orange" onclick="finishQ()" '+(hasAnswered?'':'')+'>🏁 Submit Exam</button>';
+      html+='</div>';
+      html+='</div>';
+
+      var wrap='<div class="exam-wrap">';
+      wrap+='<div class="exam-main">'+html+'</div>';
+      wrap+='<div class="exam-palette">';
+      wrap+='<div class="exam-legend"><span><i class="legend-dot nv"></i>Not Visited</span><span><i class="legend-dot an"></i>Answered</span><span><i class="legend-dot na"></i>Not Answered</span><span><i class="legend-dot mk"></i>Marked</span></div>';
+      wrap+=pal;
+      wrap+='</div>';
+      wrap+='</div>';
+
+      document.getElementById('quiz-player').innerHTML=wrap;
+      updateExamStats();
+    }
+
+    function answerQ(o){
+      qAns[qIdx]=o;
+      renderQ();
+    }
+
+    function saveQ(){
+      var has=qAns[qIdx];
+      if(!has&&qIdx<qActive.length-1){qIdx++;qVisited[qIdx]=true;renderQ();return}
+      qSaved[qIdx]=true;
+      if(qIdx<qActive.length-1){qIdx++;qVisited[qIdx]=true}
+      renderQ();
+    }
+
+    function markQ(){
+      if(qAns[qIdx])qSaved[qIdx]=true;
+      qMarked[qIdx]=true;
+      if(qIdx<qActive.length-1){qIdx++;qVisited[qIdx]=true}
+      renderQ();
+    }
+
+    function clearQ(){
+      qAns[qIdx]=null;
+      qSaved[qIdx]=false;
+      renderQ();
+    }
+
+    function goQ(i){
+      if(i>=0&&i<qActive.length){qIdx=i;qVisited[i]=true;renderQ()}
+    }
+
+    function prevQ(){
+      if(qIdx>0){qIdx--;qVisited[qIdx]=true;renderQ()}
+    }
+
+    function nextQ(){
+      if(qIdx<qActive.length-1){qIdx++;qVisited[qIdx]=true;renderQ()}
+      else{finishQ()}
+    }
+
+    function stopQT(){
+      if(qTimer){clearInterval(qTimer);qTimer=null}
+    }
+
+    function confirmCloseQ(){
+      if(confirm('Exit quiz?'))closeQ()
+    }
+
+    function closeQ(){
+      stopQT();
+      document.getElementById('quiz-player').style.display='none';
+      document.getElementById('shell').style.display='block';
+    }
+
+    function finishQ(){
+      stopQT();
+      var t=qActive.length;
+      // Guard against zero division
+      if(t===0){
+        alert('No questions to evaluate');
+        closeQ();
+        return;
+      }
+
+      var ok=0,w=0,sk=0;
+      for(var i=0;i<qAns.length;i++){
+        if(!qAns[i]||!qSaved[i])sk++;
+        else if(qAns[i]===qActive[i].correctAnswer)ok++;
+        else w++;
+      }
+      var p=Math.round((ok/t)*100);
+      var c=document.getElementById('quiz-player').dataset.theme||'';
+      var g,gc;
+      if(p>=90){g='Excellent!';gc='#22c55e'}
+      else if(p>=75){g='Very Good!';gc='#3b82f6'}
+      else if(p>=60){g='Good';gc='#f59e0b'}
+      else if(p>=40){g='Need Practice';gc='#f97316'}
+      else{g='Keep Trying!';gc='#ef4444'}
+
+      var ts=pad2(Math.floor(qSec/60))+':'+pad2(qSec%60);
+
+      var h='<div class="results-container">';
+      h+='<div class="exam-toolbar" style="margin-bottom:16px;">';
+      h+='<button class="btn btn-blue" onclick="closeQ()">← Back</button>';
+      h+='<span class="btn" style="background:'+c+'">📝 Quiz Result</span>';
+      h+='<button class="btn btn-green" onclick="retakeQuiz()">🔄 Retake</button>';
+      h+='</div>';
+      h+='<div class="results-header">';
+      h+='<div class="results-score" style="background:'+c+';-webkit-background-clip:text;-webkit-text-fill-color:transparent;">'+p+'%</div>';
+      h+='<p style="font-size:1.5rem;font-weight:900;color:'+gc+';">'+g+'</p>';
+      h+='<div class="results-summary">';
+      h+='<div class="results-summary-item"><div class="val" style="color:#22c55e;">'+ok+'</div><div class="lbl">✅ Correct</div></div>';
+      h+='<div class="results-summary-item"><div class="val" style="color:#ef4444;">'+w+'</div><div class="lbl">❌ Wrong</div></div>';
+      h+='<div class="results-summary-item"><div class="val" style="color:#94a3b8;">'+sk+'</div><div class="lbl">⚠️ Skipped</div></div>';
+      h+='<div class="results-summary-item"><div class="val" style="color:#60a5fa;">'+t+'</div><div class="lbl">📝 Total</div></div>';
+      h+='<div class="results-summary-item notranslate"><div class="val" style="color:#f59e0b;">Timer</div><div class="lbl">'+ts+'</div></div>';
+      h+='</div></div>';
+      h+='<h3>📋 Detailed Review:</h3>';
+
+      for(var j=0;j<qActive.length;j++){
+        var qq=qActive[j],an=qAns[j];
+        var wasSaved=qSaved[j];
+        var ic=wasSaved&&an===qq.correctAnswer,iw=wasSaved&&an&&an!==qq.correctAnswer,isk=!wasSaved||!an;
+        var qc=ic?'correct-q':(iw?'wrong-q':'skipped-q');
+        var sc=ic?'correct':(iw?'wrong':'skipped');
+        var st=ic?'✓ Correct':(iw?'✗ Wrong':'⚠ Skipped');
+        var correctOpt='';
+        if(qq.options&&qq.options[qq.correctAnswer]){
+          correctOpt=sanitizeHTML(qq.options[qq.correctAnswer]);
+        }
+
+        h+='<div class="result-item">';
+        h+='<span class="result-qno '+qc+'">'+(j+1)+'</span>';
+        h+='<span class="result-status '+sc+'">'+st+'</span>';
+        h+='<div class="result-question">'+sanitizeHTML(qq.question||'Question')+'</div>';
+        h+='<div class="result-option correct-answer">✅ Correct: '+qq.correctAnswer+') '+correctOpt+'</div>';
+
+        if(iw){
+          var userOpt='';
+          if(qq.options&&qq.options[an]){
+            userOpt=sanitizeHTML(qq.options[an]);
+          }
+          h+='<div class="result-option user-wrong">❌ Your Answer: '+an+') '+userOpt+'</div>';
+        }else if(ic){
+          var userOpt='';
+          if(qq.options&&qq.options[an]){
+            userOpt=sanitizeHTML(qq.options[an]);
+          }
+          h+='<div class="result-option user-correct">✅ Your Answer: '+an+') '+userOpt+'</div>';
+        }
+
+        if(qq.explanation){
+          h+='<div class="result-explanation">💡 '+sanitizeHTML(qq.explanation)+'</div>';
+        }
+        h+='</div>';
+      }
+
+      h+='<div style="text-align:center;margin-top:30px;display:flex;gap:12px;justify-content:center;">';
+      h+='<button class="btn btn-blue" onclick="closeQ()">📚 Back</button>';
+      h+='<button class="btn btn-green" onclick="retakeQuiz()">🔄 Retake</button>';
+      h+='</div></div>';
+
+      document.getElementById('quiz-player').innerHTML=h;
+    }
+
+    function retakeQuiz(){
+      qIdx=0;
+      qMarked=(new Array(qActive.length)).fill(false);
+      qSaved=(new Array(qActive.length)).fill(false);
+      qVisited=(new Array(qActive.length)).fill(false);
+      qAns=new Array(qActive.length).fill(null);
+      qSec=0;
+      stopQT();
+      qTimer=setInterval(function(){
+        qSec++;
+        var el=document.getElementById('qt');
+        if(el)el.innerText='⏱ '+pad2(Math.floor(qSec/60))+':'+pad2(qSec%60);
+      },1000);
+      renderQ();
+    }
+
+    function switchMode(m){
+      mode=m;
+      document.getElementById('quiz-player').style.display='none';
+      document.getElementById('mm-inline').style.display='none';
+      stopQT();
+      document.getElementById('shell').style.display='block';
+      if(m==='learning')studyType='theory';
+      refreshUI();
+    }
+
+    function setStudyType(t){studyType=t;refreshUI()}
+    function setSub(i){sub=i;refreshUI()}
+    function setCls(n){cls=n;refreshUI()}
+    function setSkill(c){skillCat=c;refreshUI()}
+
+    function initApp(){
+      db.ref('appSettings').on('value',function(s){
+        var v=s.val()||{};
+        settings.loginEnabled=v.loginEnabled!==undefined?v.loginEnabled:true;
+        settings.copyEnabled=v.copyEnabled!==undefined?v.copyEnabled:false;
+        settings.users=v.users||{};
+        settings.guestAutoLogin=v.guestAutoLogin!==undefined?v.guestAutoLogin:false;
+        settings.guestId=v.guestId||DEFAULT_GUEST_ID;
+        settings.guestPass=v.guestPass||DEFAULT_GUEST_PASS;
+        checkAuth();
+      });
+      db.ref('activeSessions').on('value',function(s){
+        activeSessions=s.val()||{};
+        checkAuth();
+      });
+      loadAllData(function(){
+        if(currentUser.phone||!settings.loginEnabled)refreshUI();
+      });
+    }
+  </script>
+</body>
+</html>
