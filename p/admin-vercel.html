@@ -156,8 +156,49 @@
     <div class="admin-content" id="admin-content"><div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div></div>
   </div></div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+// --- Vercel KV కి కనెక్ట్ అయ్యే కొత్త కోడ్ ---
+    var db = {
+      ref: function(path) {
+        return {
+          once: function(event) {
+            return fetch('/api/db?path=' + path)
+              .then(function(res){ return res.json(); })
+              .then(function(data){ return { val: function(){ return data.result; } }; });
+          },
+          set: function(data) {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'set', path: path, data: data })
+            }).then(function(res){ return res.json(); });
+          },
+          update: function(data) {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'update', path: path, data: data })
+            }).then(function(res){ return res.json(); });
+          },
+          remove: function() {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'remove', path: path })
+            }).then(function(res){ return res.json(); });
+          },
+          on: function(event, callback) {
+            function fetchIt() {
+              fetch('/api/db?path=' + path)
+                .then(function(res){ return res.json(); })
+                .then(function(data){ callback({ val: function(){ return data.result; } }); })
+                .catch(function(err){ console.error("DB Error:", err); });
+            }
+            fetchIt();
+            setInterval(fetchIt, 15000); 
+          }
+        };
+      }
+    };
   <script>
     function loadSheetJS(cb){
       if(window.XLSX){cb();return}
@@ -186,7 +227,7 @@
       })
       .catch(function(error) {
         console.error("Config లోడ్ అవ్వలేదు:", error);
-        toast('Database connection failed. Please check Vercel environment variables.', 'error');
+        toast('. Please check Vercel enviDatabase connection failedronment variables.', 'error');
       });
 
     var DEFAULT_ADMIN_ID='admin',DEFAULT_ADMIN_PASS='admin123',DEFAULT_GUEST_ID='guest',DEFAULT_GUEST_PASS='guest123';
