@@ -9,7 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet"></noscript>
   <style>
-    /* మీ పాత CSS స్టైల్స్ అన్నీ యధావిధిగా ఉంటాయి */
     :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px}
     body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
     *,::before,::after{margin:0;padding:0;box-sizing:border-box}
@@ -184,12 +183,15 @@
 
   <div id="img-modal" class="modal" onclick="closeModal()"><span class="modal-close">×</span><img id="modal-img" src=""></div>
 
-// --- Vercel KV కి కనెక్ట్ అయ్యే కొత్త కోడ్ ---
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
+
+  <script>
+    // --- Vercel KV Database Connector (Replaces Firebase) ---
     var db = {
       ref: function(path) {
         return {
           once: function(event) {
-            return fetch('/api/db?path=' + path)
+            return fetch('/api/db?path=' + encodeURIComponent(path))
               .then(function(res){ return res.json(); })
               .then(function(data){ return { val: function(){ return data.result; } }; });
           },
@@ -200,15 +202,29 @@
               body: JSON.stringify({ action: 'set', path: path, data: data })
             }).then(function(res){ return res.json(); });
           },
+          update: function(data) {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'update', path: path, data: data })
+            }).then(function(res){ return res.json(); });
+          },
+          remove: function() {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'remove', path: path })
+            }).then(function(res){ return res.json(); });
+          },
           on: function(event, callback) {
             function fetchIt() {
-              fetch('/api/db?path=' + path)
+              fetch('/api/db?path=' + encodeURIComponent(path))
                 .then(function(res){ return res.json(); })
                 .then(function(data){ callback({ val: function(){ return data.result; } }); })
                 .catch(function(err){ console.error("DB Error:", err); });
             }
             fetchIt();
-            setInterval(fetchIt, 15000); // ఫైర్‌బేస్ లాగే ఎప్పటికప్పుడు అప్‌డేట్ అవ్వడానికి
+            setInterval(fetchIt, 15000); 
           }
         };
       }
@@ -219,28 +235,6 @@
     } else {
       initApp();
     }
-  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
-
-  <script>
-    // --- VERCEL API నుండి కీలు తెచ్చుకునే కొత్త కోడ్ ఇక్కడే ఉంది ---
-    var db;
-    
-    fetch('/api/config')
-      .then(function(response) { return response.json(); })
-      .then(function(config) {
-        firebase.initializeApp(config);
-        db = firebase.database();
-        
-        if(document.readyState==='loading') {
-          document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-          initApp();
-        }
-      })
-      .catch(function(error) {
-        console.error("Config లోడ్ అవ్వలేదు:", error);
-        alert('Database connection failed. Please check Vercel environment variables.');
-      });
 
     var newsWithLinks=[{text:'🎓 Class 10 Maths - New Study Materials',action:function(){switchMode('learning');sub='Maths';cls=10;studyType='theory';refreshUI()}},{text:'📚 Science Quiz - 500+ Questions',action:function(){switchMode('learning');sub='Science';studyType='quiz';refreshUI()}},{text:'💡 Explore Skills',action:function(){switchMode('skills');refreshUI()}},{text:'🎮 Play Games',action:function(){switchMode('learning');studyType='games';refreshUI()}},{text:'🔬 Science Projects',action:function(){switchMode('learning');studyType='projects';refreshUI()}}];
 
@@ -360,12 +354,10 @@
       if(el)el.classList.toggle('show');
     }
 
-    // SECURED: Validate URL before opening modal to prevent XSS
     function openModal(d){
       if(!d)return;
       try{
         var decoded=decodeURIComponent(d);
-        // Validate it's a safe image URL
         if(!/^https?:\/\//i.test(decoded)){
           console.error('Invalid image URL');
           return;
@@ -385,7 +377,6 @@
       document.getElementById('img-modal').classList.remove('show');
     }
 
-    // Auth
     function checkAuth(){
       var o=document.getElementById('login-overlay');
       var ph=localStorage.getItem('cs_st_ph');
@@ -553,7 +544,6 @@
       if(as.length&&!as.find(function(s){return s.id===sub}))sub=as[0].id;
       if(ac.length&&ac.indexOf(cls)===-1)cls=ac[0];
 
-      // ===== SKILLS MODE =====
       if(mode==='skills'){
         sr.innerHTML=SKILLS.map(function(c){
           return '<button class="btn-sub '+(skillCat===c?'active':'')+'" style="background:linear-gradient(135deg,#db2777,#be185d)" onclick="setSkill('+q(c)+')">'+(skillCat===c?'✔ ':'')+sanitizeHTML(c)+'</button>';
@@ -582,7 +572,6 @@
         return;
       }
 
-      // ===== LEARNING MODE =====
       var so=SUBJECTS.find(function(s){return s.id===sub});
       sr.innerHTML=as.map(function(s){
         return '<button class="btn-sub '+(sub===s.id?'active':'')+'" style="background:'+s.grad+'" onclick="setSub('+q(s.id)+')">'+((sub===s.id?'✔ ':'')+s.name)+'</button>';
@@ -595,7 +584,6 @@
         return;
       }
 
-      // Banner
       var bannerGrad=so.grad,bannerTitle=so.name,bannerSubtitle='Class '+cls;
       if(studyType==='games'){bannerGrad='linear-gradient(135deg,#f59e0b,#d97706)';bannerTitle='🎮 Games';bannerSubtitle='Learn & Play - '+so.name+' Class '+cls}
       else if(studyType==='projects'){bannerGrad='linear-gradient(135deg,#8b5cf6,#6d28d9)';bannerTitle='🔬 Projects';bannerSubtitle='Explore & Create - '+so.name+' Class '+cls}
@@ -610,7 +598,6 @@
 
       var fullHTML='<div class="banner" style="background:'+bannerGrad+'"><h1>'+bannerTitle+'</h1><p>'+bannerSubtitle+'</p></div>'+tabsHTML;
 
-      // Content
       if(studyType==='theory')fullHTML+=renderListHTML(DB.theory,so.grad,true);
       else if(studyType==='mindmap')fullHTML+=renderMMListHTML(DB.mindmap,so.grad);
       else if(studyType==='quiz')fullHTML+=renderQuizHTML(DB.quiz,so.grad);
@@ -764,7 +751,6 @@
       document.getElementById('shell').style.display='block';
     }
 
-    // Quiz
     function renderQuizHTML(d,g){
       var p='Class'+cls+'_'+sub;
       var ch={};
@@ -855,12 +841,10 @@
         alert('Not found');
         return;
       }
-      // Guard against empty quiz
       if(d.length===0){
         alert('No questions found in this quiz');
         return;
       }
-      // filter by topic/subtopic
       var sel=[];
       for(var i=0;i<d.length;i++){
         var qOne=d[i];
@@ -895,9 +879,7 @@
     }
 
     function pad2(n){return(n<10?'0':'')+n}
-    function qAnsSel(i){
-      return qAns[i]||null;
-    }
+    function qAnsSel(i){ return qAns[i]||null; }
     function examStatus(i){
       if(qMarked[i])return'mk';
       if(qAns[i]&&qSaved[i])return'an';
@@ -982,11 +964,7 @@
       updateExamStats();
     }
 
-    function answerQ(o){
-      qAns[qIdx]=o;
-      renderQ();
-    }
-
+    function answerQ(o){ qAns[qIdx]=o; renderQ(); }
     function saveQ(){
       var has=qAns[qIdx];
       if(!has&&qIdx<qActive.length-1){qIdx++;qVisited[qIdx]=true;renderQ();return}
@@ -994,41 +972,21 @@
       if(qIdx<qActive.length-1){qIdx++;qVisited[qIdx]=true}
       renderQ();
     }
-
     function markQ(){
       if(qAns[qIdx])qSaved[qIdx]=true;
       qMarked[qIdx]=true;
       if(qIdx<qActive.length-1){qIdx++;qVisited[qIdx]=true}
       renderQ();
     }
-
-    function clearQ(){
-      qAns[qIdx]=null;
-      qSaved[qIdx]=false;
-      renderQ();
-    }
-
-    function goQ(i){
-      if(i>=0&&i<qActive.length){qIdx=i;qVisited[i]=true;renderQ()}
-    }
-
-    function prevQ(){
-      if(qIdx>0){qIdx--;qVisited[qIdx]=true;renderQ()}
-    }
-
+    function clearQ(){ qAns[qIdx]=null; qSaved[qIdx]=false; renderQ(); }
+    function goQ(i){ if(i>=0&&i<qActive.length){qIdx=i;qVisited[i]=true;renderQ()} }
+    function prevQ(){ if(qIdx>0){qIdx--;qVisited[qIdx]=true;renderQ()} }
     function nextQ(){
       if(qIdx<qActive.length-1){qIdx++;qVisited[qIdx]=true;renderQ()}
       else{finishQ()}
     }
-
-    function stopQT(){
-      if(qTimer){clearInterval(qTimer);qTimer=null}
-    }
-
-    function confirmCloseQ(){
-      if(confirm('Exit quiz?'))closeQ()
-    }
-
+    function stopQT(){ if(qTimer){clearInterval(qTimer);qTimer=null} }
+    function confirmCloseQ(){ if(confirm('Exit quiz?'))closeQ() }
     function closeQ(){
       stopQT();
       document.getElementById('quiz-player').style.display='none';
@@ -1038,7 +996,6 @@
     function finishQ(){
       stopQT();
       var t=qActive.length;
-      // Guard against zero division
       if(t===0){
         alert('No questions to evaluate');
         closeQ();
