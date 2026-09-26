@@ -9,7 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet"></noscript>
   <style>
-    /* మీ పాత CSS స్టైల్స్ అన్నీ యధావిధిగా ఉంటాయి */
     :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px}
     body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
     *,::before,::after{margin:0;padding:0;box-sizing:border-box}
@@ -156,12 +155,23 @@
     <div class="admin-content" id="admin-content"><div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div></div>
   </div></div>
 
-// --- Vercel KV కి కనెక్ట్ అయ్యే కొత్త కోడ్ ---
+  <script>
+    function loadSheetJS(cb){
+      if(window.XLSX){cb();return}
+      var s=document.createElement('script');
+      s.src='https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js';
+      s.onload=cb;s.onerror=function(){toast('Failed to load xlsx library','error');cb()};
+      document.head.appendChild(s);
+    }
+  </script>
+
+  <script>
+    // --- Vercel KV Database Connector for Admin (Replaces Firebase) ---
     var db = {
       ref: function(path) {
         return {
           once: function(event) {
-            return fetch('/api/db?path=' + path)
+            return fetch('/api/db?path=' + encodeURIComponent(path))
               .then(function(res){ return res.json(); })
               .then(function(data){ return { val: function(){ return data.result; } }; });
           },
@@ -186,9 +196,23 @@
               body: JSON.stringify({ action: 'remove', path: path })
             }).then(function(res){ return res.json(); });
           },
+          push: function() {
+            var newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            var pushPath = path + '/' + newKey;
+            return {
+              key: newKey,
+              set: function(data) {
+                return fetch('/api/db', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'set', path: pushPath, data: data })
+                }).then(function(res){ return res.json(); });
+              }
+            };
+          },
           on: function(event, callback) {
             function fetchIt() {
-              fetch('/api/db?path=' + path)
+              fetch('/api/db?path=' + encodeURIComponent(path))
                 .then(function(res){ return res.json(); })
                 .then(function(data){ callback({ val: function(){ return data.result; } }); })
                 .catch(function(err){ console.error("DB Error:", err); });
@@ -199,36 +223,6 @@
         };
       }
     };
-  <script>
-    function loadSheetJS(cb){
-      if(window.XLSX){cb();return}
-      var s=document.createElement('script');
-      s.src='https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js';
-      s.onload=cb;s.onerror=function(){toast('Failed to load xlsx library','error');cb()};
-      document.head.appendChild(s);
-    }
-  </script>
-
-  <script>
-    // --- VERCEL API నుండి కీలు తెచ్చుకునే కొత్త కోడ్ ఇక్కడే ఉంది ---
-    var db;
-    
-    fetch('/api/config')
-      .then(function(response) { return response.json(); })
-      .then(function(config) {
-        firebase.initializeApp(config);
-        db = firebase.database();
-        
-        if(document.readyState==='loading') {
-          document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-          initApp();
-        }
-      })
-      .catch(function(error) {
-        console.error("Config లోడ్ అవ్వలేదు:", error);
-        toast('. Please check Vercel enviDatabase connection failedronment variables.', 'error');
-      });
 
     var DEFAULT_ADMIN_ID='admin',DEFAULT_ADMIN_PASS='admin123',DEFAULT_GUEST_ID='guest',DEFAULT_GUEST_PASS='guest123';
     var adminPhone='',adminToken='';
@@ -860,7 +854,6 @@
       var csv='';
 
       if(iq){
-        // FIX: Include all 4 options (A, B, C, D) in CSV export
         csv='Class,Subject,Chapter,Topic,Subtopic,Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer,Explanation\n';
         for(var i=0;i<ks.length;i++){
           var g=data[ks[i]];
@@ -900,9 +893,6 @@
       else if(line.indexOf(',')!==-1)delim=',';
       else if(line.indexOf('|')!==-1)delim='|';
 
-      // Proper quoted-field splitter: a field is quoted only when it STARTS with ".
-      // Inside quotes, "" is an escaped quote; HTML/SVG double-quotes inside unquoted
-      // fields (e.g. <svg width="10">) are preserved literally.
       var res=[],cur='',iq=false,fieldStart=true;
       for(var i=0;i<line.length;i++){
         var ch=line[i];
@@ -1063,7 +1053,6 @@
       for(var i=0;i<tables.length;i++){
         var trs=tables[i].querySelectorAll('tr');
         var headerKeys=[];
-        // first row becomes headers if it contains <th>
         if(trs.length){
           var hCells=trs[0].querySelectorAll('th');
           if(hCells.length){
@@ -1137,7 +1126,6 @@
       var isQuiz=(currentTab==='quiz');
       var keys=Object.keys(rows[0]||{});
 
-      // classify columns
       function findKey(names){
         for(var i=0;i<names.length;i++){
           var want=names[i].toLowerCase().replace(/[\s_\-]/g,'');
@@ -1260,7 +1248,6 @@
         var ans=kCorrect?(String(r[kCorrect]||'').trim().toUpperCase().charAt(0)):'';
         var exp=kExp?(String(r[kExp]||'').trim()):'';
 
-        // Support JSON records with nested options {A,B,C,D} and correctAnswer field
         if(r&&r.options&&typeof r.options==='object'&&(!optA||!optB)){
           if(!optA)optA=String(r.options.A||r.options.a||'').trim();
           if(!optB)optB=String(r.options.B||r.options.b||'').trim();
@@ -1351,7 +1338,7 @@
           var title=r['Title']||r['title']||r['Name']||r['name']||r['col2']||'Skill';
           var content=r['Content']||r['content']||r['Body']||r['body']||r['col3']||'';
           var cat=subMapS[String(catTxt).toUpperCase().trim()]||String(catTxt).trim()||'Competitive skills';
-          items.push({title:String(title),content:String(content),category:cat,key:nothing(),imageUrls:[]});
+          items.push({title:String(title),content:String(content),category:cat,key:'',imageUrls:[]});
         });
         uploadContentItems(rp,items,st);
         return;
@@ -1380,7 +1367,7 @@
         }else{
           item.subject=sub;item.class=cn;item.topic=String(topicTxt);
         }
-        item.key=nothing();
+        item.key='';
         items.push(item);
       });
       uploadContentItems(rp,items,st);
@@ -1407,8 +1394,6 @@
       }
       nx();
     }
-
-    function nothing(){return''}
 
     function clearCSVData(){
       mappedRows=[];
@@ -1578,7 +1563,6 @@
       var content=getVal('ef-content');
       var images=getVal('ef-images');
 
-      // Decode textarea entities properly
       content=content.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&');
 
       var subject=getVal('ef-subject');
@@ -1714,13 +1698,11 @@
       document.querySelectorAll('.uf-subs:checked').forEach(function(c){subs.push(c.value)});
       document.querySelectorAll('.uf-clss:checked').forEach(function(c){clss.push(c.value)});
 
-      // Build complete updated user list including password
       var upd={};
       var uks=Object.keys(settings.users);
       for(var i=0;i<uks.length;i++)upd[uks[i]]=settings.users[uks[i]];
       if(orig&&orig!==phone)delete upd[orig];
 
-      // FIX: Always include the password field properly
       upd[phone]={pass:pass,modes:modes,subjects:subs,classes:clss};
 
       db.ref('appSettings/users').set(upd).then(function(){
@@ -1863,6 +1845,8 @@
         checkAuth();
       });
     }
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);
+    else initApp();
   </script>
 </body>
 </html>
