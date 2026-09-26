@@ -745,7 +745,7 @@
       document.getElementById('shell').style.display='block';
     }
 
-    function renderQuizHTML(d,g){
+function renderQuizHTML(d,g){
       var p='Class'+cls+'_'+sub;
       var ch={};
       Object.keys(d).forEach(function(k){
@@ -761,15 +761,16 @@
       if(!ck.length)return '<div style="padding:40px;text-align:center;color:var(--mut)">No quizzes found.</div>';
 
       var h='';
-      ck.forEach(function(cn){
+      ck.forEach(function(cn, cIndex){
         var cid='qc_'+cn.replace(/[^a-z0-9]/gi,'_');
         h+='<div class="ch-row" style="background:'+g+'" onclick="tog('+q(cid)+')"><span>Chapter '+sanitizeHTML(cn)+'</span><span>View [+]</span></div>';
-        h+='<div id="'+cid+'" class="ch-content">'+renderChapterNested(d,ch[cn],g)+'</div>';
+        // ఇక్కడ cIndex పాస్ చేస్తున్నాం ఐడీలు క్లాష్ అవ్వకుండా
+        h+='<div id="'+cid+'" class="ch-content">'+renderChapterNested(d,ch[cn],g,cIndex)+'</div>';
       });
       return h;
     }
 
-    function renderChapterNested(d,keys,g){
+    function renderChapterNested(d,keys,g,cIndex){
       var topics=[];
       keys.forEach(function(qk){
         var qs=d[qk];
@@ -803,11 +804,12 @@
 
       var h='';
       topics.forEach(function(tp,ti){
-        var tid='qt'+ti;
+        // cIndex ఉపయోగించి ప్రతీ చాప్టర్ కు వేర్వేరు IDs ఇస్తున్నాం
+        var tid='qt_'+cIndex+'_'+ti;
         h+='<div class="nested-row" style="background:linear-gradient(135deg,'+g+',#1e293b)" onclick="tog('+q(tid)+')"><span>📘 '+sanitizeHTML(tp.name)+'</span><span>['+(tp.subs.length)+'] View [+]</span></div>';
         h+='<div id="'+tid+'" class="nested-sub"><div class="nested-list">';
         tp.subs.forEach(function(sb,si){
-          var sid='qs'+ti+'_'+si;
+          var sid='qs_'+cIndex+'_'+ti+'_'+si;
           h+='<div class="nested-row sub" style="background:'+g+'" onclick="tog('+q(sid)+')"><span>📎 '+sanitizeHTML(sb.name)+' ('+sb.keys.length+' Sets)</span><span>View [+]</span></div>';
           h+='<div id="'+sid+'" class="nested-sub">';
           sb.keys.forEach(function(qk){
