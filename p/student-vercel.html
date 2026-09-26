@@ -186,7 +186,7 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
   <script>
-    // --- Vercel KV Database Connector (Replaces Firebase) ---
+    // --- Vercel KV Database Connector ---
     var db = {
       ref: function(path) {
         return {
@@ -229,12 +229,6 @@
         };
       }
     };
-
-    if(document.readyState==='loading') {
-      document.addEventListener('DOMContentLoaded', initApp);
-    } else {
-      initApp();
-    }
 
     var newsWithLinks=[{text:'🎓 Class 10 Maths - New Study Materials',action:function(){switchMode('learning');sub='Maths';cls=10;studyType='theory';refreshUI()}},{text:'📚 Science Quiz - 500+ Questions',action:function(){switchMode('learning');sub='Science';studyType='quiz';refreshUI()}},{text:'💡 Explore Skills',action:function(){switchMode('skills');refreshUI()}},{text:'🎮 Play Games',action:function(){switchMode('learning');studyType='games';refreshUI()}},{text:'🔬 Science Projects',action:function(){switchMode('learning');studyType='projects';refreshUI()}}];
 
@@ -1133,6 +1127,8 @@
         if(currentUser.phone||!settings.loginEnabled)refreshUI();
       });
     }
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);
+    else initApp();
   </script>
   <script src="/footer.js"></script>
 </body>
