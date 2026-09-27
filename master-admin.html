@@ -27,12 +27,12 @@
     button{cursor:pointer}
     a{text-decoration:none;color:inherit}
 
-    /* LOGIN */
+    /* LOGIN OVERLAY */
     #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
-    .login-box{width:min(420px,92%);background:var(--srf);border:1px solid var(--brd);border-radius:var(--r-lg);padding:42px 34px;text-align:center}
+    .login-box{width:min(420px,92%);background:var(--srf);border:1px solid var(--brd);border-radius:var(--r-lg);padding:42px 34px;text-align:center;box-shadow:0 25px 70px rgba(0,0,0,.6)}
     .login-box h1{font-size:2rem;font-weight:900;margin-bottom:10px;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
     .login-box p{color:var(--mut);margin-bottom:26px}
-    .login-inp,.form-inp{width:100%;padding:12px 15px;border:1px solid var(--brd);border-radius:var(--r-md);background:rgba(0,0,0,.18);color:var(--txt);outline:none;margin-bottom:14px}
+    .login-inp,.form-inp{width:100%;padding:12px 15px;border:1px solid var(--brd);border-radius:var(--r-md);background:rgba(0,0,0,.18);color:var(--txt);outline:none;margin-bottom:14px;transition:.2s}
     .form-inp:focus,.login-inp:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.18)}
     #login-error{color:var(--danger);font-weight:800;margin-top:12px;display:none}
 
@@ -42,23 +42,25 @@
     .sidebar-logo{padding:18px 10px 22px;margin-bottom:12px;border-bottom:1px solid var(--brd);text-align:center;font-family:'Fredoka One',cursive;font-size:1.4rem;color:#f59e0b}
     .sidebar-link{display:flex;align-items:center;gap:12px;padding:14px 16px;border-left:3px solid transparent;border-radius:8px;margin:7px 0;color:var(--mut);font-weight:800;cursor:pointer;transition:.2s}
     .sidebar-link:hover,.sidebar-link.active{color:#60a5fa;background:rgba(59,130,246,.12);border-left-color:var(--primary)}
+    .sidebar-link.danger{color:var(--danger);margin-top:30px;border-top:1px solid var(--brd);padding-top:20px}
     
     .content-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
     .top-bar{background:var(--srf);border-bottom:1px solid var(--brd);padding:16px 26px;display:flex;justify-content:space-between;align-items:center}
     .content-main{flex:1;overflow-y:auto;padding:30px}
     .page-section{display:none;max-width:1300px;margin:0 auto}
     .page-section.active{display:block;animation:fadeIn .2s}
-    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
     /* CARDS & UI */
-    .card{background:var(--srf);border:1px solid var(--brd);border-radius:var(--r-lg);padding:24px;margin-bottom:20px}
+    .card{background:var(--srf);border:1px solid var(--brd);border-radius:var(--r-lg);padding:24px;margin-bottom:20px;box-shadow:0 4px 15px rgba(0,0,0,.15)}
+    .card h3{margin-bottom:20px;font-size:1.2rem}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
     .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
     .form-group{margin-bottom:18px}
     .form-group label{display:block;margin-bottom:8px;font-weight:800}
     .btn{padding:11px 20px;border:none;border-radius:8px;font-weight:900;color:#fff;display:inline-flex;gap:8px;transition:.2s}
     .btn:hover{filter:brightness(1.15)}
-    .btn-primary{background:var(--primary)} .btn-success{background:var(--success)} .btn-danger{background:var(--danger)} .btn-secondary{background:var(--mut)}
+    .btn-primary{background:var(--primary)} .btn-success{background:var(--success)} .btn-danger{background:var(--danger)} .btn-secondary{background:var(--mut)} .btn-warning{background:var(--warning)}
     .btn-sm{padding:8px 14px;font-size:.8rem}
     .btn-wrap{display:flex;gap:10px;flex-wrap:wrap}
 
@@ -71,13 +73,13 @@
     /* BULK UPLOAD STYLES */
     .csv-box{background:rgba(14,165,233,.08);border:2px dashed #0ea5e9;border-radius:var(--r-md);padding:20px;margin-bottom:20px}
     .csv-fmt{background:rgba(0,0,0,.3);padding:12px;font-size:.8rem;color:var(--mut);border-radius:8px;margin:12px 0}
-    .dropzone{border:2px dashed #0ea5e9;padding:26px;text-align:center;cursor:pointer;border-radius:12px;background:rgba(14,165,233,.05);margin-bottom:12px}
+    .dropzone{border:2px dashed #0ea5e9;padding:26px;text-align:center;cursor:pointer;border-radius:12px;background:rgba(14,165,233,.05);margin-bottom:12px;transition:.2s}
     .dropzone.over{background:rgba(14,165,233,.15);border-color:#38bdf8}
     .upload-pv-table{width:100%;border-collapse:collapse;font-size:.75rem;margin-top:10px}
     .upload-pv-table th,.upload-pv-table td{border:1px solid var(--brd);padding:6px;text-align:left}
 
     /* TOAST */
-    #toast{position:fixed;right:20px;bottom:20px;z-index:9999;padding:14px 20px;border-radius:8px;color:#fff;font-weight:900;display:none}
+    #toast{position:fixed;right:20px;bottom:20px;z-index:9999;padding:14px 20px;border-radius:8px;color:#fff;font-weight:900;display:none;box-shadow:0 10px 25px rgba(0,0,0,.4)}
 
     @media (max-width: 980px){
       .grid-2,.grid-3{grid-template-columns:1fr}
@@ -100,7 +102,9 @@
     </div>
   </div>
 
+  <!-- MAIN DASHBOARD -->
   <div class="main-layout" id="main-layout" style="display:none;">
+    
     <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-logo">📊 Master Admin</div>
@@ -113,6 +117,7 @@
     </aside>
 
     <div class="content-area">
+      <!-- TOP BAR -->
       <header class="top-bar">
         <h2 id="page-title">📊 Dashboard</h2>
         <button class="btn btn-secondary btn-sm" onclick="toggleTheme()">🌙 Theme</button>
@@ -120,7 +125,7 @@
 
       <main class="content-main">
         
-        <!-- DASHBOARD -->
+        <!-- PAGE: DASHBOARD -->
         <div id="page-dashboard" class="page-section active">
           <div class="grid-3">
             <div class="card" style="text-align:center"><h2 id="stat-content" style="font-size:2.5rem;color:var(--primary)">0</h2><p>Content</p></div>
@@ -129,29 +134,29 @@
           </div>
           <div class="card">
             <h3>🧩 Legacy Data Sync Active</h3>
-            <p style="color:var(--mut)">All legacy Vercel KV collections are indexed and manageable from this unified dashboard.</p>
+            <p style="color:var(--mut);line-height:1.6">All legacy Vercel KV collections (Theory, Quiz, Skills, etc.) are indexed and counted in this unified dashboard.</p>
           </div>
         </div>
 
-        <!-- MANAGE CONTENT & BULK UPLOAD -->
+        <!-- PAGE: MANAGE CONTENT -->
         <div id="page-content" class="page-section">
           
-          <!-- BULK UPLOAD BOX (From Old Code) -->
+          <!-- BULK UPLOAD -->
           <div class="csv-box">
             <h3>📥 Bulk Upload Content</h3>
             <div class="csv-fmt"><strong>Columns:</strong> TargetPanel | Title | Content (HTML allowed) | Class<br>🖼 Drag & drop any CSV, JSON, TXT, or Excel file directly.</div>
-            <div class="dropzone" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="event.preventDefault();this.classList.remove('over');handleDropEvent(event)" onclick="document.getElementById('csvFileInput').click()">
+            <div class="dropzone" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="handleDropEvent(event)" onclick="document.getElementById('csvFileInput').click()">
               <strong>📂 Drag & drop file here</strong><br><small>or click to browse</small>
             </div>
             <input type="file" id="csvFileInput" style="display:none" accept=".csv,.tsv,.txt,.json,.html,.xlsx,.xls" onchange="handleFileEvent(event)">
             <div id="csvPreviewArea" style="display:none;margin-top:15px"></div>
           </div>
 
-          <!-- MANUAL ENTRY FORM -->
+          <!-- MANUAL FORM -->
           <div class="card">
-            <h3 id="form-title">📝 Add/Edit Content Manually</h3>
+            <h3 id="form-title">📝 Add / Edit Content</h3>
             <form onsubmit="publishContent(event)">
-              <input type="hidden" id="content-id"> <!-- CRITICAL FIX -->
+              <input type="hidden" id="content-id"> <!-- Hidden ID for updates -->
               <div class="grid-2">
                 <div class="form-group">
                   <label>Target Panel</label>
@@ -171,7 +176,7 @@
                 <textarea id="content-body" class="form-inp" style="min-height:150px" required></textarea>
               </div>
               <div class="btn-wrap">
-                <button type="submit" class="btn btn-success" id="content-submit-btn">📤 Publish</button>
+                <button type="submit" class="btn btn-success">📤 Publish</button>
                 <button type="button" class="btn btn-secondary" onclick="resetContentForm()">🔄 Clear</button>
               </div>
             </form>
@@ -183,17 +188,17 @@
           </div>
         </div>
 
-        <!-- MANAGE PANELS -->
+        <!-- PAGE: MANAGE PANELS -->
         <div id="page-panels" class="page-section">
           <div class="card">
             <h3>📁 Manage Panels</h3>
             <form onsubmit="savePanel(event)">
-              <input type="hidden" id="panel-id"> <!-- CRITICAL FIX -->
+              <input type="hidden" id="panel-id"> <!-- Hidden ID for updates -->
               <div class="grid-2">
                 <div class="form-group"><label>Panel Name</label><input id="panel-name" class="form-inp" required></div>
                 <div class="form-group"><label>Route URL</label><input id="panel-route" class="form-inp" placeholder="/panels/custom"></div>
               </div>
-              <div class="form-group"><label>Architecture / Purpose</label><input id="panel-purpose" class="form-inp"></div>
+              <div class="form-group"><label>Architecture / Purpose</label><input id="panel-purpose" class="form-inp" placeholder="Optional free text"></div>
               <div class="btn-wrap">
                 <button type="submit" class="btn btn-success">✅ Save Panel</button>
                 <button type="button" class="btn btn-secondary" onclick="resetPanelForm()">🔄 Clear</button>
@@ -203,12 +208,12 @@
           <div class="card"><h3>📊 Connected Panels</h3><div id="panels-list">Loading...</div></div>
         </div>
 
-        <!-- LAYOUT & LINKS -->
+        <!-- PAGE: LINKS -->
         <div id="page-links" class="page-section">
           <div class="card">
             <h3>🔗 Manage Links</h3>
             <form onsubmit="saveLink(event)">
-              <input type="hidden" id="link-id"> <!-- CRITICAL FIX -->
+              <input type="hidden" id="link-id"> <!-- Hidden ID for updates -->
               <div class="grid-2">
                 <div class="form-group"><label>Link Label</label><input id="link-label" class="form-inp" required></div>
                 <div class="form-group"><label>URL</label><input id="link-url" class="form-inp" required></div>
@@ -222,12 +227,12 @@
           <div class="card"><h3>🌐 Active Links</h3><div id="links-list">Loading...</div></div>
         </div>
 
-        <!-- USERS -->
+        <!-- PAGE: USERS -->
         <div id="page-users" class="page-section">
           <div class="card">
             <h3>👤 Manage Users</h3>
             <form onsubmit="saveUser(event)">
-              <input type="hidden" id="user-id"> <!-- CRITICAL FIX -->
+              <input type="hidden" id="user-id"> <!-- Hidden ID for updates -->
               <div class="grid-2">
                 <div class="form-group"><label>Username *</label><input id="user-name" class="form-inp" required></div>
                 <div class="form-group"><label>Password *</label><input id="user-pass" class="form-inp" required></div>
@@ -251,7 +256,7 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 
   <script>
-    // VERCEL KV DB CONNECTOR
+    // 1. VERCEL KV DB CONNECTOR
     var db = {
       ref: function(path) {
         return {
@@ -275,152 +280,283 @@
 
     var appState = { panels: {}, links: {}, users: {}, content: {}, legacyContent: {} };
 
-    // UTILS
+    // 2. UTILITIES
     function toast(msg, type) {
       var t = document.getElementById('toast');
       t.textContent = msg; t.style.display = 'block'; t.style.background = type === 'error' ? '#ef4444' : '#10b981';
       setTimeout(() => t.style.display = 'none', 3000);
     }
+    
     function toggleTheme() {
       document.body.classList.toggle('light-mode');
     }
+    
     function switchPage(page) {
+      // Hide all pages & remove active from links
       document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-      document.getElementById('page-' + page).classList.add('active');
-      event.target.classList.add('active');
+      
+      // Show target page
+      var targetSection = document.getElementById('page-' + page);
+      if(targetSection) targetSection.classList.add('active');
+      
+      // Highlight sidebar link
+      var targetLink = document.querySelector(`.sidebar-link[onclick*="${page}"]`);
+      if(targetLink) targetLink.classList.add('active');
+
+      // Update Top Title
+      var titles = { 'dashboard':'📊 Dashboard', 'content':'📝 Manage Content', 'panels':'📁 Manage Panels', 'links':'🔗 Layout & Links', 'users':'👥 Users' };
+      document.getElementById('page-title').innerText = titles[page] || 'Dashboard';
+
+      // Load specific lists
       if(page==='content') loadContentList();
       if(page==='panels') loadPanelsList();
       if(page==='links') loadLinksList();
       if(page==='users') loadUsersList();
     }
 
-    // LOGIN FIX: .toLowerCase() added
-    function attemptLogin() {
-      var id = document.getElementById('login-id').value.trim().toLowerCase();
-      var pass = document.getElementById('login-pass').value.trim();
-      if (id === 'admin' && pass === 'admin123') {
-        localStorage.setItem('ma_admin', 'true');
+    // 3. AUTHENTICATION & LOGIN (Case Insensitive Fix)
+    function checkAuth() {
+      if (localStorage.getItem('ma_admin') === 'true') {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('main-layout').style.display = 'flex';
         loadAllData();
+      } else {
+        document.getElementById('login-overlay').style.display = 'flex';
+        document.getElementById('main-layout').style.display = 'none';
+      }
+    }
+
+    function attemptLogin() {
+      // FIX: .toLowerCase() added so "Admin" or "ADMIN" works.
+      var id = document.getElementById('login-id').value.trim().toLowerCase();
+      var pass = document.getElementById('login-pass').value.trim();
+      
+      if (id === 'admin' && pass === 'admin123') {
+        document.getElementById('login-error').style.display = 'none';
+        localStorage.setItem('ma_admin', 'true');
+        checkAuth(); // Proceed to dashboard
       } else {
         document.getElementById('login-error').style.display = 'block';
         document.getElementById('login-error').innerText = 'Invalid Credentials';
       }
     }
-    function logout() { localStorage.removeItem('ma_admin'); location.reload(); }
-    if(localStorage.getItem('ma_admin')==='true') attemptLogin();
 
-    // LOAD ALL DATA
+    function logout() { 
+      localStorage.removeItem('ma_admin'); 
+      location.reload(); 
+    }
+
+    // 4. DATA LOADING
     function loadAllData() {
       Promise.all([
-        db.ref('cmsContent').once(), db.ref('cmsPanels').once(), db.ref('cmsLinks').once(), db.ref('cmsUsers').once(), db.ref('theoryDatabase').once()
+        db.ref('cmsContent').once(), db.ref('cmsPanels').once(), 
+        db.ref('cmsLinks').once(), db.ref('cmsUsers').once(), 
+        db.ref('theoryDatabase').once(), db.ref('questionBank').once()
       ]).then(res => {
-        appState.content = res[0].val() || {}; appState.panels = res[1].val() || {};
-        appState.links = res[2].val() || {}; appState.users = res[3].val() || {};
-        appState.legacyContent = res[4].val() || {};
+        appState.content = res[0].val() || {}; 
+        appState.panels = res[1].val() || {};
+        appState.links = res[2].val() || {}; 
+        appState.users = res[3].val() || {};
         
-        document.getElementById('stat-content').innerText = Object.keys(appState.content).length + Object.keys(appState.legacyContent).length;
+        // Merge legacy counts
+        var theoryCount = Object.keys(res[4].val() || {}).length;
+        var quizCount = Object.keys(res[5].val() || {}).length;
+        appState.legacyContent = { theory: theoryCount, quiz: quizCount };
+        
+        var totalContent = Object.keys(appState.content).length + theoryCount + quizCount;
+        
+        document.getElementById('stat-content').innerText = totalContent;
         document.getElementById('stat-panels').innerText = Object.keys(appState.panels).length;
         document.getElementById('stat-users').innerText = Object.keys(appState.users).length;
+      }).catch(() => {
+        toast('Data loading failed', 'error');
       });
     }
 
-    // ================= CRUD: CONTENT =================
+    // 5. GLOBAL DELETE FUNCTION
+    function deleteItem(node, id) {
+      if(!confirm('Delete this item permanently?')) return;
+      db.ref(node + '/' + id).remove().then(() => {
+        toast('Deleted successfully!', 'success'); 
+        loadAllData();
+        // Refresh active list
+        if(node==='cmsContent') loadContentList(); 
+        if(node==='cmsPanels') loadPanelsList();
+        if(node==='cmsLinks') loadLinksList(); 
+        if(node==='cmsUsers') loadUsersList();
+      });
+    }
+
+    // 6. CRUD: CONTENT (Hidden ID applied for updates)
     function publishContent(e) {
       e.preventDefault();
       var id = document.getElementById('content-id').value || 'content_' + Date.now();
       var item = {
-        id: id, targetPanel: document.getElementById('content-panel').value,
-        class: document.getElementById('content-class').value, title: document.getElementById('content-title').value,
+        id: id, 
+        targetPanel: document.getElementById('content-panel').value,
+        class: document.getElementById('content-class').value, 
+        title: document.getElementById('content-title').value,
         content: document.getElementById('content-body').value
       };
-      db.ref('cmsContent/' + id).set(item).then(() => { toast('Content Saved!', 'success'); resetContentForm(); loadAllData(); switchPage('content'); });
+      db.ref('cmsContent/' + id).set(item).then(() => { 
+        toast('Content Saved!', 'success'); 
+        resetContentForm(); 
+        loadAllData(); 
+        switchPage('content'); 
+      });
     }
-    function resetContentForm() { document.getElementById('content-id').value = ''; document.getElementById('content-panel').value = ''; document.getElementById('content-class').value = ''; document.getElementById('content-title').value = ''; document.getElementById('content-body').value = ''; }
+    function resetContentForm() { 
+      document.getElementById('content-id').value = ''; 
+      document.getElementById('content-panel').value = ''; 
+      document.getElementById('content-class').value = ''; 
+      document.getElementById('content-title').value = ''; 
+      document.getElementById('content-body').value = ''; 
+    }
     function loadContentList() {
       var html = '';
       Object.keys(appState.content).forEach(id => {
         var item = appState.content[id];
         html += `<div class="item"><div class="item-main"><strong>${item.title}</strong><small>${item.targetPanel}</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editContent('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsContent','${id}')">🗑 Delete</button></div></div>`;
       });
-      document.getElementById('content-list').innerHTML = html || 'No content found';
+      document.getElementById('content-list').innerHTML = html || '<div style="color:var(--mut)">No content found</div>';
     }
     function editContent(id) {
       var item = appState.content[id];
-      document.getElementById('content-id').value = id; document.getElementById('content-panel').value = item.targetPanel; document.getElementById('content-class').value = item.class; document.getElementById('content-title').value = item.title; document.getElementById('content-body').value = item.content;
+      document.getElementById('content-id').value = id; 
+      document.getElementById('content-panel').value = item.targetPanel || ''; 
+      document.getElementById('content-class').value = item.class || ''; 
+      document.getElementById('content-title').value = item.title || ''; 
+      document.getElementById('content-body').value = item.content || '';
       window.scrollTo(0,0);
     }
 
-    // ================= CRUD: PANELS =================
+    // 7. CRUD: PANELS (Hidden ID applied for updates)
     function savePanel(e) {
       e.preventDefault();
       var id = document.getElementById('panel-id').value || 'panel_' + Date.now();
-      var item = { id: id, name: document.getElementById('panel-name').value, route: document.getElementById('panel-route').value, purpose: document.getElementById('panel-purpose').value };
-      db.ref('cmsPanels/' + id).set(item).then(() => { toast('Panel Saved!', 'success'); resetPanelForm(); loadAllData(); switchPage('panels'); });
+      var item = { 
+        id: id, 
+        name: document.getElementById('panel-name').value, 
+        route: document.getElementById('panel-route').value, 
+        purpose: document.getElementById('panel-purpose').value 
+      };
+      db.ref('cmsPanels/' + id).set(item).then(() => { 
+        toast('Panel Saved!', 'success'); 
+        resetPanelForm(); 
+        loadAllData(); 
+        switchPage('panels'); 
+      });
     }
-    function resetPanelForm() { document.getElementById('panel-id').value = ''; document.getElementById('panel-name').value = ''; document.getElementById('panel-route').value = ''; document.getElementById('panel-purpose').value = ''; }
+    function resetPanelForm() { 
+      document.getElementById('panel-id').value = ''; 
+      document.getElementById('panel-name').value = ''; 
+      document.getElementById('panel-route').value = ''; 
+      document.getElementById('panel-purpose').value = ''; 
+    }
     function loadPanelsList() {
       var html = '';
       Object.keys(appState.panels).forEach(id => {
         var item = appState.panels[id];
         html += `<div class="item"><div class="item-main"><strong>${item.name}</strong><small>${item.route}</small></div><div class="item-actions"><a href="${item.route}" target="_blank" class="btn btn-secondary btn-sm">↗ Open</a><button class="btn btn-primary btn-sm" onclick="editPanel('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsPanels','${id}')">🗑 Delete</button></div></div>`;
       });
-      document.getElementById('panels-list').innerHTML = html || 'No panels found';
+      document.getElementById('panels-list').innerHTML = html || '<div style="color:var(--mut)">No panels found</div>';
     }
-    function editPanel(id) { var item = appState.panels[id]; document.getElementById('panel-id').value = id; document.getElementById('panel-name').value = item.name; document.getElementById('panel-route').value = item.route; document.getElementById('panel-purpose').value = item.purpose; }
+    function editPanel(id) { 
+      var item = appState.panels[id]; 
+      document.getElementById('panel-id').value = id; 
+      document.getElementById('panel-name').value = item.name || ''; 
+      document.getElementById('panel-route').value = item.route || ''; 
+      document.getElementById('panel-purpose').value = item.purpose || ''; 
+    }
 
-    // ================= CRUD: LINKS =================
+    // 8. CRUD: LINKS (Hidden ID applied for updates)
     function saveLink(e) {
       e.preventDefault();
       var id = document.getElementById('link-id').value || 'link_' + Date.now();
-      var item = { id: id, label: document.getElementById('link-label').value, url: document.getElementById('link-url').value };
-      db.ref('cmsLinks/' + id).set(item).then(() => { toast('Link Saved!', 'success'); resetLinkForm(); loadAllData(); switchPage('links'); });
+      var item = { 
+        id: id, 
+        label: document.getElementById('link-label').value, 
+        url: document.getElementById('link-url').value 
+      };
+      db.ref('cmsLinks/' + id).set(item).then(() => { 
+        toast('Link Saved!', 'success'); 
+        resetLinkForm(); 
+        loadAllData(); 
+        switchPage('links'); 
+      });
     }
-    function resetLinkForm() { document.getElementById('link-id').value = ''; document.getElementById('link-label').value = ''; document.getElementById('link-url').value = ''; }
+    function resetLinkForm() { 
+      document.getElementById('link-id').value = ''; 
+      document.getElementById('link-label').value = ''; 
+      document.getElementById('link-url').value = ''; 
+    }
     function loadLinksList() {
       var html = '';
       Object.keys(appState.links).forEach(id => {
         var item = appState.links[id];
         html += `<div class="item"><div class="item-main"><strong>${item.label}</strong><small>${item.url}</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editLink('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsLinks','${id}')">🗑 Delete</button></div></div>`;
       });
-      document.getElementById('links-list').innerHTML = html || 'No links found';
+      document.getElementById('links-list').innerHTML = html || '<div style="color:var(--mut)">No links found</div>';
     }
-    function editLink(id) { var item = appState.links[id]; document.getElementById('link-id').value = id; document.getElementById('link-label').value = item.label; document.getElementById('link-url').value = item.url; }
+    function editLink(id) { 
+      var item = appState.links[id]; 
+      document.getElementById('link-id').value = id; 
+      document.getElementById('link-label').value = item.label || ''; 
+      document.getElementById('link-url').value = item.url || ''; 
+    }
 
-    // ================= CRUD: USERS =================
+    // 9. CRUD: USERS (Hidden ID applied for updates)
     function saveUser(e) {
       e.preventDefault();
       var id = document.getElementById('user-id').value || 'user_' + Date.now();
-      var item = { id: id, username: document.getElementById('user-name').value, pass: document.getElementById('user-pass').value };
-      db.ref('cmsUsers/' + id).set(item).then(() => { toast('User Saved!', 'success'); resetUserForm(); loadAllData(); switchPage('users'); });
+      var item = { 
+        id: id, 
+        username: document.getElementById('user-name').value, 
+        pass: document.getElementById('user-pass').value 
+      };
+      db.ref('cmsUsers/' + id).set(item).then(() => { 
+        toast('User Saved!', 'success'); 
+        resetUserForm(); 
+        loadAllData(); 
+        switchPage('users'); 
+      });
     }
-    function resetUserForm() { document.getElementById('user-id').value = ''; document.getElementById('user-name').value = ''; document.getElementById('user-pass').value = ''; }
+    function resetUserForm() { 
+      document.getElementById('user-id').value = ''; 
+      document.getElementById('user-name').value = ''; 
+      document.getElementById('user-pass').value = ''; 
+    }
     function loadUsersList() {
       var html = '';
       Object.keys(appState.users).forEach(id => {
         var item = appState.users[id];
         html += `<div class="item"><div class="item-main"><strong>${item.username}</strong><small>Pass: ****</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editUser('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsUsers','${id}')">🗑 Delete</button></div></div>`;
       });
-      document.getElementById('users-list').innerHTML = html || 'No users found';
+      document.getElementById('users-list').innerHTML = html || '<div style="color:var(--mut)">No users found</div>';
     }
-    function editUser(id) { var item = appState.users[id]; document.getElementById('user-id').value = id; document.getElementById('user-name').value = item.username; document.getElementById('user-pass').value = item.pass; }
-
-    // ================= DELETE GLOBAL FUNCTION =================
-    function deleteItem(node, id) {
-      if(!confirm('Delete permanently?')) return;
-      db.ref(node + '/' + id).remove().then(() => {
-        toast('Deleted successfully!', 'success'); loadAllData();
-        if(node==='cmsContent') loadContentList(); if(node==='cmsPanels') loadPanelsList();
-        if(node==='cmsLinks') loadLinksList(); if(node==='cmsUsers') loadUsersList();
-      });
+    function editUser(id) { 
+      var item = appState.users[id]; 
+      document.getElementById('user-id').value = id; 
+      document.getElementById('user-name').value = item.username || ''; 
+      document.getElementById('user-pass').value = item.pass || ''; 
     }
 
-    // ================= BULK UPLOAD EXCEL / CSV =================
+
+    // 10. BULK UPLOAD EXCEL / CSV LOGIC (Merged from Old Code)
     var mappedRows = [];
-    function handleDropEvent(ev) { ev.preventDefault(); ev.stopPropagation(); var f = ev.dataTransfer.files[0]; if(f) readUploadFile(f); }
-    function handleFileEvent(event) { var f = event.target.files[0]; if(f) readUploadFile(f); }
+    
+    function handleDropEvent(ev) { 
+      ev.preventDefault(); ev.stopPropagation(); 
+      ev.target.classList.remove('over');
+      var f = ev.dataTransfer.files[0]; 
+      if(f) readUploadFile(f); 
+    }
+    
+    function handleFileEvent(event) { 
+      var f = event.target.files[0]; 
+      if(f) readUploadFile(f); 
+    }
     
     function readUploadFile(file) {
       var nm = (file.name || '').toLowerCase();
@@ -464,27 +600,36 @@
 
     function uploadBulkData() {
       var pv = document.getElementById('csvPreviewArea');
-      pv.innerHTML = '<span class="spinner"></span> Uploading...';
+      pv.innerHTML = '<span style="color:#38bdf8">Uploading... Please wait.</span>';
       var idx = 0;
       function next() {
         if(idx >= mappedRows.length) {
           toast('Bulk Upload Complete!', 'success');
           pv.style.display = 'none';
-          loadAllData(); switchPage('content');
+          document.getElementById('csvFileInput').value = '';
+          loadAllData(); 
+          switchPage('content');
           return;
         }
         var r = mappedRows[idx];
         var id = 'content_' + Date.now() + '_' + idx;
-        // Map columns based on your provided schema
+        
+        // Match columns intelligently (Title, TargetPanel, Class, Content)
         var item = {
-          id: id, title: r['Title'] || r['title'] || 'Bulk Item ' + idx,
-          targetPanel: r['TargetPanel'] || r['Subject'] || 'General Panel',
-          class: r['Class'] || '', content: r['Content'] || r['HTML'] || ''
+          id: id, 
+          title: r['Title'] || r['title'] || r['Name'] || 'Bulk Item ' + idx,
+          targetPanel: r['TargetPanel'] || r['Subject'] || r['Panel'] || 'General Panel',
+          class: r['Class'] || r['class'] || '', 
+          content: r['Content'] || r['HTML'] || r['body'] || ''
         };
+        
         db.ref('cmsContent/' + id).set(item).then(() => { idx++; next(); }).catch(() => { idx++; next(); });
       }
       next();
     }
+
+    // INITIALIZE APP
+    checkAuth();
   </script>
 </body>
 </html>
