@@ -56,6 +56,7 @@
     .card h3{margin-bottom:20px;font-size:1.2rem}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
     .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
     .form-group{margin-bottom:18px}
     .form-group label{display:block;margin-bottom:8px;font-weight:800}
     .btn{padding:11px 20px;border:none;border-radius:8px;font-weight:900;color:#fff;display:inline-flex;gap:8px;transition:.2s}
@@ -70,19 +71,31 @@
     .item-main small{color:var(--mut)}
     .item-actions{display:flex;gap:8px}
 
+    /* STAT BOXES */
+    .stat-box{background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:22px;text-align:center}
+    .stat-box .number{font-size:2.4rem;font-weight:900;color:#60a5fa}
+    .stat-box .label{color:var(--mut);font-weight:800;font-size:.9rem}
+
+    /* GITHUB PANELS SECTION */
+    .panel-card{display:flex;align-items:center;justify-content:space-between;padding:16px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:12px;margin-bottom:12px;transition:.2s}
+    .panel-card:hover{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.5)}
+    .panel-card-main{flex:1}
+    .panel-card strong{display:block;font-weight:900;margin-bottom:2px}
+    .panel-card small{color:var(--mut);font-size:.8rem}
+    .panel-card a{background:var(--primary);color:#fff;padding:8px 14px;border-radius:6px;font-weight:900;font-size:.8rem;display:inline-flex;gap:6px;transition:.2s}
+    .panel-card a:hover{filter:brightness(1.15)}
+
     /* BULK UPLOAD STYLES */
     .csv-box{background:rgba(14,165,233,.08);border:2px dashed #0ea5e9;border-radius:var(--r-md);padding:20px;margin-bottom:20px}
     .csv-fmt{background:rgba(0,0,0,.3);padding:12px;font-size:.8rem;color:var(--mut);border-radius:8px;margin:12px 0}
     .dropzone{border:2px dashed #0ea5e9;padding:26px;text-align:center;cursor:pointer;border-radius:12px;background:rgba(14,165,233,.05);margin-bottom:12px;transition:.2s}
     .dropzone.over{background:rgba(14,165,233,.15);border-color:#38bdf8}
-    .upload-pv-table{width:100%;border-collapse:collapse;font-size:.75rem;margin-top:10px}
-    .upload-pv-table th,.upload-pv-table td{border:1px solid var(--brd);padding:6px;text-align:left}
 
     /* TOAST */
     #toast{position:fixed;right:20px;bottom:20px;z-index:9999;padding:14px 20px;border-radius:8px;color:#fff;font-weight:900;display:none;box-shadow:0 10px 25px rgba(0,0,0,.4)}
 
     @media (max-width: 980px){
-      .grid-2,.grid-3{grid-template-columns:1fr}
+      .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
       .main-layout{display:block;height:auto;min-height:100vh}
       .sidebar{width:100%;height:auto}
     }
@@ -129,9 +142,16 @@
         <div id="page-dashboard" class="page-section active">
           <div class="grid-3">
             <div class="card" style="text-align:center"><h2 id="stat-content" style="font-size:2.5rem;color:var(--primary)">0</h2><p>Content</p></div>
-            <div class="card" style="text-align:center"><h2 id="stat-panels" style="font-size:2.5rem;color:var(--primary)">0</h2><p>Panels</p></div>
-            <div class="card" style="text-align:center"><h2 id="stat-users" style="font-size:2.5rem;color:var(--primary)">0</h2><p>Users</p></div>
+            <div class="card" style="text-align:center"><h2 id="stat-panels" style="font-size:2.5rem;color:var(--primary)">0</h2><p>CMS Panels</p></div>
+            <div class="card" style="text-align:center"><h2 id="stat-github-panels" style="font-size:2.5rem;color:var(--primary)">0</h2><p>GitHub Panels</p></div>
           </div>
+
+          <div class="card">
+            <h3>🧬 Auto-Detected GitHub Panels</h3>
+            <p style="color:var(--mut);line-height:1.6;margin-bottom:16px">These HTML panel files are automatically detected from your GitHub repository. Click any panel to open it live in a new tab.</p>
+            <div id="github-panels-container" style="max-height:400px;overflow-y:auto">Loading panels from GitHub...</div>
+          </div>
+
           <div class="card">
             <h3>🧩 Legacy Data Sync Active</h3>
             <p style="color:var(--mut);line-height:1.6">All legacy Vercel KV collections (Theory, Quiz, Skills, etc.) are indexed and counted in this unified dashboard.</p>
@@ -156,7 +176,7 @@
           <div class="card">
             <h3 id="form-title">📝 Add / Edit Content</h3>
             <form onsubmit="publishContent(event)">
-              <input type="hidden" id="content-id"> <!-- Hidden ID for updates -->
+              <input type="hidden" id="content-id">
               <div class="grid-2">
                 <div class="form-group">
                   <label>Target Panel</label>
@@ -191,9 +211,9 @@
         <!-- PAGE: MANAGE PANELS -->
         <div id="page-panels" class="page-section">
           <div class="card">
-            <h3>📁 Manage Panels</h3>
+            <h3>📁 Manage CMS Panels</h3>
             <form onsubmit="savePanel(event)">
-              <input type="hidden" id="panel-id"> <!-- Hidden ID for updates -->
+              <input type="hidden" id="panel-id">
               <div class="grid-2">
                 <div class="form-group"><label>Panel Name</label><input id="panel-name" class="form-inp" required></div>
                 <div class="form-group"><label>Route URL</label><input id="panel-route" class="form-inp" placeholder="/panels/custom"></div>
@@ -205,7 +225,7 @@
               </div>
             </form>
           </div>
-          <div class="card"><h3>📊 Connected Panels</h3><div id="panels-list">Loading...</div></div>
+          <div class="card"><h3>📊 Connected CMS Panels</h3><div id="panels-list">Loading...</div></div>
         </div>
 
         <!-- PAGE: LINKS -->
@@ -213,7 +233,7 @@
           <div class="card">
             <h3>🔗 Manage Links</h3>
             <form onsubmit="saveLink(event)">
-              <input type="hidden" id="link-id"> <!-- Hidden ID for updates -->
+              <input type="hidden" id="link-id">
               <div class="grid-2">
                 <div class="form-group"><label>Link Label</label><input id="link-label" class="form-inp" required></div>
                 <div class="form-group"><label>URL</label><input id="link-url" class="form-inp" required></div>
@@ -232,7 +252,7 @@
           <div class="card">
             <h3>👤 Manage Users</h3>
             <form onsubmit="saveUser(event)">
-              <input type="hidden" id="user-id"> <!-- Hidden ID for updates -->
+              <input type="hidden" id="user-id">
               <div class="grid-2">
                 <div class="form-group"><label>Username *</label><input id="user-name" class="form-inp" required></div>
                 <div class="form-group"><label>Password *</label><input id="user-pass" class="form-inp" required></div>
@@ -278,7 +298,7 @@
       }
     };
 
-    var appState = { panels: {}, links: {}, users: {}, content: {}, legacyContent: {} };
+    var appState = { panels: {}, links: {}, users: {}, content: {}, legacyContent: {}, githubPanels: [] };
 
     // 2. UTILITIES
     function toast(msg, type) {
@@ -292,23 +312,18 @@
     }
     
     function switchPage(page) {
-      // Hide all pages & remove active from links
       document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
       
-      // Show target page
       var targetSection = document.getElementById('page-' + page);
       if(targetSection) targetSection.classList.add('active');
       
-      // Highlight sidebar link
       var targetLink = document.querySelector(`.sidebar-link[onclick*="${page}"]`);
       if(targetLink) targetLink.classList.add('active');
 
-      // Update Top Title
       var titles = { 'dashboard':'📊 Dashboard', 'content':'📝 Manage Content', 'panels':'📁 Manage Panels', 'links':'🔗 Layout & Links', 'users':'👥 Users' };
       document.getElementById('page-title').innerText = titles[page] || 'Dashboard';
 
-      // Load specific lists
       if(page==='content') loadContentList();
       if(page==='panels') loadPanelsList();
       if(page==='links') loadLinksList();
@@ -328,14 +343,13 @@
     }
 
     function attemptLogin() {
-      // FIX: .toLowerCase() added so "Admin" or "ADMIN" works.
       var id = document.getElementById('login-id').value.trim().toLowerCase();
       var pass = document.getElementById('login-pass').value.trim();
       
       if (id === 'admin' && pass === 'admin123') {
         document.getElementById('login-error').style.display = 'none';
         localStorage.setItem('ma_admin', 'true');
-        checkAuth(); // Proceed to dashboard
+        checkAuth();
       } else {
         document.getElementById('login-error').style.display = 'block';
         document.getElementById('login-error').innerText = 'Invalid Credentials';
@@ -345,6 +359,74 @@
     function logout() { 
       localStorage.removeItem('ma_admin'); 
       location.reload(); 
+    }
+
+    // ========== AUTO-DETECT GITHUB PANELS ==========
+    // This is the core feature: Scan GitHub repo for .html files
+    function detectGitHubPanels() {
+      var owner = 'narayananvadana-web';
+      var repo = 'cleverstudents';
+      
+      fetch('https://api.github.com/repos/' + owner + '/' + repo + '/contents/', {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!Array.isArray(data)) {
+          console.error('GitHub API error:', data);
+          return;
+        }
+        
+        // Filter for .html files only
+        var htmlFiles = data.filter(item => 
+          item.type === 'file' && 
+          item.name.toLowerCase().endsWith('.html') &&
+          item.name.toLowerCase() !== 'master-admin.html' // Exclude admin panel itself
+        );
+        
+        appState.githubPanels = htmlFiles.map(file => ({
+          name: file.name,
+          url: '/' + file.name,
+          download_url: file.download_url
+        }));
+        
+        // Update stats
+        document.getElementById('stat-github-panels').innerText = appState.githubPanels.length;
+        
+        // Render panels
+        renderGitHubPanels();
+      })
+      .catch(err => {
+        console.error('GitHub fetch error:', err);
+        document.getElementById('github-panels-container').innerHTML = '<div style="color:var(--mut);padding:20px;text-align:center">⚠️ Unable to load GitHub panels (may need token for private repos)</div>';
+      });
+    }
+
+    function renderGitHubPanels() {
+      var container = document.getElementById('github-panels-container');
+      
+      if (appState.githubPanels.length === 0) {
+        container.innerHTML = '<div style="color:var(--mut);padding:20px;text-align:center">No HTML panel files detected in repository</div>';
+        return;
+      }
+      
+      var html = '';
+      appState.githubPanels.forEach(panel => {
+        var displayName = panel.name.replace('.html', '').replace(/[-_]/g, ' ');
+        html += `
+          <div class="panel-card">
+            <div class="panel-card-main">
+              <strong>📄 ${displayName}</strong>
+              <small>${panel.name}</small>
+            </div>
+            <a href="${panel.url}" target="_blank">🔗 Open Panel</a>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
     }
 
     // 4. DATA LOADING
@@ -359,7 +441,6 @@
         appState.links = res[2].val() || {}; 
         appState.users = res[3].val() || {};
         
-        // Merge legacy counts
         var theoryCount = Object.keys(res[4].val() || {}).length;
         var quizCount = Object.keys(res[5].val() || {}).length;
         appState.legacyContent = { theory: theoryCount, quiz: quizCount };
@@ -368,8 +449,11 @@
         
         document.getElementById('stat-content').innerText = totalContent;
         document.getElementById('stat-panels').innerText = Object.keys(appState.panels).length;
-        document.getElementById('stat-users').innerText = Object.keys(appState.users).length;
-      }).catch(() => {
+        
+        // Trigger GitHub panel detection
+        detectGitHubPanels();
+      }).catch(err => {
+        console.error('Data loading error:', err);
         toast('Data loading failed', 'error');
       });
     }
@@ -380,7 +464,6 @@
       db.ref(node + '/' + id).remove().then(() => {
         toast('Deleted successfully!', 'success'); 
         loadAllData();
-        // Refresh active list
         if(node==='cmsContent') loadContentList(); 
         if(node==='cmsPanels') loadPanelsList();
         if(node==='cmsLinks') loadLinksList(); 
@@ -388,7 +471,7 @@
       });
     }
 
-    // 6. CRUD: CONTENT (Hidden ID applied for updates)
+    // 6. CRUD: CONTENT
     function publishContent(e) {
       e.preventDefault();
       var id = document.getElementById('content-id').value || 'content_' + Date.now();
@@ -417,7 +500,7 @@
       var html = '';
       Object.keys(appState.content).forEach(id => {
         var item = appState.content[id];
-        html += `<div class="item"><div class="item-main"><strong>${item.title}</strong><small>${item.targetPanel}</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editContent('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsContent','${id}')">🗑 Delete</button></div></div>`;
+        html += `<div class="item"><div class="item-main"><strong>${item.title}</strong><small>${item.targetPanel}</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editContent('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsContent','${id}')">🗑️ Delete</button></div></div>`;
       });
       document.getElementById('content-list').innerHTML = html || '<div style="color:var(--mut)">No content found</div>';
     }
@@ -428,10 +511,10 @@
       document.getElementById('content-class').value = item.class || ''; 
       document.getElementById('content-title').value = item.title || ''; 
       document.getElementById('content-body').value = item.content || '';
-      window.scrollTo(0,0);
+      switchPage('content');
     }
 
-    // 7. CRUD: PANELS (Hidden ID applied for updates)
+    // 7. CRUD: PANELS
     function savePanel(e) {
       e.preventDefault();
       var id = document.getElementById('panel-id').value || 'panel_' + Date.now();
@@ -458,7 +541,7 @@
       var html = '';
       Object.keys(appState.panels).forEach(id => {
         var item = appState.panels[id];
-        html += `<div class="item"><div class="item-main"><strong>${item.name}</strong><small>${item.route}</small></div><div class="item-actions"><a href="${item.route}" target="_blank" class="btn btn-secondary btn-sm">↗ Open</a><button class="btn btn-primary btn-sm" onclick="editPanel('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsPanels','${id}')">🗑 Delete</button></div></div>`;
+        html += `<div class="item"><div class="item-main"><strong>${item.name}</strong><small>${item.route}</small></div><div class="item-actions"><a href="${item.route}" target="_blank" class="btn btn-success btn-sm">🔗 Open</a><button class="btn btn-primary btn-sm" onclick="editPanel('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsPanels','${id}')">🗑️ Delete</button></div></div>`;
       });
       document.getElementById('panels-list').innerHTML = html || '<div style="color:var(--mut)">No panels found</div>';
     }
@@ -468,9 +551,10 @@
       document.getElementById('panel-name').value = item.name || ''; 
       document.getElementById('panel-route').value = item.route || ''; 
       document.getElementById('panel-purpose').value = item.purpose || ''; 
+      switchPage('panels');
     }
 
-    // 8. CRUD: LINKS (Hidden ID applied for updates)
+    // 8. CRUD: LINKS
     function saveLink(e) {
       e.preventDefault();
       var id = document.getElementById('link-id').value || 'link_' + Date.now();
@@ -495,7 +579,7 @@
       var html = '';
       Object.keys(appState.links).forEach(id => {
         var item = appState.links[id];
-        html += `<div class="item"><div class="item-main"><strong>${item.label}</strong><small>${item.url}</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editLink('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsLinks','${id}')">🗑 Delete</button></div></div>`;
+        html += `<div class="item"><div class="item-main"><strong>${item.label}</strong><small>${item.url}</small></div><div class="item-actions"><a href="${item.url}" target="_blank" class="btn btn-success btn-sm">🔗 Visit</a><button class="btn btn-primary btn-sm" onclick="editLink('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsLinks','${id}')">🗑️ Delete</button></div></div>`;
       });
       document.getElementById('links-list').innerHTML = html || '<div style="color:var(--mut)">No links found</div>';
     }
@@ -504,9 +588,10 @@
       document.getElementById('link-id').value = id; 
       document.getElementById('link-label').value = item.label || ''; 
       document.getElementById('link-url').value = item.url || ''; 
+      switchPage('links');
     }
 
-    // 9. CRUD: USERS (Hidden ID applied for updates)
+    // 9. CRUD: USERS
     function saveUser(e) {
       e.preventDefault();
       var id = document.getElementById('user-id').value || 'user_' + Date.now();
@@ -531,7 +616,7 @@
       var html = '';
       Object.keys(appState.users).forEach(id => {
         var item = appState.users[id];
-        html += `<div class="item"><div class="item-main"><strong>${item.username}</strong><small>Pass: ****</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editUser('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsUsers','${id}')">🗑 Delete</button></div></div>`;
+        html += `<div class="item"><div class="item-main"><strong>${item.username}</strong><small>Pass: ****</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editUser('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsUsers','${id}')">🗑️ Delete</button></div></div>`;
       });
       document.getElementById('users-list').innerHTML = html || '<div style="color:var(--mut)">No users found</div>';
     }
@@ -540,10 +625,10 @@
       document.getElementById('user-id').value = id; 
       document.getElementById('user-name').value = item.username || ''; 
       document.getElementById('user-pass').value = item.pass || ''; 
+      switchPage('users');
     }
 
-
-    // 10. BULK UPLOAD EXCEL / CSV LOGIC (Merged from Old Code)
+    // 10. BULK UPLOAD EXCEL / CSV LOGIC
     var mappedRows = [];
     
     function handleDropEvent(ev) { 
@@ -614,7 +699,6 @@
         var r = mappedRows[idx];
         var id = 'content_' + Date.now() + '_' + idx;
         
-        // Match columns intelligently (Title, TargetPanel, Class, Content)
         var item = {
           id: id, 
           title: r['Title'] || r['title'] || r['Name'] || 'Bulk Item ' + idx,
