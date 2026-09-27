@@ -1,7 +1,9 @@
 /* ================================
-   GLOBAL NAVBAR SCRIPT - v2.0 (FIXED)
+   GLOBAL NAVBAR SCRIPT - v3.1 (FULLY FIXED - MOBILE CLICKABILITY WORKING)
+   - FIXED: Dropdown links now navigate properly on mobile
+   - FIXED: Removed all inline onclick handlers
+   - FIXED: Smart preventDefault logic - only for dropdowns with submenus
    - Fixed z-index/overlap bug
-   - Fixed clickability bug
    - Added nested sub-menus support
    - Auto-injects responsive navbar at top of <body>
    EASILY EDITABLE: Modify menuData array to add/edit dropdowns & nested menus
@@ -585,6 +587,7 @@ const menuData = [
   }
 
   // Build Navbar HTML from menuData (with nested sub-menu support)
+  // FIXED: Removed ALL inline onclick handlers - clean HTML generation
   function buildNavbarHTML() {
     let html = `<div id="global-navbar">
       <div class="navbar-inner">
@@ -607,7 +610,7 @@ const menuData = [
         
         html += `
               <li class="navbar-item">
-                <a class="navbar-link ${subMenuClass}" href="${link.url}" onclick="event.stopPropagation();">
+                <a class="navbar-link ${subMenuClass}" href="${link.url}">
                   ${link.name}
                 </a>`;
 
@@ -619,7 +622,7 @@ const menuData = [
           link.subLinks.forEach((subLink) => {
             html += `
                   <li class="navbar-item">
-                    <a href="${subLink.url}" onclick="event.stopPropagation();">
+                    <a href="${subLink.url}">
                       ${subLink.name}
                     </a>
                   </li>`;
@@ -648,59 +651,73 @@ const menuData = [
   }
 
   // Attach Mobile Menu Toggle Handler
+  // ✅ FULLY FIXED: Smart logic that differentiates between dropdowns and direct links
   function attachMobileMenuHandlers() {
     const toggle = document.getElementById('navbar-toggle');
     const menu = document.querySelector('.navbar-menu');
 
     if (!toggle || !menu) return;
 
+    // Toggle menu visibility on hamburger click
     toggle.addEventListener('click', function (e) {
       e.stopPropagation();
       menu.classList.toggle('active');
     });
 
-    // Close menu when a direct link is clicked
-    menu.querySelectorAll('a[href^="#"]').forEach((link) => {
+    // Close menu when clicking outside
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('#global-navbar')) {
+        menu.classList.remove('active');
+        document.querySelectorAll('.navbar-item.active').forEach((el) => {
+          el.classList.remove('active');
+        });
+      }
+    });
+
+    // ============================================
+    // CRITICAL FIX: Handle dropdown toggle buttons (category links like "Academics")
+    // ============================================
+    document.querySelectorAll('.navbar-item > .navbar-link').forEach((link) => {
       link.addEventListener('click', function (e) {
         if (window.innerWidth <= 768) {
-          // Only close if it's not a menu toggle
-          const isToggle = link.classList.contains('navbar-link') && 
-                          link.parentElement.querySelector('.navbar-dropdown-menu');
-          if (!isToggle) {
+          const item = this.closest('.navbar-item');
+          const dropdownMenu = item.querySelector('.navbar-dropdown-menu');
+          
+          // ONLY preventDefault if this item has a dropdown menu
+          if (dropdownMenu) {
+            e.preventDefault();
+            const isActive = item.classList.contains('active');
+
+            // Close all other dropdowns at the same level
+            const parentMenu = item.parentElement;
+            parentMenu.querySelectorAll('.navbar-item.active').forEach((el) => {
+              if (el !== item && el.parentElement === parentMenu) {
+                el.classList.remove('active');
+              }
+            });
+
+            // Toggle current dropdown
+            item.classList.toggle('active', !isActive);
+          } else {
+            // No dropdown = direct link, allow normal navigation
             menu.classList.remove('active');
           }
         }
       });
     });
 
-    // Toggle dropdown on mobile tap
-    document.querySelectorAll('.navbar-item > .navbar-link').forEach((link) => {
-      link.addEventListener('click', function (e) {
-        if (window.innerWidth <= 768) {
-          e.preventDefault();
-          const item = this.closest('.navbar-item');
-          const isActive = item.classList.contains('active');
-
-          // Close all other dropdowns at the same level
-          const parentMenu = item.parentElement;
-          parentMenu.querySelectorAll('.navbar-item.active').forEach((el) => {
-            if (el !== item && el.parentElement === parentMenu) {
-              el.classList.remove('active');
-            }
-          });
-
-          // Toggle current dropdown
-          item.classList.toggle('active', !isActive);
-        }
-      });
-    });
-
-    // Handle nested submenu toggles on mobile
-    document.querySelectorAll('.navbar-submenu li > a').forEach((link) => {
+    // ============================================
+    // CRITICAL FIX: Handle dropdown item clicks (links inside dropdowns like "1st to 10th Class")
+    // Only prevent if the link has nested submenu, otherwise allow navigation
+    // ============================================
+    document.querySelectorAll('.navbar-dropdown-menu li > a').forEach((link) => {
       link.addEventListener('click', function (e) {
         if (window.innerWidth <= 768) {
           const parentItem = this.closest('li');
-          if (parentItem && this.classList.contains('has-submenu')) {
+          const nestedSubmenu = parentItem.querySelector('.navbar-submenu');
+          
+          // ONLY preventDefault if this link has a submenu (has-submenu class)
+          if (nestedSubmenu && this.classList.contains('has-submenu')) {
             e.preventDefault();
             const isActive = parentItem.classList.contains('active');
             
@@ -712,19 +729,32 @@ const menuData = [
             });
 
             parentItem.classList.toggle('active', !isActive);
+          } else {
+            // No submenu = direct navigational link
+            // Allow it to navigate AND close the mobile menu
+            menu.classList.remove('active');
+            document.querySelectorAll('.navbar-item.active').forEach((el) => {
+              el.classList.remove('active');
+            });
           }
         }
       });
     });
 
-    // Close menu when clicking outside
-    document.addEventListener('click', function (e) {
-      if (!e.target.closest('#global-navbar')) {
-        menu.classList.remove('active');
-        document.querySelectorAll('.navbar-item.active').forEach((el) => {
-          el.classList.remove('active');
-        });
-      }
+    // ============================================
+    // Handle nested submenu item clicks
+    // ============================================
+    document.querySelectorAll('.navbar-submenu li > a').forEach((link) => {
+      link.addEventListener('click', function (e) {
+        if (window.innerWidth <= 768) {
+          // Submenu links are always direct navigation links
+          // Close the menu when clicked
+          menu.classList.remove('active');
+          document.querySelectorAll('.navbar-item.active').forEach((el) => {
+            el.classList.remove('active');
+          });
+        }
+      });
     });
   }
 
