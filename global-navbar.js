@@ -15,7 +15,7 @@ const menuData = [
   {
     title: "Academics",
     links: [
-      { name: "1st to 10th Class", url: "#" },
+      { name: "1st to 10th Class", url: "panels/student-vercel.html" },
       { name: "11th to Degree", url: "#" }
     ]
   },
