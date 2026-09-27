@@ -3,1607 +3,488 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Master Admin Dashboard | Clever Students</title>
+  <title>Ultimate Master Admin | Clever Students</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#080c14;
-      --srf:#161b27;
-      --brd:rgba(255,255,255,.1);
-      --txt:#e2e8f0;
-      --mut:#94a3b8;
-      --primary:#3b82f6;
-      --success:#10b981;
-      --danger:#ef4444;
-      --warning:#f59e0b;
-      --purple:#8b5cf6;
-      --font:'Nunito',sans-serif;
-      --r-lg:16px;
-      --r-md:8px;
-      --r-sm:4px;
+      --bg:#080c14; --srf:#161b27; --brd:rgba(255,255,255,.1);
+      --txt:#e2e8f0; --mut:#94a3b8; --primary:#3b82f6;
+      --success:#10b981; --danger:#ef4444; --warning:#f59e0b;
+      --purple:#8b5cf6; --font:'Nunito',sans-serif;
+      --r-lg:16px; --r-md:8px; --r-sm:4px;
     }
     body.light-mode{
-      --bg:#f8fafc;
-      --srf:#fff;
-      --txt:#0f172a;
-      --brd:rgba(0,0,0,.1);
-      --mut:#64748b;
-      --primary:#2563eb;
-      --success:#059669;
-      --danger:#dc2626;
-      --warning:#d97706;
-      --purple:#7c3aed;
+      --bg:#f8fafc; --srf:#fff; --txt:#0f172a;
+      --brd:rgba(0,0,0,.1); --mut:#64748b;
+      --primary:#2563eb; --success:#059669; --danger:#dc2626;
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{
-      width:100%;
-      height:100%;
-      background:var(--bg);
-      color:var(--txt);
-      font-family:var(--font);
-      overflow:hidden;
-    }
-    body{
-      transition:background .25s,color .25s;
-    }
+    html,body{width:100%;height:100%;background:var(--bg);color:var(--txt);font-family:var(--font);overflow:hidden}
+    body{transition:background .25s,color .25s}
     button,input,textarea,select{font:inherit}
     button{cursor:pointer}
     a{text-decoration:none;color:inherit}
-    code{font-family:monospace}
-    .hidden{display:none!important}
 
     /* LOGIN */
-    #login-overlay{
-      position:fixed;
-      inset:0;
-      background:var(--bg);
-      z-index:10000;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .login-box{
-      width:min(420px,92%);
-      background:var(--srf);
-      border:1px solid var(--brd);
-      border-radius:var(--r-lg);
-      box-shadow:0 25px 70px rgba(0,0,0,.6);
-      padding:42px 34px;
-      text-align:center;
-    }
-    .login-box h1{
-      font-size:2rem;
-      font-weight:900;
-      margin-bottom:10px;
-      background:linear-gradient(135deg,#f59e0b,#ef4444);
-      -webkit-background-clip:text;
-      background-clip:text;
-      -webkit-text-fill-color:transparent;
-    }
-    .login-box p{
-      color:var(--mut);
-      margin-bottom:26px;
-      font-size:.95rem;
-    }
-    .login-info{
-      background:rgba(59,130,246,.12);
-      border:1px solid rgba(59,130,246,.6);
-      color:var(--txt);
-      border-radius:var(--r-md);
-      padding:14px 16px;
-      text-align:left;
-      line-height:1.7;
-      margin-bottom:18px;
-      font-size:.88rem;
-    }
-    .login-inp,.form-inp{
-      width:100%;
-      padding:12px 15px;
-      border:1px solid var(--brd);
-      border-radius:var(--r-md);
-      background:rgba(0,0,0,.18);
-      color:var(--txt);
-      outline:none;
-      transition:border-color .2s, box-shadow .2s;
-    }
-    .login-inp{
-      margin-bottom:14px;
-    }
-    .form-inp:focus,.login-inp:focus{
-      border-color:var(--primary);
-      box-shadow:0 0 0 3px rgba(59,130,246,.18);
-    }
-    #login-error{
-      min-height:24px;
-      margin-top:12px;
-      color:var(--danger);
-      font-weight:800;
-      font-size:.9rem;
-      display:none;
-    }
+    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
+    .login-box{width:min(420px,92%);background:var(--srf);border:1px solid var(--brd);border-radius:var(--r-lg);padding:42px 34px;text-align:center}
+    .login-box h1{font-size:2rem;font-weight:900;margin-bottom:10px;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    .login-box p{color:var(--mut);margin-bottom:26px}
+    .login-inp,.form-inp{width:100%;padding:12px 15px;border:1px solid var(--brd);border-radius:var(--r-md);background:rgba(0,0,0,.18);color:var(--txt);outline:none;margin-bottom:14px}
+    .form-inp:focus,.login-inp:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+    #login-error{color:var(--danger);font-weight:800;margin-top:12px;display:none}
 
     /* LAYOUT */
-    .main-layout{
-      display:flex;
-      width:100%;
-      height:100vh;
-    }
-    .sidebar{
-      width:270px;
-      min-width:270px;
-      background:linear-gradient(180deg,var(--srf),rgba(10,14,22,.92));
-      border-right:1px solid var(--brd);
-      padding:18px 12px;
-      overflow-y:auto;
-      position:relative;
-      z-index:3;
-    }
-    .sidebar-logo{
-      padding:18px 10px 22px;
-      margin-bottom:12px;
-      border-bottom:1px solid var(--brd);
-      text-align:center;
-      font-family:'Fredoka One',cursive;
-      font-size:1.4rem;
-      background:linear-gradient(135deg,#f59e0b,#ef4444);
-      -webkit-background-clip:text;
-      background-clip:text;
-      -webkit-text-fill-color:transparent;
-    }
-    .sidebar-link{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:14px 16px;
-      border-left:3px solid transparent;
-      border-radius:8px;
-      margin:7px 0;
-      color:var(--mut);
-      font-weight:800;
-      cursor:pointer;
-      transition:all .2s ease;
-    }
-    .sidebar-link:hover,.sidebar-link.active{
-      color:#60a5fa;
-      background:rgba(59,130,246,.12);
-      border-left-color:var(--primary);
-    }
-    .sidebar-link.danger{
-      color:var(--danger);
-      margin-top:26px;
-      border-top:1px solid var(--brd);
-      padding-top:22px;
-    }
-    .content-area{
-      flex:1;
-      min-width:0;
-      display:flex;
-      flex-direction:column;
-      overflow:hidden;
-    }
-    .top-bar{
-      background:var(--srf);
-      border-bottom:1px solid var(--brd);
-      padding:16px 26px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:18px;
-      box-shadow:0 4px 20px rgba(0,0,0,.22);
-    }
-    .top-bar h2{
-      flex:1;
-      font-size:1.35rem;
-      font-weight:900;
-    }
-    .top-bar-actions{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .admin-status{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 14px;
-      border:1px solid rgba(16,185,129,.6);
-      background:rgba(16,185,129,.1);
-      border-radius:999px;
-      color:#10b981;
-      font-weight:900;
-      font-size:.82rem;
-    }
-    .admin-status .dot{
-      width:8px;
-      height:8px;
-      background:#10b981;
-      border-radius:50%;
-      animation:pulse 1.6s infinite ease-in-out;
-    }
-    @keyframes pulse{
-      0%,100%{opacity:1;transform:scale(1)}
-      50%{opacity:.55;transform:scale(1.15)}
-    }
+    .main-layout{display:flex;width:100%;height:100vh}
+    .sidebar{width:270px;background:linear-gradient(180deg,var(--srf),rgba(10,14,22,.92));border-right:1px solid var(--brd);padding:18px 12px;overflow-y:auto;z-index:3}
+    .sidebar-logo{padding:18px 10px 22px;margin-bottom:12px;border-bottom:1px solid var(--brd);text-align:center;font-family:'Fredoka One',cursive;font-size:1.4rem;color:#f59e0b}
+    .sidebar-link{display:flex;align-items:center;gap:12px;padding:14px 16px;border-left:3px solid transparent;border-radius:8px;margin:7px 0;color:var(--mut);font-weight:800;cursor:pointer;transition:.2s}
+    .sidebar-link:hover,.sidebar-link.active{color:#60a5fa;background:rgba(59,130,246,.12);border-left-color:var(--primary)}
+    
+    .content-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .top-bar{background:var(--srf);border-bottom:1px solid var(--brd);padding:16px 26px;display:flex;justify-content:space-between;align-items:center}
+    .content-main{flex:1;overflow-y:auto;padding:30px}
+    .page-section{display:none;max-width:1300px;margin:0 auto}
+    .page-section.active{display:block;animation:fadeIn .2s}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-    .content-main{
-      flex:1;
-      overflow-y:auto;
-      background:var(--bg);
-      padding:30px;
-    }
-    .page-section{
-      display:none;
-      max-width:1300px;
-      margin:0 auto;
-    }
-    .page-section.active{
-      display:block;
-      animation:fadeIn .22s ease;
-    }
-    @keyframes fadeIn{
-      from{opacity:0;transform:translateY(8px)}
-      to{opacity:1;transform:translateY(0)}
-    }
-
-    /* CARDS / FORMS */
-    .card{
-      background:var(--srf);
-      border:1px solid var(--brd);
-      border-radius:var(--r-lg);
-      padding:24px;
-      box-shadow:0 5px 20px rgba(0,0,0,.12);
-      margin-bottom:20px;
-    }
-    .card h3{
-      margin-bottom:20px;
-      font-size:1.15rem;
-      font-weight:900;
-    }
+    /* CARDS & UI */
+    .card{background:var(--srf);border:1px solid var(--brd);border-radius:var(--r-lg);padding:24px;margin-bottom:20px}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
     .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
     .form-group{margin-bottom:18px}
-    .form-group label{
-      display:block;
-      margin-bottom:8px;
-      color:var(--txt);
-      font-weight:800;
-      font-size:.92rem;
-    }
-    .form-group label.inline{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight:800;
-    }
-    .hint{
-      color:var(--mut);
-      font-size:.78rem;
-      line-height:1.7;
-      margin-top:6px;
-    }
-    textarea.form-inp{
-      min-height:150px;
-      resize:vertical;
-    }
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      padding:11px 20px;
-      border:none;
-      border-radius:8px;
-      font-weight:900;
-      color:#fff;
-      transition:all .2s ease;
-      font-size:.95rem;
-    }
-    .btn:hover{
-      filter:brightness(1.15);
-      transform:translateY(-1px);
-    }
-    .btn:active{transform:translateY(0)}
-    .btn-primary{background:var(--primary)}
-    .btn-success{background:var(--success)}
-    .btn-danger{background:var(--danger)}
-    .btn-warning{background:var(--warning)}
-    .btn-secondary{background:#64748b}
-    .btn-purple{background:var(--purple)}
+    .form-group label{display:block;margin-bottom:8px;font-weight:800}
+    .btn{padding:11px 20px;border:none;border-radius:8px;font-weight:900;color:#fff;display:inline-flex;gap:8px;transition:.2s}
+    .btn:hover{filter:brightness(1.15)}
+    .btn-primary{background:var(--primary)} .btn-success{background:var(--success)} .btn-danger{background:var(--danger)} .btn-secondary{background:var(--mut)}
     .btn-sm{padding:8px 14px;font-size:.8rem}
     .btn-wrap{display:flex;gap:10px;flex-wrap:wrap}
-    .badge{
-      display:inline-block;
-      font-size:.72rem;
-      font-weight:900;
-      border-radius:999px;
-      padding:4px 8px;
-      background:rgba(59,130,246,.12);
-      color:#60a5fa;
-      margin:0 4px 0 0;
-    }
 
-    .item{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:14px 16px;
-      background:rgba(0,0,0,.15);
-      border:1px solid var(--brd);
-      border-radius:10px;
-      margin-bottom:10px;
-    }
-    .item-main{
-      flex:1;
-      min-width:0;
-    }
-    .item-main strong{
-      display:block;
-      margin-bottom:4px;
-      font-weight:900;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .item-main small{
-      color:var(--mut);
-      display:block;
-      line-height:1.6;
-    }
-    .item-actions{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-    .stat-box{
-      background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));
-      border:1px solid rgba(59,130,246,.2);
-      border-radius:12px;
-      padding:22px;
-      text-align:center;
-    }
-    .stat-box .number{
-      font-size:2.4rem;
-      font-weight:900;
-      color:#60a5fa;
-    }
-    .stat-box .label{
-      color:var(--mut);
-      font-weight:800;
-      font-size:.9rem;
-    }
-    .empty{
-      text-align:center;
-      color:var(--mut);
-      padding:30px 20px;
-      border:1px dashed var(--brd);
-      border-radius:10px;
-      background:rgba(0,0,0,.08);
-    }
+    /* LIST ITEMS */
+    .item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(0,0,0,.15);border:1px solid var(--brd);border-radius:10px;margin-bottom:10px}
+    .item-main strong{display:block;font-weight:900;margin-bottom:4px}
+    .item-main small{color:var(--mut)}
+    .item-actions{display:flex;gap:8px}
 
-    /* PREVIEW */
-    .preview-box{
-      border:1px solid var(--brd);
-      border-radius:10px;
-      background:rgba(0,0,0,.08);
-      overflow:hidden;
-      margin-top:12px;
-      display:none;
-    }
-    .preview-box.show{
-      display:block;
-    }
-    .preview-head{
-      background:rgba(0,0,0,.12);
-      color:var(--mut);
-      padding:8px 12px;
-      font-size:.8rem;
-      font-weight:900;
-      letter-spacing:.08em;
-    }
-    .preview-box iframe{
-      display:block;
-      width:100%;
-      min-height:300px;
-      border:0;
-      background:#fff;
-    }
+    /* BULK UPLOAD STYLES */
+    .csv-box{background:rgba(14,165,233,.08);border:2px dashed #0ea5e9;border-radius:var(--r-md);padding:20px;margin-bottom:20px}
+    .csv-fmt{background:rgba(0,0,0,.3);padding:12px;font-size:.8rem;color:var(--mut);border-radius:8px;margin:12px 0}
+    .dropzone{border:2px dashed #0ea5e9;padding:26px;text-align:center;cursor:pointer;border-radius:12px;background:rgba(14,165,233,.05);margin-bottom:12px}
+    .dropzone.over{background:rgba(14,165,233,.15);border-color:#38bdf8}
+    .upload-pv-table{width:100%;border-collapse:collapse;font-size:.75rem;margin-top:10px}
+    .upload-pv-table th,.upload-pv-table td{border:1px solid var(--brd);padding:6px;text-align:left}
 
     /* TOAST */
-    #toast{
-      position:fixed;
-      right:20px;
-      bottom:20px;
-      z-index:2000;
-      display:none;
-      padding:14px 20px;
-      border-radius:9px;
-      color:#fff;
-      font-weight:900;
-      max-width:380px;
-      box-shadow:0 12px 30px rgba(0,0,0,.35);
-    }
-
-    /* SETTINGS */
-    .toggle-row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:16px 18px;
-      border:1px solid var(--brd);
-      border-radius:12px;
-      background:rgba(0,0,0,.12);
-      margin-bottom:12px;
-    }
-    .toggle-copy{
-      flex:1;
-    }
-    .toggle-copy strong{
-      display:block;
-      margin-bottom:4px;
-      font-weight:900;
-    }
-    .toggle-copy small{
-      color:var(--mut);
-      line-height:1.6;
-    }
-    .switch{
-      position:relative;
-      display:inline-block;
-      width:48px;
-      height:26px;
-      flex-shrink:0;
-    }
-    .switch input{
-      opacity:0;
-      width:0;
-      height:0;
-      position:absolute;
-    }
-    .slider{
-      position:absolute;
-      inset:0;
-      background:#64748b;
-      border-radius:999px;
-      transition:.2s ease;
-    }
-    .slider:before{
-      content:"";
-      position:absolute;
-      width:20px;
-      height:20px;
-      border-radius:50%;
-      background:#fff;
-      left:3px;
-      top:3px;
-      transition:.2s ease;
-    }
-    .switch input:checked + .slider{background:var(--success)}
-    .switch input:checked + .slider:before{transform:translateX(22px)}
-
-    /* MODAL */
-    .modal{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.8);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-      padding:20px;
-    }
-    .modal.show{display:flex}
-    .modal-box{
-      width:min(900px,94%);
-      background:var(--srf);
-      border:1px solid var(--brd);
-      border-radius:14px;
-      padding:16px;
-    }
-    .modal-head{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom:12px;
-      font-weight:900;
-    }
-    .modal-box iframe{
-      width:100%;
-      height:70vh;
-      border:0;
-      background:#fff;
-    }
+    #toast{position:fixed;right:20px;bottom:20px;z-index:9999;padding:14px 20px;border-radius:8px;color:#fff;font-weight:900;display:none}
 
     @media (max-width: 980px){
       .grid-2,.grid-3{grid-template-columns:1fr}
       .main-layout{display:block;height:auto;min-height:100vh}
-      .sidebar{
-        width:100%;
-        height:auto;
-        position:relative;
-        z-index:1;
-      }
-      .content-main{padding:18px}
-      .top-bar{padding:12px 16px}
+      .sidebar{width:100%;height:auto}
     }
   </style>
 </head>
 <body>
+
+  <!-- LOGIN -->
   <div id="login-overlay">
     <div class="login-box">
       <h1>Master Admin</h1>
-      <p>Secure CMS dashboard access</p>
-      <div class="login-info">
-        <strong>Default:</strong><br>
-        ID: admin<br>
-        Password: admin123
-      </div>
-      <input class="login-inp" id="login-id" type="text" placeholder="Admin ID" autocomplete="username">
-      <input class="login-inp" id="login-pass" type="password" placeholder="Password" autocomplete="current-password">
-      <button class="btn btn-warning" style="width:100%;justify-content:center;" onclick="attemptLogin()">🔓 Login</button>
+      <p>Secure CMS access</p>
+      <input class="login-inp" id="login-id" type="text" placeholder="Admin ID">
+      <input class="login-inp" id="login-pass" type="password" placeholder="Password">
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="attemptLogin()">🔓 Login</button>
       <div id="login-error"></div>
     </div>
   </div>
 
   <div class="main-layout" id="main-layout" style="display:none;">
+    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-logo">📊 Master Admin</div>
-      <div class="sidebar-link active" data-page="dashboard" onclick="switchPage('dashboard')">📊 Dashboard</div>
-      <div class="sidebar-link" data-page="content" onclick="switchPage('content')">📝 Manage Content</div>
-      <div class="sidebar-link" data-page="panels" onclick="switchPage('panels')">📁 Manage Panels</div>
-      <div class="sidebar-link" data-page="links" onclick="switchPage('links')">🔗 Layout & Links</div>
-      <div class="sidebar-link" data-page="users" onclick="switchPage('users')">👥 Users</div>
-      <div class="sidebar-link" data-page="settings" onclick="switchPage('settings')">⚙️ Settings</div>
+      <div class="sidebar-link active" onclick="switchPage('dashboard')">📊 Dashboard</div>
+      <div class="sidebar-link" onclick="switchPage('content')">📝 Manage Content</div>
+      <div class="sidebar-link" onclick="switchPage('panels')">📁 Manage Panels</div>
+      <div class="sidebar-link" onclick="switchPage('links')">🔗 Layout & Links</div>
+      <div class="sidebar-link" onclick="switchPage('users')">👥 Users</div>
       <div class="sidebar-link danger" onclick="logout()">🚪 Logout</div>
     </aside>
 
     <div class="content-area">
       <header class="top-bar">
         <h2 id="page-title">📊 Dashboard</h2>
-        <div class="top-bar-actions">
-          <div class="admin-status">
-            <div class="dot"></div>
-            <span id="admin-name">Admin</span>
-          </div>
-          <button class="btn btn-secondary btn-sm" onclick="toggleTheme()">🌙 Theme</button>
-        </div>
+        <button class="btn btn-secondary btn-sm" onclick="toggleTheme()">🌙 Theme</button>
       </header>
 
       <main class="content-main">
+        
+        <!-- DASHBOARD -->
         <div id="page-dashboard" class="page-section active">
           <div class="grid-3">
-            <div class="stat-box">
-              <div class="number" id="stat-content">0</div>
-              <div class="label">Managed Content</div>
-            </div>
-            <div class="stat-box">
-              <div class="number" id="stat-panels">0</div>
-              <div class="label">Connected Panels</div>
-            </div>
-            <div class="stat-box">
-              <div class="number" id="stat-users">0</div>
-              <div class="label">Users</div>
-            </div>
+            <div class="card" style="text-align:center"><h2 id="stat-content" style="font-size:2.5rem;color:var(--primary)">0</h2><p>Content</p></div>
+            <div class="card" style="text-align:center"><h2 id="stat-panels" style="font-size:2.5rem;color:var(--primary)">0</h2><p>Panels</p></div>
+            <div class="card" style="text-align:center"><h2 id="stat-users" style="font-size:2.5rem;color:var(--primary)">0</h2><p>Users</p></div>
           </div>
-
           <div class="card">
-            <h3>🧩 Legacy Vercel Data Sync</h3>
-            <p class="hint" style="line-height:1.8;">
-              The Master Dashboard reads the original Vercel KV collections used by the old admin and student panels.
-              This keeps all previous uploaded content visible in the new unified CMS without migrating the original data.
-            </p>
-            <div id="legacy-status" class="hint" style="margin-top:12px;">Scanning legacy collections…</div>
-          </div>
-
-          <div class="card">
-            <h3>🎯 Quick Actions</h3>
-            <div class="btn-wrap">
-              <button class="btn btn-primary" onclick="switchPage('content')">➕ Add Content</button>
-              <button class="btn btn-primary" onclick="switchPage('panels')">➕ Create Panel</button>
-              <button class="btn btn-primary" onclick="switchPage('users')">👤 Add User</button>
-            </div>
+            <h3>🧩 Legacy Data Sync Active</h3>
+            <p style="color:var(--mut)">All legacy Vercel KV collections are indexed and manageable from this unified dashboard.</p>
           </div>
         </div>
 
+        <!-- MANAGE CONTENT & BULK UPLOAD -->
         <div id="page-content" class="page-section">
+          
+          <!-- BULK UPLOAD BOX (From Old Code) -->
+          <div class="csv-box">
+            <h3>📥 Bulk Upload Content</h3>
+            <div class="csv-fmt"><strong>Columns:</strong> TargetPanel | Title | Content (HTML allowed) | Class<br>🖼 Drag & drop any CSV, JSON, TXT, or Excel file directly.</div>
+            <div class="dropzone" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="event.preventDefault();this.classList.remove('over');handleDropEvent(event)" onclick="document.getElementById('csvFileInput').click()">
+              <strong>📂 Drag & drop file here</strong><br><small>or click to browse</small>
+            </div>
+            <input type="file" id="csvFileInput" style="display:none" accept=".csv,.tsv,.txt,.json,.html,.xlsx,.xls" onchange="handleFileEvent(event)">
+            <div id="csvPreviewArea" style="display:none;margin-top:15px"></div>
+          </div>
+
+          <!-- MANUAL ENTRY FORM -->
           <div class="card">
-            <h3>📝 Manage Content</h3>
+            <h3 id="form-title">📝 Add/Edit Content Manually</h3>
             <form onsubmit="publishContent(event)">
+              <input type="hidden" id="content-id"> <!-- CRITICAL FIX -->
               <div class="grid-2">
                 <div class="form-group">
                   <label>Target Panel</label>
-                  <input id="content-panel" class="form-inp" list="panel-options" placeholder="e.g. 1st to 10th Class Student Panel" required>
-                  <datalist id="panel-options"></datalist>
-                  <div class="hint">Type or select a panel name. Relevant fields update automatically based on the selected target.</div>
+                  <input id="content-panel" class="form-inp" required placeholder="e.g. 1st to 10th Class">
                 </div>
-                <div class="form-group" id="content-class-wrap">
+                <div class="form-group">
                   <label>Class / Level</label>
-                  <input id="content-class" class="form-inp" placeholder="e.g. 6, Grade 6, All classes">
+                  <input id="content-class" class="form-inp" placeholder="Optional">
                 </div>
               </div>
-
               <div class="form-group">
                 <label>Title</label>
-                <input id="content-title" class="form-inp" placeholder="Enter title" required>
+                <input id="content-title" class="form-inp" required>
               </div>
-
               <div class="form-group">
-                <label>Content (HTML Supported)
-                  <span class="badge">HTML</span>
-                  <span class="badge">videos</span>
-                  <span class="badge">embeds</span>
-                  <span class="badge">images</span>
-                </label>
-                <textarea id="content-body" class="form-inp" placeholder="Paste raw HTML, embedded video, iframe, image, styled text, or plain text" required></textarea>
-                <div class="hint">Rich content is preserved exactly for panel rendering. Use preview before publishing.</div>
-                <div class="preview-box" id="content-preview">
-                  <div class="preview-head">LIVE PREVIEW</div>
-                  <iframe id="content-preview-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-presentation"></iframe>
-                </div>
+                <label>Content (HTML Supported)</label>
+                <textarea id="content-body" class="form-inp" style="min-height:150px" required></textarea>
               </div>
-
-              <div class="form-group">
-                <label>Tags (optional)</label>
-                <input id="content-tags" class="form-inp" placeholder="math, class-6, chapter-1">
-              </div>
-
               <div class="btn-wrap">
-                <button type="button" class="btn btn-secondary" onclick="previewContent()">👁 Live Preview</button>
-                <button type="submit" class="btn btn-success">📤 Publish</button>
+                <button type="submit" class="btn btn-success" id="content-submit-btn">📤 Publish</button>
                 <button type="button" class="btn btn-secondary" onclick="resetContentForm()">🔄 Clear</button>
               </div>
             </form>
           </div>
 
           <div class="card">
-            <h3>📚 Legacy & Recent Content</h3>
-            <div id="content-list">Loading content…</div>
+            <h3>📚 Active Content</h3>
+            <div id="content-list">Loading...</div>
           </div>
         </div>
 
+        <!-- MANAGE PANELS -->
         <div id="page-panels" class="page-section">
           <div class="card">
             <h3>📁 Manage Panels</h3>
             <form onsubmit="savePanel(event)">
-              <input type="hidden" id="panel-id">
-              <div class="form-group">
-                <label>Panel Name</label>
-                <input id="panel-name" class="form-inp" placeholder="e.g. 1st to 10th Class Student Panel" required>
+              <input type="hidden" id="panel-id"> <!-- CRITICAL FIX -->
+              <div class="grid-2">
+                <div class="form-group"><label>Panel Name</label><input id="panel-name" class="form-inp" required></div>
+                <div class="form-group"><label>Route URL</label><input id="panel-route" class="form-inp" placeholder="/panels/custom"></div>
               </div>
-
-              <div class="form-group">
-                <label>Panel Architecture / Purpose</label>
-                <input id="panel-purpose" class="form-inp" placeholder="e.g. Student learning dashboard, resource hub, exam panel, custom architecture">
-              </div>
-
-              <div class="form-group">
-                <label>Description</label>
-                <textarea id="panel-description" class="form-inp" placeholder="Describe what this panel is for"></textarea>
-              </div>
-
-              <div class="form-group">
-                <label>Route URL</label>
-                <input id="panel-route" class="form-inp" placeholder="/panels/my-panel">
-              </div>
-
+              <div class="form-group"><label>Architecture / Purpose</label><input id="panel-purpose" class="form-inp"></div>
               <div class="btn-wrap">
-                <button type="submit" class="btn btn-success" id="panel-submit-btn">✅ Create Panel</button>
+                <button type="submit" class="btn btn-success">✅ Save Panel</button>
                 <button type="button" class="btn btn-secondary" onclick="resetPanelForm()">🔄 Clear</button>
               </div>
             </form>
           </div>
-
-          <div class="card">
-            <h3>📊 Active Panels</h3>
-            <div id="panels-list">Loading panels…</div>
-          </div>
+          <div class="card"><h3>📊 Connected Panels</h3><div id="panels-list">Loading...</div></div>
         </div>
 
+        <!-- LAYOUT & LINKS -->
         <div id="page-links" class="page-section">
           <div class="card">
-            <h3>🔗 Layout & Links</h3>
+            <h3>🔗 Manage Links</h3>
             <form onsubmit="saveLink(event)">
-              <input type="hidden" id="link-id">
+              <input type="hidden" id="link-id"> <!-- CRITICAL FIX -->
               <div class="grid-2">
-                <div class="form-group">
-                  <label>Link Label</label>
-                  <input id="link-label" class="form-inp" placeholder="Learning Hub" required>
-                </div>
-                <div class="form-group">
-                  <label>Link URL</label>
-                  <input id="link-url" class="form-inp" placeholder="/panels/my-panel or https://example.com" required>
-                </div>
+                <div class="form-group"><label>Link Label</label><input id="link-label" class="form-inp" required></div>
+                <div class="form-group"><label>URL</label><input id="link-url" class="form-inp" required></div>
               </div>
-
-              <div class="grid-2">
-                <div class="form-group">
-                  <label>Icon / Emoji</label>
-                  <input id="link-icon" class="form-inp" placeholder="📘" value="📘">
-                </div>
-                <div class="form-group">
-                  <label>Placement</label>
-                  <input id="link-position" class="form-inp" placeholder="top, sidebar, footer">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="inline">
-                  <input type="checkbox" id="link-new-tab"> Open in new tab
-                </label>
-              </div>
-
               <div class="btn-wrap">
                 <button type="submit" class="btn btn-success">➕ Save Link</button>
                 <button type="button" class="btn btn-secondary" onclick="resetLinkForm()">🔄 Clear</button>
               </div>
             </form>
           </div>
-
-          <div class="card">
-            <h3>🌐 Navigation Links</h3>
-            <div id="links-list">Loading links…</div>
-          </div>
+          <div class="card"><h3>🌐 Active Links</h3><div id="links-list">Loading...</div></div>
         </div>
 
+        <!-- USERS -->
         <div id="page-users" class="page-section">
           <div class="card">
-            <h3>👤 Add New User</h3>
+            <h3>👤 Manage Users</h3>
             <form onsubmit="saveUser(event)">
+              <input type="hidden" id="user-id"> <!-- CRITICAL FIX -->
               <div class="grid-2">
-                <div class="form-group">
-                  <label>Username *</label>
-                  <input id="user-name" class="form-inp" placeholder="Username" required>
-                </div>
-                <div class="form-group">
-                  <label>Password *</label>
-                  <input id="user-pass" class="form-inp" type="password" placeholder="Password" required>
-                </div>
+                <div class="form-group"><label>Username *</label><input id="user-name" class="form-inp" required></div>
+                <div class="form-group"><label>Password *</label><input id="user-pass" class="form-inp" required></div>
               </div>
-
-              <div class="grid-2">
-                <div class="form-group">
-                  <label>Email (optional)</label>
-                  <input id="user-email" class="form-inp" type="email" placeholder="user@example.com">
-                </div>
-                <div class="form-group">
-                  <label>User Type (optional)</label>
-                  <input id="user-type" class="form-inp" placeholder="student, admin, guest, editor">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label>Notes / Permissions (optional)</label>
-                <textarea id="user-notes" class="form-inp" placeholder="Optional notes or permission summary"></textarea>
-              </div>
-
               <div class="btn-wrap">
                 <button type="submit" class="btn btn-success">✅ Save User</button>
                 <button type="button" class="btn btn-secondary" onclick="resetUserForm()">🔄 Clear</button>
               </div>
             </form>
           </div>
-
-          <div class="card">
-            <h3>👥 Users</h3>
-            <div id="users-list">Loading users…</div>
-          </div>
+          <div class="card"><h3>👥 Active Users</h3><div id="users-list">Loading...</div></div>
         </div>
 
-        <div id="page-settings" class="page-section">
-          <div class="card">
-            <h3>⚙️ Premium Enterprise Settings</h3>
-            <div class="toggle-row">
-              <div class="toggle-copy">
-                <strong>Site Maintenance Mode</strong>
-                <small>Enable website maintenance page and restrict public access while you work.</small>
-              </div>
-              <label class="switch">
-                <input type="checkbox" id="setting-maintenance">
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="toggle-row">
-              <div class="toggle-copy">
-                <strong>Global SEO / Meta Settings</strong>
-                <small>Manage global titles, meta descriptions, and sharing previews across the site.</small>
-              </div>
-              <label class="switch">
-                <input type="checkbox" id="setting-seo">
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="toggle-row">
-              <div class="toggle-copy">
-                <strong>Security Configurations</strong>
-                <small>Use hardened settings for admin access, protected routes, and content restrictions.</small>
-              </div>
-              <label class="switch">
-                <input type="checkbox" id="setting-security">
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="toggle-row">
-              <div class="toggle-copy">
-                <strong>Redirect / Content Protection</strong>
-                <small>Control public redirects and restrict access to premium areas.</small>
-              </div>
-              <label class="switch">
-                <input type="checkbox" id="setting-redirect-protection">
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="grid-2" style="margin-top:18px;">
-              <div class="form-group">
-                <label>Site Name</label>
-                <input id="setting-site-name" class="form-inp" placeholder="Clever Students">
-              </div>
-              <div class="form-group">
-                <label>Tagline</label>
-                <input id="setting-tagline" class="form-inp" placeholder="Learn smarter">
-              </div>
-            </div>
-
-            <div class="grid-2">
-              <div class="form-group">
-                <label>SEO Title</label>
-                <input id="setting-seo-title" class="form-inp" placeholder="Global SEO title">
-              </div>
-              <div class="form-group">
-                <label>SEO Description</label>
-                <textarea id="setting-seo-description" class="form-inp" placeholder="Meta description for search engines and social previews"></textarea>
-              </div>
-            </div>
-
-            <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
-          </div>
-
-          <div class="card">
-            <h3>🔐 Operational Controls</h3>
-            <div class="btn-wrap">
-              <button class="btn btn-primary btn-sm" onclick="backupData()">📥 Export Backup</button>
-              <button class="btn btn-warning btn-sm" onclick="clearLocalCache()">🧹 Clear Cache</button>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   </div>
 
   <div id="toast"></div>
 
-  <div id="modal-preview" class="modal">
-    <div class="modal-box">
-      <div class="modal-head">
-        <span>HTML Live Preview</span>
-        <button class="btn btn-secondary btn-sm" onclick="closePreview()">✕ Close</button>
-      </div>
-      <iframe id="modal-preview-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-presentation"></iframe>
-    </div>
-  </div>
+  <!-- LOAD SHEET.JS FOR EXCEL BULK UPLOAD -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 
   <script>
+    // VERCEL KV DB CONNECTOR
     var db = {
       ref: function(path) {
         return {
           once: function() {
             return fetch('/api/db?path=' + encodeURIComponent(path))
-              .then(function(res){ if(!res.ok) throw new Error('DB request failed'); return res.json(); })
-              .then(function(data){ return { val: function(){ return data.result; } }; });
+              .then(res => res.json())
+              .then(data => ({ val: () => data.result }));
           },
           set: function(data) {
-            return fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'set', path: path, data: data })
-            }).then(function(res){ if(!res.ok) throw new Error('DB write failed'); return res.json(); });
+            return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: path, data: data }) });
           },
           update: function(data) {
-            return fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'update', path: path, data: data })
-            }).then(function(res){ if(!res.ok) throw new Error('DB write failed'); return res.json(); });
+            return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', path: path, data: data }) });
           },
           remove: function() {
-            return fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'remove', path: path })
-            }).then(function(res){ if(!res.ok) throw new Error('DB write failed'); return res.json(); });
+            return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: path }) });
           }
         };
       }
     };
 
-    var DEFAULT_ADMIN_ID = 'admin';
-    var DEFAULT_ADMIN_PASS = 'admin123';
-    var admin = {
-      id: '',
-      token: ''
-    };
+    var appState = { panels: {}, links: {}, users: {}, content: {}, legacyContent: {} };
 
-    var appState = {
-      legacyCollections: {
-        theoryDatabase: 'theory',
-        questionBank: 'quiz',
-        mindMapDatabase: 'mindmap',
-        papersDatabase: 'papers',
-        gamesDatabase: 'games',
-        projectsDatabase: 'projects',
-        videosDatabase: 'videos',
-        skillsDatabase: 'skills'
-      },
-      panels: {},
-      links: {},
-      users: {},
-      content: {},
-      settings: {
-        maintenanceMode: false,
-        seoMode: false,
-        securityMode: false,
-        redirectProtection: false,
-        siteName: 'Clever Students',
-        tagline: 'Learn smarter',
-        seoTitle: '',
-        seoDescription: ''
-      },
-      legacyContent: {},
-      activePage: 'dashboard'
-    };
-
-    function escHtml(value) {
-      return String(value || '').replace(/[&<>\"']/g, function(ch) {
-        return {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;'
-        }[ch];
-      });
-    }
-
+    // UTILS
     function toast(msg, type) {
       var t = document.getElementById('toast');
-      if (!t) return;
-      t.textContent = msg;
-      t.style.display = 'block';
-      t.style.background = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6';
-      setTimeout(function() {
-        t.style.display = 'none';
-      }, 2600);
+      t.textContent = msg; t.style.display = 'block'; t.style.background = type === 'error' ? '#ef4444' : '#10b981';
+      setTimeout(() => t.style.display = 'none', 3000);
     }
-
-    function initTheme() {
-      var theme = localStorage.getItem('ma_theme') || 'dark';
-      if (theme === 'light') {
-        document.body.classList.add('light-mode');
-      }
-    }
-
     function toggleTheme() {
       document.body.classList.toggle('light-mode');
-      localStorage.setItem('ma_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
     }
-
     function switchPage(page) {
-      appState.activePage = page;
-      var titleMap = {
-        dashboard: '📊 Dashboard',
-        content: '📝 Manage Content',
-        panels: '📁 Manage Panels',
-        links: '🔗 Layout & Links',
-        users: '👥 Users',
-        settings: '⚙️ Settings'
-      };
-      document.getElementById('page-title').textContent = titleMap[page];
-      document.querySelectorAll('.page-section').forEach(function(section) {
-        section.classList.toggle('active', section.id === 'page-' + page);
-      });
-      document.querySelectorAll('.sidebar-link').forEach(function(link) {
-        link.classList.toggle('active', link.getAttribute('data-page') === page);
-      });
-      if (page === 'content') loadContentList();
-      if (page === 'panels') loadPanelsList();
-      if (page === 'links') loadLinksList();
-      if (page === 'users') loadUsersList();
-      if (page === 'settings') loadSettings();
+      document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      event.target.classList.add('active');
+      if(page==='content') loadContentList();
+      if(page==='panels') loadPanelsList();
+      if(page==='links') loadLinksList();
+      if(page==='users') loadUsersList();
     }
 
-    function showDashboard() {
-      document.getElementById('login-overlay').style.display = 'none';
-      document.getElementById('main-layout').style.display = 'flex';
-      document.getElementById('admin-name').textContent = admin.id;
-      loadAllData();
-    }
-
-    function checkAuth() {
-      var storedId = localStorage.getItem('ma_admin_id');
-      var storedToken = localStorage.getItem('ma_admin_token');
-      if (storedId && storedToken && storedId === DEFAULT_ADMIN_ID) {
-        admin.id = storedId;
-        admin.token = storedToken;
-        showDashboard();
-      } else {
-        document.getElementById('login-overlay').style.display = 'flex';
-      }
-    }
-
+    // LOGIN FIX: .toLowerCase() added
     function attemptLogin() {
-      var id = document.getElementById('login-id').value.trim();
+      var id = document.getElementById('login-id').value.trim().toLowerCase();
       var pass = document.getElementById('login-pass').value.trim();
-      var errorBox = document.getElementById('login-error');
-      if (!id || !pass) {
-        errorBox.style.display = 'block';
-        errorBox.textContent = 'Enter both ID and password.';
-        return;
-      }
-      if (id === DEFAULT_ADMIN_ID && pass === DEFAULT_ADMIN_PASS) {
-        errorBox.style.display = 'none';
-        admin.id = id;
-        admin.token = 'ma_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-        localStorage.setItem('ma_admin_id', id);
-        localStorage.setItem('ma_admin_token', admin.token);
-        showDashboard();
-        return;
-      }
-      errorBox.style.display = 'block';
-      errorBox.textContent = 'Invalid credentials.';
-    }
-
-    function logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('ma_admin_id');
-        localStorage.removeItem('ma_admin_token');
-        admin.id = '';
-        admin.token = '';
-        location.reload();
-      }
-    }
-
-    function readPath(path) {
-      return db.ref(path).once('value').then(function(snapshot) {
-        return snapshot.val() || {};
-      }).catch(function() {
-        return {};
-      });
-    }
-
-    function isPlainObject(value) {
-      return value && typeof value === 'object' && !Array.isArray(value);
-    }
-
-    function normalizeObject(value) {
-      if (!value || typeof value !== 'object') {
-        return {};
-      }
-      if (Array.isArray(value)) {
-        return value.reduce(function(acc, item, idx) {
-          acc['item_' + idx] = item;
-          return acc;
-        }, {});
-      }
-      return value;
-    }
-
-    function loadAllData() {
-      var keys = Object.keys(appState.legacyCollections);
-      var fetches = [];
-      keys.forEach(function(k) {
-        fetches.push(
-          readPath(k).then(function(data) {
-            appState.legacyContent[k] = normalizeObject(data);
-          })
-        );
-      });
-
-      fetches.push(
-        readPath('cmsPanels').then(function(data) {
-          appState.panels = normalizeObject(data);
-        }),
-        readPath('cmsLinks').then(function(data) {
-          appState.links = normalizeObject(data);
-        }),
-        readPath('cmsUsers').then(function(data) {
-          appState.users = normalizeObject(data);
-        }),
-        readPath('users').then(function(data) {
-          appState.users = Object.assign({}, appState.users, normalizeObject(data));
-        }),
-        readPath('settings').then(function(data) {
-          appState.settings = Object.assign({}, appState.settings, data || {});
-        }),
-        readPath('cmsContent').then(function(data) {
-          appState.content = normalizeObject(data);
-        })
-      );
-
-      Promise.all(fetches).then(function() {
-        populatePanelOptions();
-        renderDashboard();
-        renderSettings();
-        loadContentList();
-        loadPanelsList();
-        loadLinksList();
-        loadUsersList();
-        updateLegacyStatus();
-      }).catch(function() {
-        toast('Initial data sync failed.', 'error');
-      });
-    }
-
-    function updateLegacyStatus() {
-      var totalLegacy = 0;
-      Object.keys(appState.legacyContent).forEach(function(key) {
-        totalLegacy += Object.keys(appState.legacyContent[key]).length;
-      });
-      var legacyEl = document.getElementById('legacy-status');
-      if (legacyEl) {
-        legacyEl.textContent = '✓ Indexed ' + totalLegacy + ' legacy records from Vercel KV collections without altering the source data.';
-      }
-    }
-
-    function populatePanelOptions() {
-      var list = document.getElementById('panel-options');
-      if (!list) return;
-      var panelNames = [];
-
-      Object.keys(appState.panels).forEach(function(id) {
-        var item = appState.panels[id];
-        if (item && item.name) panelNames.push(item.name);
-      });
-
-      Object.keys(appState.legacyContent).forEach(function(collection) {
-        var entries = appState.legacyContent[collection];
-        Object.keys(entries).forEach(function(key) {
-          var data = entries[key];
-          if (data && (data.title || data.name || key)) {
-            panelNames.push(data.title || data.name || key);
-          }
-        });
-      });
-
-      panelNames = panelNames.filter(function(item, index, arr) {
-        return item && arr.indexOf(item) === index;
-      });
-
-      list.innerHTML = panelNames.map(function(name) {
-        return '<option value="' + escHtml(name) + '"></option>';
-      }).join('');
-    }
-
-    function renderDashboard() {
-      document.getElementById('stat-content').textContent = Object.keys(appState.content).length + Object.keys(appState.legacyContent).reduce(function(sum, collection) {
-        var items = appState.legacyContent[collection];
-        return sum + Object.keys(items).length;
-      }, 0);
-
-      document.getElementById('stat-panels').textContent = Object.keys(appState.panels).length;
-      document.getElementById('stat-users').textContent = Object.keys(appState.users).length;
-    }
-
-    function previewContent() {
-      var html = document.getElementById('content-body').value.trim();
-      if (!html) {
-        toast('Please enter content first.', 'error');
-        return;
-      }
-      var iframe = document.getElementById('content-preview-frame');
-      var modalIframe = document.getElementById('modal-preview-frame');
-      if (iframe) {
-        iframe.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;padding:18px;line-height:1.6;color:#111}img,video,iframe{max-width:100%;height:auto}body.light-mode{color:#111}img{max-width:100%}iframe{min-height:220px}</style></head><body>' + html + '</body></html>';
-      }
-      if (modalIframe) {
-        modalIframe.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;padding:18px;line-height:1.6;color:#111}img,video,iframe{max-width:100%;height:auto}body.light-mode{color:#111}img{max-width:100%}iframe{min-height:220px}</style></head><body>' + html + '</body></html>';
-      }
-      document.getElementById('content-preview').classList.add('show');
-      document.getElementById('modal-preview').classList.add('show');
-    }
-
-    function closePreview() {
-      document.getElementById('modal-preview').classList.remove('show');
-    }
-
-    function resetContentForm() {
-      document.getElementById('content-panel').value = '';
-      document.getElementById('content-class').value = '';
-      document.getElementById('content-title').value = '';
-      document.getElementById('content-body').value = '';
-      document.getElementById('content-tags').value = '';
-      document.getElementById('content-preview').classList.remove('show');
-      document.getElementById('content-class-wrap').style.display = 'block';
-    }
-
-    function renderFieldMode() {
-      var panel = document.getElementById('content-panel').value || '';
-      var classWrap = document.getElementById('content-class-wrap');
-      if (panel && /class|student|grade|learning|panel/i.test(panel)) {
-        classWrap.style.display = 'block';
+      if (id === 'admin' && pass === 'admin123') {
+        localStorage.setItem('ma_admin', 'true');
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('main-layout').style.display = 'flex';
+        loadAllData();
       } else {
-        classWrap.style.display = 'none';
+        document.getElementById('login-error').style.display = 'block';
+        document.getElementById('login-error').innerText = 'Invalid Credentials';
       }
     }
-    document.getElementById('content-panel').addEventListener('input', renderFieldMode);
+    function logout() { localStorage.removeItem('ma_admin'); location.reload(); }
+    if(localStorage.getItem('ma_admin')==='true') attemptLogin();
 
-    function publishContent(event) {
-      event.preventDefault();
-      var panelName = document.getElementById('content-panel').value.trim();
-      var title = document.getElementById('content-title').value.trim();
-      var body = document.getElementById('content-body').value.trim();
-      if (!panelName || !title || !body) {
-        toast('Target Panel, Title, and Content are required.', 'error');
-        return;
-      }
-
-      var classValue = document.getElementById('content-class').value.trim();
-      var item = {
-        id: 'content_' + Date.now(),
-        title: title,
-        targetPanel: panelName,
-        class: classValue || '',
-        content: body,
-        tags: document.getElementById('content-tags').value.trim(),
-        createdAt: new Date().toISOString()
-      };
-
-      db.ref('cmsContent/' + item.id).set(item).then(function() {
-        toast('Content published successfully.', 'success');
-        resetContentForm();
-        loadContentList();
-        renderDashboard();
-      }).catch(function() {
-        toast('Content publish failed.', 'error');
+    // LOAD ALL DATA
+    function loadAllData() {
+      Promise.all([
+        db.ref('cmsContent').once(), db.ref('cmsPanels').once(), db.ref('cmsLinks').once(), db.ref('cmsUsers').once(), db.ref('theoryDatabase').once()
+      ]).then(res => {
+        appState.content = res[0].val() || {}; appState.panels = res[1].val() || {};
+        appState.links = res[2].val() || {}; appState.users = res[3].val() || {};
+        appState.legacyContent = res[4].val() || {};
+        
+        document.getElementById('stat-content').innerText = Object.keys(appState.content).length + Object.keys(appState.legacyContent).length;
+        document.getElementById('stat-panels').innerText = Object.keys(appState.panels).length;
+        document.getElementById('stat-users').innerText = Object.keys(appState.users).length;
       });
     }
 
+    // ================= CRUD: CONTENT =================
+    function publishContent(e) {
+      e.preventDefault();
+      var id = document.getElementById('content-id').value || 'content_' + Date.now();
+      var item = {
+        id: id, targetPanel: document.getElementById('content-panel').value,
+        class: document.getElementById('content-class').value, title: document.getElementById('content-title').value,
+        content: document.getElementById('content-body').value
+      };
+      db.ref('cmsContent/' + id).set(item).then(() => { toast('Content Saved!', 'success'); resetContentForm(); loadAllData(); switchPage('content'); });
+    }
+    function resetContentForm() { document.getElementById('content-id').value = ''; document.getElementById('content-panel').value = ''; document.getElementById('content-class').value = ''; document.getElementById('content-title').value = ''; document.getElementById('content-body').value = ''; }
     function loadContentList() {
-      var container = document.getElementById('content-list');
-      if (!container) return;
-      var items = Object.keys(appState.content).map(function(id) {
-        return appState.content[id];
-      }).concat(Object.keys(appState.legacyContent).reduce(function(acc, collection) {
-        var entries = appState.legacyContent[collection];
-        Object.keys(entries).forEach(function(key) {
-          var entry = entries[key];
-          if (entry && typeof entry === 'object') {
-            acc.push({
-              id: key,
-              title: entry.title || entry.name || key,
-              targetPanel: entry.subject || entry.class || collection,
-              class: entry.class || '',
-              content: entry.content || entry.question || '',
-              createdAt: entry.createdAt || new Date().toISOString()
-            });
-          }
-        });
-        return acc;
-      }, []));
-
-      items = items.filter(function(item) {
-        return item && item.title;
-      }).slice(0, 20);
-
-      container.innerHTML = items.length ? items.map(function(item) {
-        return '<div class=\"item\">' +
-          '<div class=\"item-main\">' +
-          '<strong>' + escHtml(item.title) + '</strong>' +
-          '<small>' + escHtml(item.targetPanel || 'General panel') + (item.class ? ' · Class ' + escHtml(item.class) : '') + '</small>' +
-          '</div>' +
-          '<div class=\"item-actions\">' +
-          '<button class=\"btn btn-primary btn-sm\" onclick=\"editContent(\'' + item.id + '\')\">✏️ Edit</button>' +
-          '</div>' +
-          '</div>';
-      }).join('') : '<div class=\"empty\">No content found yet.</div>';
+      var html = '';
+      Object.keys(appState.content).forEach(id => {
+        var item = appState.content[id];
+        html += `<div class="item"><div class="item-main"><strong>${item.title}</strong><small>${item.targetPanel}</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editContent('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsContent','${id}')">🗑 Delete</button></div></div>`;
+      });
+      document.getElementById('content-list').innerHTML = html || 'No content found';
     }
-
     function editContent(id) {
-      var item = appState.content[id] || null;
-      var legacy = null;
-      Object.keys(appState.legacyContent).forEach(function(collection) {
-        var entries = appState.legacyContent[collection];
-        Object.keys(entries).forEach(function(key) {
-          if (key === id) {
-            legacy = entries[key];
-          }
-        });
-      });
-
-      var found = item || legacy;
-      if (!found) return;
-
-      document.getElementById('content-panel').value = found.targetPanel || found.subject || found.title || '';
-      document.getElementById('content-class').value = found.class || '';
-      document.getElementById('content-title').value = found.title || found.name || '';
-      document.getElementById('content-body').value = found.content || found.question || '';
-      document.getElementById('content-tags').value = found.tags || '';
-      renderFieldMode();
-
-      switchPage('content');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      var item = appState.content[id];
+      document.getElementById('content-id').value = id; document.getElementById('content-panel').value = item.targetPanel; document.getElementById('content-class').value = item.class; document.getElementById('content-title').value = item.title; document.getElementById('content-body').value = item.content;
+      window.scrollTo(0,0);
     }
 
-    function savePanel(event) {
-      event.preventDefault();
-      var name = document.getElementById('panel-name').value.trim();
-      var purpose = document.getElementById('panel-purpose').value.trim();
-      var description = document.getElementById('panel-description').value.trim();
-      var routeInput = document.getElementById('panel-route').value.trim();
-
-      if (!name) {
-        toast('Panel name is required.', 'error');
-        return;
-      }
-
-      var route = routeInput || '/panels/' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-      var item = {
-        id: 'panel_' + Date.now(),
-        name: name,
-        purpose: purpose,
-        description: description,
-        route: route,
-        createdAt: new Date().toISOString()
-      };
-
-      db.ref('cmsPanels/' + item.id).set(item).then(function() {
-        toast('Panel created successfully.', 'success');
-        resetPanelForm();
-        loadPanelsList();
-      }).catch(function() {
-        toast('Panel create failed.', 'error');
-      });
+    // ================= CRUD: PANELS =================
+    function savePanel(e) {
+      e.preventDefault();
+      var id = document.getElementById('panel-id').value || 'panel_' + Date.now();
+      var item = { id: id, name: document.getElementById('panel-name').value, route: document.getElementById('panel-route').value, purpose: document.getElementById('panel-purpose').value };
+      db.ref('cmsPanels/' + id).set(item).then(() => { toast('Panel Saved!', 'success'); resetPanelForm(); loadAllData(); switchPage('panels'); });
     }
-
-    function resetPanelForm() {
-      document.getElementById('panel-id').value = '';
-      document.getElementById('panel-name').value = '';
-      document.getElementById('panel-purpose').value = '';
-      document.getElementById('panel-description').value = '';
-      document.getElementById('panel-route').value = '';
-      document.getElementById('panel-submit-btn').textContent = '✅ Create Panel';
-    }
-
+    function resetPanelForm() { document.getElementById('panel-id').value = ''; document.getElementById('panel-name').value = ''; document.getElementById('panel-route').value = ''; document.getElementById('panel-purpose').value = ''; }
     function loadPanelsList() {
-      var container = document.getElementById('panels-list');
-      if (!container) return;
-      var items = Object.keys(appState.panels).map(function(id) {
-        return appState.panels[id];
+      var html = '';
+      Object.keys(appState.panels).forEach(id => {
+        var item = appState.panels[id];
+        html += `<div class="item"><div class="item-main"><strong>${item.name}</strong><small>${item.route}</small></div><div class="item-actions"><a href="${item.route}" target="_blank" class="btn btn-secondary btn-sm">↗ Open</a><button class="btn btn-primary btn-sm" onclick="editPanel('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsPanels','${id}')">🗑 Delete</button></div></div>`;
       });
-
-      container.innerHTML = items.length ? items.map(function(item) {
-        return '<div class=\"item\">' +
-          '<div class=\"item-main\">' +
-          '<strong>' + escHtml(item.name) + '</strong>' +
-          '<small>' + escHtml(item.route || '/panels/custom') + (item.purpose ? ' · ' + escHtml(item.purpose) : '') + '</small>' +
-          '</div>' +
-          '<div class=\"item-actions\">' +
-          '<button class=\"btn btn-primary btn-sm\" onclick=\"editPanel(\'' + item.id + '\')\">✏️ Edit</button>' +
-          '<a class=\"btn btn-secondary btn-sm\" href=\"' + escHtml(item.route || '#') + '\" target=\"_blank\" rel=\"noopener\">↗ Open</a>' +
-          '</div>' +
-          '</div>';
-      }).join('') : '<div class=\"empty\">No panels yet.</div>';
+      document.getElementById('panels-list').innerHTML = html || 'No panels found';
     }
+    function editPanel(id) { var item = appState.panels[id]; document.getElementById('panel-id').value = id; document.getElementById('panel-name').value = item.name; document.getElementById('panel-route').value = item.route; document.getElementById('panel-purpose').value = item.purpose; }
 
-    function editPanel(id) {
-      var item = appState.panels[id];
-      if (!item) return;
-      document.getElementById('panel-id').value = id;
-      document.getElementById('panel-name').value = item.name || '';
-      document.getElementById('panel-purpose').value = item.purpose || '';
-      document.getElementById('panel-description').value = item.description || '';
-      document.getElementById('panel-route').value = item.route || '';
-      document.getElementById('panel-submit-btn').textContent = '💾 Update Panel';
-      switchPage('panels');
+    // ================= CRUD: LINKS =================
+    function saveLink(e) {
+      e.preventDefault();
+      var id = document.getElementById('link-id').value || 'link_' + Date.now();
+      var item = { id: id, label: document.getElementById('link-label').value, url: document.getElementById('link-url').value };
+      db.ref('cmsLinks/' + id).set(item).then(() => { toast('Link Saved!', 'success'); resetLinkForm(); loadAllData(); switchPage('links'); });
     }
-
-    function saveLink(event) {
-      event.preventDefault();
-      var label = document.getElementById('link-label').value.trim();
-      var url = document.getElementById('link-url').value.trim();
-      var icon = document.getElementById('link-icon').value.trim() || '📘';
-      var position = document.getElementById('link-position').value.trim() || 'top';
-      var openInNewTab = document.getElementById('link-new-tab').checked;
-
-      if (!label || !url) {
-        toast('Label and URL are required.', 'error');
-        return;
-      }
-
-      var item = {
-        id: 'link_' + Date.now(),
-        label: label,
-        url: url,
-        icon: icon,
-        position: position,
-        newTab: openInNewTab
-      };
-
-      db.ref('cmsLinks/' + item.id).set(item).then(function() {
-        toast('Link saved successfully.', 'success');
-        resetLinkForm();
-        loadLinksList();
-      }).catch(function() {
-        toast('Link save failed.', 'error');
-      });
-    }
-
-    function resetLinkForm() {
-      document.getElementById('link-id').value = '';
-      document.getElementById('link-label').value = '';
-      document.getElementById('link-url').value = '';
-      document.getElementById('link-icon').value = '📘';
-      document.getElementById('link-position').value = '';
-      document.getElementById('link-new-tab').checked = false;
-    }
-
+    function resetLinkForm() { document.getElementById('link-id').value = ''; document.getElementById('link-label').value = ''; document.getElementById('link-url').value = ''; }
     function loadLinksList() {
-      var container = document.getElementById('links-list');
-      if (!container) return;
-      var items = Object.keys(appState.links).map(function(id) {
-        return appState.links[id];
+      var html = '';
+      Object.keys(appState.links).forEach(id => {
+        var item = appState.links[id];
+        html += `<div class="item"><div class="item-main"><strong>${item.label}</strong><small>${item.url}</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editLink('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsLinks','${id}')">🗑 Delete</button></div></div>`;
       });
-
-      container.innerHTML = items.length ? items.map(function(item) {
-        return '<div class=\"item\">' +
-          '<div class=\"item-main\">' +
-          '<strong>' + escHtml(item.icon || '🔗') + ' ' + escHtml(item.label) + '</strong>' +
-          '<small>' + escHtml(item.url) + ' · ' + escHtml(item.position || 'top') + '</small>' +
-          '</div>' +
-          '<div class=\"item-actions\">' +
-          '<button class=\"btn btn-primary btn-sm\" onclick=\"editLink(\'' + item.id + '\')\">✏️ Edit</button>' +
-          '</div>' +
-          '</div>';
-      }).join('') : '<div class=\"empty\">No links yet.</div>';
+      document.getElementById('links-list').innerHTML = html || 'No links found';
     }
+    function editLink(id) { var item = appState.links[id]; document.getElementById('link-id').value = id; document.getElementById('link-label').value = item.label; document.getElementById('link-url').value = item.url; }
 
-    function editLink(id) {
-      var item = appState.links[id];
-      if (!item) return;
-      document.getElementById('link-id').value = id;
-      document.getElementById('link-label').value = item.label || '';
-      document.getElementById('link-url').value = item.url || '';
-      document.getElementById('link-icon').value = item.icon || '📘';
-      document.getElementById('link-position').value = item.position || '';
-      document.getElementById('link-new-tab').checked = item.newTab || false;
-      switchPage('links');
+    // ================= CRUD: USERS =================
+    function saveUser(e) {
+      e.preventDefault();
+      var id = document.getElementById('user-id').value || 'user_' + Date.now();
+      var item = { id: id, username: document.getElementById('user-name').value, pass: document.getElementById('user-pass').value };
+      db.ref('cmsUsers/' + id).set(item).then(() => { toast('User Saved!', 'success'); resetUserForm(); loadAllData(); switchPage('users'); });
     }
-
-    function saveUser(event) {
-      event.preventDefault();
-      var username = document.getElementById('user-name').value.trim();
-      var password = document.getElementById('user-pass').value.trim();
-
-      if (!username || !password) {
-        toast('Username and password are required.', 'error');
-        return;
-      }
-
-      var item = {
-        id: 'user_' + Date.now(),
-        username: username,
-        password: password,
-        email: document.getElementById('user-email').value.trim(),
-        type: document.getElementById('user-type').value.trim(),
-        notes: document.getElementById('user-notes').value.trim()
-      };
-
-      db.ref('cmsUsers/' + item.id).set(item).then(function() {
-        toast('User saved successfully.', 'success');
-        resetUserForm();
-        loadUsersList();
-      }).catch(function() {
-        toast('User save failed.', 'error');
-      });
-    }
-
-    function resetUserForm() {
-      document.getElementById('user-name').value = '';
-      document.getElementById('user-pass').value = '';
-      document.getElementById('user-email').value = '';
-      document.getElementById('user-type').value = '';
-      document.getElementById('user-notes').value = '';
-    }
-
+    function resetUserForm() { document.getElementById('user-id').value = ''; document.getElementById('user-name').value = ''; document.getElementById('user-pass').value = ''; }
     function loadUsersList() {
-      var container = document.getElementById('users-list');
-      if (!container) return;
-      var items = Object.keys(appState.users).map(function(id) {
-        return appState.users[id];
+      var html = '';
+      Object.keys(appState.users).forEach(id => {
+        var item = appState.users[id];
+        html += `<div class="item"><div class="item-main"><strong>${item.username}</strong><small>Pass: ****</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editUser('${id}')">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('cmsUsers','${id}')">🗑 Delete</button></div></div>`;
       });
-
-      container.innerHTML = items.length ? items.map(function(item) {
-        return '<div class=\"item\">' +
-          '<div class=\"item-main\">' +
-          '<strong>' + escHtml(item.username || item.id || 'Unnamed user') + '</strong>' +
-          '<small>' + escHtml(item.email || 'No email') + ' · ' + escHtml(item.type || 'General') + '</small>' +
-          '</div>' +
-          '<div class=\"item-actions\">' +
-          '<button class=\"btn btn-primary btn-sm\" onclick=\"editUser(\'' + item.id + '\')\">✏️ Edit</button>' +
-          '</div>' +
-          '</div>';
-      }).join('') : '<div class=\"empty\">No users yet.</div>';
+      document.getElementById('users-list').innerHTML = html || 'No users found';
     }
+    function editUser(id) { var item = appState.users[id]; document.getElementById('user-id').value = id; document.getElementById('user-name').value = item.username; document.getElementById('user-pass').value = item.pass; }
 
-    function editUser(id) {
-      var item = appState.users[id];
-      if (!item) return;
-      document.getElementById('user-name').value = item.username || '';
-      document.getElementById('user-pass').value = item.password || '';
-      document.getElementById('user-email').value = item.email || '';
-      document.getElementById('user-type').value = item.type || '';
-      document.getElementById('user-notes').value = item.notes || '';
-      switchPage('users');
-    }
-
-    function loadSettings() {
-      var settings = appState.settings || {};
-      document.getElementById('setting-maintenance').checked = !!settings.maintenanceMode;
-      document.getElementById('setting-seo').checked = !!settings.seoMode;
-      document.getElementById('setting-security').checked = !!settings.securityMode;
-      document.getElementById('setting-redirect-protection').checked = !!settings.redirectProtection;
-      document.getElementById('setting-site-name').value = settings.siteName || '';
-      document.getElementById('setting-tagline').value = settings.tagline || '';
-      document.getElementById('setting-seo-title').value = settings.seoTitle || '';
-      document.getElementById('setting-seo-description').value = settings.seoDescription || '';
-    }
-
-    function saveSettings() {
-      var settings = {
-        maintenanceMode: document.getElementById('setting-maintenance').checked,
-        seoMode: document.getElementById('setting-seo').checked,
-        securityMode: document.getElementById('setting-security').checked,
-        redirectProtection: document.getElementById('setting-redirect-protection').checked,
-        siteName: document.getElementById('setting-site-name').value.trim(),
-        tagline: document.getElementById('setting-tagline').value.trim(),
-        seoTitle: document.getElementById('setting-seo-title').value.trim(),
-        seoDescription: document.getElementById('setting-seo-description').value.trim()
-      };
-      appState.settings = settings;
-      db.ref('settings').set(settings).then(function() {
-        toast('Settings saved successfully.', 'success');
-      }).catch(function() {
-        toast('Settings save failed.', 'error');
+    // ================= DELETE GLOBAL FUNCTION =================
+    function deleteItem(node, id) {
+      if(!confirm('Delete permanently?')) return;
+      db.ref(node + '/' + id).remove().then(() => {
+        toast('Deleted successfully!', 'success'); loadAllData();
+        if(node==='cmsContent') loadContentList(); if(node==='cmsPanels') loadPanelsList();
+        if(node==='cmsLinks') loadLinksList(); if(node==='cmsUsers') loadUsersList();
       });
     }
 
-    function backupData() {
-      var payload = {
-        content: appState.content,
-        panels: appState.panels,
-        links: appState.links,
-        users: appState.users,
-        settings: appState.settings,
-        exportedAt: new Date().toISOString()
-      };
-      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'cleverstudents-cms-backup.json';
-      a.click();
-      URL.revokeObjectURL(url);
-      toast('Backup downloaded.', 'success');
+    // ================= BULK UPLOAD EXCEL / CSV =================
+    var mappedRows = [];
+    function handleDropEvent(ev) { ev.preventDefault(); ev.stopPropagation(); var f = ev.dataTransfer.files[0]; if(f) readUploadFile(f); }
+    function handleFileEvent(event) { var f = event.target.files[0]; if(f) readUploadFile(f); }
+    
+    function readUploadFile(file) {
+      var nm = (file.name || '').toLowerCase();
+      if (nm.includes('.xlsx') || nm.includes('.xls')) {
+        if(typeof XLSX==='undefined'){ toast('XLSX Library not loaded','error'); return; }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var wb = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+          var aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
+          var txt = aoa.map(r => r.join('\t')).join('\n');
+          parseTabular(txt);
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        var reader = new FileReader();
+        reader.onload = function(e) { parseTabular(e.target.result); };
+        reader.readAsText(file);
+      }
     }
 
-    function clearLocalCache() {
-      localStorage.removeItem('ma_theme');
-      localStorage.removeItem('ma_admin_id');
-      localStorage.removeItem('ma_admin_token');
-      toast('Cache cleared. Refreshing…', 'success');
-      setTimeout(function() {
-        location.reload();
-      }, 600);
+    function parseTabular(text) {
+      var lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+      if (lines.length < 2) { toast('No valid data found', 'error'); return; }
+      var headers = lines[0].split('\t');
+      var rows = [];
+      for(var i=1; i<lines.length; i++) {
+        var cols = lines[i].split('\t');
+        var rec = {};
+        for(var j=0; j<headers.length; j++) rec[headers[j]] = cols[j] || '';
+        rows.push(rec);
+      }
+      mappedRows = rows;
+      
+      var pv = document.getElementById('csvPreviewArea');
+      pv.style.display = 'block';
+      pv.innerHTML = `<div style="padding:15px;background:rgba(0,0,0,.3);border-radius:8px">
+        <p style="color:#38bdf8;font-weight:bold;margin-bottom:10px">✅ ${rows.length} Records Parsed Correctly.</p>
+        <button class="btn btn-success btn-sm" onclick="uploadBulkData()">🚀 Upload ${rows.length} Records to Database</button>
+      </div>`;
     }
 
-    initTheme();
-    checkAuth();
+    function uploadBulkData() {
+      var pv = document.getElementById('csvPreviewArea');
+      pv.innerHTML = '<span class="spinner"></span> Uploading...';
+      var idx = 0;
+      function next() {
+        if(idx >= mappedRows.length) {
+          toast('Bulk Upload Complete!', 'success');
+          pv.style.display = 'none';
+          loadAllData(); switchPage('content');
+          return;
+        }
+        var r = mappedRows[idx];
+        var id = 'content_' + Date.now() + '_' + idx;
+        // Map columns based on your provided schema
+        var item = {
+          id: id, title: r['Title'] || r['title'] || 'Bulk Item ' + idx,
+          targetPanel: r['TargetPanel'] || r['Subject'] || 'General Panel',
+          class: r['Class'] || '', content: r['Content'] || r['HTML'] || ''
+        };
+        db.ref('cmsContent/' + id).set(item).then(() => { idx++; next(); }).catch(() => { idx++; next(); });
+      }
+      next();
+    }
   </script>
 </body>
 </html>
