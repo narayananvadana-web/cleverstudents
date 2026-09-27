@@ -1,57 +1,1609 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Master Admin Dashboard | Clever Students</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px;--primary:#3b82f6;--success:#10b981;--danger:#ef4444;--warning:#f59e0b}
-body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
-*,*:before,*:after{box-sizing:border-box;margin:0;padding:0}html,body{width:100%;height:100%;background:var(--bg);color:var(--txt);font-family:var(--font);overflow:hidden}body{transition:background .25s,color .25s}button,input,textarea{font:inherit}button{cursor:pointer}
-#login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10;display:flex;align-items:center;justify-content:center}.login-box{width:min(420px,92%);padding:42px 34px;background:var(--srf);border:1px solid var(--brd);border-radius:var(--r-lg);box-shadow:0 24px 80px #000b;text-align:center}.login-box h1{margin-bottom:8px}.login-box p{color:var(--mut);margin-bottom:25px}.login-info{padding:14px;text-align:left;line-height:1.7;color:var(--txt);background:#3b82f622;border:1px solid #3b82f6;border-radius:var(--r-md);margin-bottom:18px}.login-inp,.form-inp{width:100%;padding:12px 15px;border:1px solid var(--brd);border-radius:var(--r-md);background:#0003;color:var(--txt);outline:0}.login-inp{margin-bottom:12px}.form-inp:focus,.login-inp:focus{border-color:var(--primary);box-shadow:0 0 0 3px #3b82f622}textarea.form-inp{min-height:150px;resize:vertical}
-.main-layout{display:flex;height:100vh}.sidebar{width:270px;flex:0 0 270px;background:linear-gradient(180deg,var(--srf),#0b101bcc);border-right:1px solid var(--brd);padding:22px 12px;overflow:auto}.sidebar-logo{font:1.45rem 'Fredoka One',cursive;text-align:center;padding:0 0 25px;margin-bottom:18px;border-bottom:1px solid var(--brd);background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;color:transparent}.sidebar-link{display:flex;gap:12px;padding:13px 16px;margin:6px 0;border-left:3px solid transparent;border-radius:8px;color:var(--mut);font-weight:700;cursor:pointer}.sidebar-link:hover,.sidebar-link.active{color:#60a5fa;background:#3b82f622;border-left-color:var(--primary)}.sidebar-link.danger{color:var(--danger);margin-top:35px;border-top:1px solid var(--brd);padding-top:25px}
-.content-area{min-width:0;flex:1;display:flex;flex-direction:column}.top-bar{display:flex;align-items:center;gap:18px;padding:15px 28px;background:var(--srf);border-bottom:1px solid var(--brd);box-shadow:0 4px 20px #0003}.top-bar h2{flex:1;font-size:1.35rem}.top-actions{display:flex;align-items:center;gap:12px}.status{color:var(--success);font-weight:800;font-size:.85rem}.status i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:6px}.content-main{flex:1;overflow:auto;padding:30px}.page-section{display:none;max-width:1300px;margin:auto}.page-section.active{display:block;animation:fade .25s}@keyframes fade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
-.card{background:var(--srf);border:1px solid var(--brd);border-radius:var(--r-lg);padding:25px;margin-bottom:20px;box-shadow:0 5px 24px #0002}.card h3{margin-bottom:20px;font-size:1.15rem}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.form-group{margin-bottom:18px}.form-group label{display:block;font-weight:800;font-size:.9rem;margin-bottom:8px}.hint{font-size:.78rem;color:var(--mut);margin-top:6px}.btn{border:0;border-radius:8px;padding:11px 19px;color:#fff;font-weight:800;display:inline-flex;align-items:center;gap:8px;transition:.2s}.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}.btn-primary{background:var(--primary)}.btn-success{background:var(--success)}.btn-danger{background:var(--danger)}.btn-warning{background:var(--warning)}.btn-secondary{background:#64748b}.btn-sm{padding:8px 13px;font-size:.82rem}.actions{display:flex;gap:10px;flex-wrap:wrap}.stat-box{padding:22px;border:1px solid #3b82f644;border-radius:12px;background:linear-gradient(135deg,#3b82f61c,#3b82f605)}.stat-box .number{font-size:2.3rem;font-weight:900;color:#60a5fa}.stat-box .label{color:var(--mut);font-weight:700}.item{display:flex;align-items:center;gap:15px;padding:15px;background:#0002;border:1px solid var(--brd);border-radius:10px;margin:10px 0}.item-main{flex:1;min-width:0}.item-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item-main small{color:var(--mut)}.item-actions{display:flex;gap:7px;flex-wrap:wrap}.empty{padding:30px;text-align:center;color:var(--mut)}
-.preview{display:none;margin-top:14px;border:1px solid var(--brd);border-radius:10px;overflow:hidden;background:#fff}.preview.show{display:block}.preview iframe{width:100%;height:320px;border:0}.preview-head{padding:9px 13px;background:var(--srf);color:var(--mut);font-size:.8rem;font-weight:800}.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:17px 18px;margin:10px 0;border:1px solid var(--brd);border-radius:12px;background:#0002}.toggle-copy strong{display:block}.toggle-copy small{display:block;color:var(--mut);margin-top:3px}.switch{position:relative;width:48px;height:26px;display:inline-block;flex:none}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;inset:0;border-radius:30px;background:#64748b;transition:.2s}.slider:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.switch input:checked+.slider{background:var(--success)}.switch input:checked+.slider:before{transform:translateX(22px)}.badge{display:inline-block;padding:3px 8px;border-radius:99px;background:#3b82f633;color:#60a5fa;font-size:.72rem;font-weight:800;margin:2px}.modal{display:none;position:fixed;inset:0;z-index:20;background:#000b;align-items:center;justify-content:center}.modal.show{display:flex}.modal-box{width:min(900px,94%);background:var(--srf);border:1px solid var(--brd);border-radius:14px;padding:16px}.modal iframe{width:100%;height:70vh;background:#fff;border:0}.modal-head{display:flex;justify-content:space-between;margin-bottom:12px;font-weight:900}
-@media(max-width:800px){html,body{overflow:auto}.main-layout{height:auto;min-height:100vh}.sidebar{position:fixed;z-index:5;transform:translateX(-100%);height:100vh;transition:.2s}.sidebar.open{transform:none}.content-main{padding:18px}.grid-2,.grid-3{grid-template-columns:1fr}.top-bar{padding:13px 16px}.top-bar h2{font-size:1.05rem}.top-actions .status{display:none}.item{align-items:flex-start;flex-direction:column}.item-actions{width:100%}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Master Admin Dashboard | Clever Students</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#080c14;
+      --srf:#161b27;
+      --brd:rgba(255,255,255,.1);
+      --txt:#e2e8f0;
+      --mut:#94a3b8;
+      --primary:#3b82f6;
+      --success:#10b981;
+      --danger:#ef4444;
+      --warning:#f59e0b;
+      --purple:#8b5cf6;
+      --font:'Nunito',sans-serif;
+      --r-lg:16px;
+      --r-md:8px;
+      --r-sm:4px;
+    }
+    body.light-mode{
+      --bg:#f8fafc;
+      --srf:#fff;
+      --txt:#0f172a;
+      --brd:rgba(0,0,0,.1);
+      --mut:#64748b;
+      --primary:#2563eb;
+      --success:#059669;
+      --danger:#dc2626;
+      --warning:#d97706;
+      --purple:#7c3aed;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{
+      width:100%;
+      height:100%;
+      background:var(--bg);
+      color:var(--txt);
+      font-family:var(--font);
+      overflow:hidden;
+    }
+    body{
+      transition:background .25s,color .25s;
+    }
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    a{text-decoration:none;color:inherit}
+    code{font-family:monospace}
+    .hidden{display:none!important}
+
+    /* LOGIN */
+    #login-overlay{
+      position:fixed;
+      inset:0;
+      background:var(--bg);
+      z-index:10000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .login-box{
+      width:min(420px,92%);
+      background:var(--srf);
+      border:1px solid var(--brd);
+      border-radius:var(--r-lg);
+      box-shadow:0 25px 70px rgba(0,0,0,.6);
+      padding:42px 34px;
+      text-align:center;
+    }
+    .login-box h1{
+      font-size:2rem;
+      font-weight:900;
+      margin-bottom:10px;
+      background:linear-gradient(135deg,#f59e0b,#ef4444);
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    .login-box p{
+      color:var(--mut);
+      margin-bottom:26px;
+      font-size:.95rem;
+    }
+    .login-info{
+      background:rgba(59,130,246,.12);
+      border:1px solid rgba(59,130,246,.6);
+      color:var(--txt);
+      border-radius:var(--r-md);
+      padding:14px 16px;
+      text-align:left;
+      line-height:1.7;
+      margin-bottom:18px;
+      font-size:.88rem;
+    }
+    .login-inp,.form-inp{
+      width:100%;
+      padding:12px 15px;
+      border:1px solid var(--brd);
+      border-radius:var(--r-md);
+      background:rgba(0,0,0,.18);
+      color:var(--txt);
+      outline:none;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    .login-inp{
+      margin-bottom:14px;
+    }
+    .form-inp:focus,.login-inp:focus{
+      border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(59,130,246,.18);
+    }
+    #login-error{
+      min-height:24px;
+      margin-top:12px;
+      color:var(--danger);
+      font-weight:800;
+      font-size:.9rem;
+      display:none;
+    }
+
+    /* LAYOUT */
+    .main-layout{
+      display:flex;
+      width:100%;
+      height:100vh;
+    }
+    .sidebar{
+      width:270px;
+      min-width:270px;
+      background:linear-gradient(180deg,var(--srf),rgba(10,14,22,.92));
+      border-right:1px solid var(--brd);
+      padding:18px 12px;
+      overflow-y:auto;
+      position:relative;
+      z-index:3;
+    }
+    .sidebar-logo{
+      padding:18px 10px 22px;
+      margin-bottom:12px;
+      border-bottom:1px solid var(--brd);
+      text-align:center;
+      font-family:'Fredoka One',cursive;
+      font-size:1.4rem;
+      background:linear-gradient(135deg,#f59e0b,#ef4444);
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    .sidebar-link{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:14px 16px;
+      border-left:3px solid transparent;
+      border-radius:8px;
+      margin:7px 0;
+      color:var(--mut);
+      font-weight:800;
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .sidebar-link:hover,.sidebar-link.active{
+      color:#60a5fa;
+      background:rgba(59,130,246,.12);
+      border-left-color:var(--primary);
+    }
+    .sidebar-link.danger{
+      color:var(--danger);
+      margin-top:26px;
+      border-top:1px solid var(--brd);
+      padding-top:22px;
+    }
+    .content-area{
+      flex:1;
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    .top-bar{
+      background:var(--srf);
+      border-bottom:1px solid var(--brd);
+      padding:16px 26px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      box-shadow:0 4px 20px rgba(0,0,0,.22);
+    }
+    .top-bar h2{
+      flex:1;
+      font-size:1.35rem;
+      font-weight:900;
+    }
+    .top-bar-actions{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .admin-status{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 14px;
+      border:1px solid rgba(16,185,129,.6);
+      background:rgba(16,185,129,.1);
+      border-radius:999px;
+      color:#10b981;
+      font-weight:900;
+      font-size:.82rem;
+    }
+    .admin-status .dot{
+      width:8px;
+      height:8px;
+      background:#10b981;
+      border-radius:50%;
+      animation:pulse 1.6s infinite ease-in-out;
+    }
+    @keyframes pulse{
+      0%,100%{opacity:1;transform:scale(1)}
+      50%{opacity:.55;transform:scale(1.15)}
+    }
+
+    .content-main{
+      flex:1;
+      overflow-y:auto;
+      background:var(--bg);
+      padding:30px;
+    }
+    .page-section{
+      display:none;
+      max-width:1300px;
+      margin:0 auto;
+    }
+    .page-section.active{
+      display:block;
+      animation:fadeIn .22s ease;
+    }
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(8px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+
+    /* CARDS / FORMS */
+    .card{
+      background:var(--srf);
+      border:1px solid var(--brd);
+      border-radius:var(--r-lg);
+      padding:24px;
+      box-shadow:0 5px 20px rgba(0,0,0,.12);
+      margin-bottom:20px;
+    }
+    .card h3{
+      margin-bottom:20px;
+      font-size:1.15rem;
+      font-weight:900;
+    }
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .form-group{margin-bottom:18px}
+    .form-group label{
+      display:block;
+      margin-bottom:8px;
+      color:var(--txt);
+      font-weight:800;
+      font-size:.92rem;
+    }
+    .form-group label.inline{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+    }
+    .hint{
+      color:var(--mut);
+      font-size:.78rem;
+      line-height:1.7;
+      margin-top:6px;
+    }
+    textarea.form-inp{
+      min-height:150px;
+      resize:vertical;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:11px 20px;
+      border:none;
+      border-radius:8px;
+      font-weight:900;
+      color:#fff;
+      transition:all .2s ease;
+      font-size:.95rem;
+    }
+    .btn:hover{
+      filter:brightness(1.15);
+      transform:translateY(-1px);
+    }
+    .btn:active{transform:translateY(0)}
+    .btn-primary{background:var(--primary)}
+    .btn-success{background:var(--success)}
+    .btn-danger{background:var(--danger)}
+    .btn-warning{background:var(--warning)}
+    .btn-secondary{background:#64748b}
+    .btn-purple{background:var(--purple)}
+    .btn-sm{padding:8px 14px;font-size:.8rem}
+    .btn-wrap{display:flex;gap:10px;flex-wrap:wrap}
+    .badge{
+      display:inline-block;
+      font-size:.72rem;
+      font-weight:900;
+      border-radius:999px;
+      padding:4px 8px;
+      background:rgba(59,130,246,.12);
+      color:#60a5fa;
+      margin:0 4px 0 0;
+    }
+
+    .item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:14px 16px;
+      background:rgba(0,0,0,.15);
+      border:1px solid var(--brd);
+      border-radius:10px;
+      margin-bottom:10px;
+    }
+    .item-main{
+      flex:1;
+      min-width:0;
+    }
+    .item-main strong{
+      display:block;
+      margin-bottom:4px;
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .item-main small{
+      color:var(--mut);
+      display:block;
+      line-height:1.6;
+    }
+    .item-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .stat-box{
+      background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));
+      border:1px solid rgba(59,130,246,.2);
+      border-radius:12px;
+      padding:22px;
+      text-align:center;
+    }
+    .stat-box .number{
+      font-size:2.4rem;
+      font-weight:900;
+      color:#60a5fa;
+    }
+    .stat-box .label{
+      color:var(--mut);
+      font-weight:800;
+      font-size:.9rem;
+    }
+    .empty{
+      text-align:center;
+      color:var(--mut);
+      padding:30px 20px;
+      border:1px dashed var(--brd);
+      border-radius:10px;
+      background:rgba(0,0,0,.08);
+    }
+
+    /* PREVIEW */
+    .preview-box{
+      border:1px solid var(--brd);
+      border-radius:10px;
+      background:rgba(0,0,0,.08);
+      overflow:hidden;
+      margin-top:12px;
+      display:none;
+    }
+    .preview-box.show{
+      display:block;
+    }
+    .preview-head{
+      background:rgba(0,0,0,.12);
+      color:var(--mut);
+      padding:8px 12px;
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.08em;
+    }
+    .preview-box iframe{
+      display:block;
+      width:100%;
+      min-height:300px;
+      border:0;
+      background:#fff;
+    }
+
+    /* TOAST */
+    #toast{
+      position:fixed;
+      right:20px;
+      bottom:20px;
+      z-index:2000;
+      display:none;
+      padding:14px 20px;
+      border-radius:9px;
+      color:#fff;
+      font-weight:900;
+      max-width:380px;
+      box-shadow:0 12px 30px rgba(0,0,0,.35);
+    }
+
+    /* SETTINGS */
+    .toggle-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:16px 18px;
+      border:1px solid var(--brd);
+      border-radius:12px;
+      background:rgba(0,0,0,.12);
+      margin-bottom:12px;
+    }
+    .toggle-copy{
+      flex:1;
+    }
+    .toggle-copy strong{
+      display:block;
+      margin-bottom:4px;
+      font-weight:900;
+    }
+    .toggle-copy small{
+      color:var(--mut);
+      line-height:1.6;
+    }
+    .switch{
+      position:relative;
+      display:inline-block;
+      width:48px;
+      height:26px;
+      flex-shrink:0;
+    }
+    .switch input{
+      opacity:0;
+      width:0;
+      height:0;
+      position:absolute;
+    }
+    .slider{
+      position:absolute;
+      inset:0;
+      background:#64748b;
+      border-radius:999px;
+      transition:.2s ease;
+    }
+    .slider:before{
+      content:"";
+      position:absolute;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:#fff;
+      left:3px;
+      top:3px;
+      transition:.2s ease;
+    }
+    .switch input:checked + .slider{background:var(--success)}
+    .switch input:checked + .slider:before{transform:translateX(22px)}
+
+    /* MODAL */
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.8);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:20px;
+    }
+    .modal.show{display:flex}
+    .modal-box{
+      width:min(900px,94%);
+      background:var(--srf);
+      border:1px solid var(--brd);
+      border-radius:14px;
+      padding:16px;
+    }
+    .modal-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:12px;
+      font-weight:900;
+    }
+    .modal-box iframe{
+      width:100%;
+      height:70vh;
+      border:0;
+      background:#fff;
+    }
+
+    @media (max-width: 980px){
+      .grid-2,.grid-3{grid-template-columns:1fr}
+      .main-layout{display:block;height:auto;min-height:100vh}
+      .sidebar{
+        width:100%;
+        height:auto;
+        position:relative;
+        z-index:1;
+      }
+      .content-main{padding:18px}
+      .top-bar{padding:12px 16px}
+    }
+  </style>
 </head>
 <body>
-<div id="login-overlay"><div class="login-box"><h1>⚙️ Master Admin</h1><p>Secure enterprise CMS access</p><div class="login-info"><b>Default access</b><br>ID: <code>admin</code><br>Password: <code>admin123</code></div><input id="login-id" class="login-inp" placeholder="Admin ID" autocomplete="username"><input id="login-pass" class="login-inp" type="password" placeholder="Password" autocomplete="current-password"><button class="btn btn-warning" style="width:100%;justify-content:center" onclick="attemptLogin()">🔓 Sign in</button><div id="login-error" style="color:#ef4444;margin-top:13px;font-weight:800"></div></div></div>
-<div class="main-layout" id="main-layout" style="display:none"><aside class="sidebar" id="sidebar"><div class="sidebar-logo">📊 Master Admin</div><div class="sidebar-link active" data-page="dashboard" onclick="switchPage('dashboard')">📊 Dashboard</div><div class="sidebar-link" data-page="content" onclick="switchPage('content')">📝 Manage Content</div><div class="sidebar-link" data-page="panels" onclick="switchPage('panels')">📁 Manage Panels</div><div class="sidebar-link" data-page="links" onclick="switchPage('links')">🔗 Layout & Links</div><div class="sidebar-link" data-page="users" onclick="switchPage('users')">👥 Users</div><div class="sidebar-link" data-page="settings" onclick="switchPage('settings')">⚙️ Settings</div><div class="sidebar-link danger" onclick="logout()">🚪 Logout</div></aside><section class="content-area"><header class="top-bar"><button class="btn btn-secondary btn-sm" onclick="toggleMenu()">☰</button><h2 id="page-title">📊 Dashboard</h2><div class="top-actions"><span class="status"><i></i>KV Connected</span><span id="admin-name"></span><button class="btn btn-secondary btn-sm" onclick="toggleTheme()">🌙 Theme</button></div></header><main class="content-main">
-<div id="page-dashboard" class="page-section active"><h1 style="margin-bottom:25px">Welcome back 👋</h1><div class="grid-3"><div class="stat-box"><div class="number" id="stat-content">0</div><div class="label">Managed content</div></div><div class="stat-box"><div class="number" id="stat-panels">0</div><div class="label">Connected panels</div></div><div class="stat-box"><div class="number" id="stat-users">0</div><div class="label">Users</div></div></div><div class="card" style="margin-top:20px"><h3>✨ Unified CMS</h3><p style="color:var(--mut);line-height:1.8">Legacy Vercel KV collections are automatically indexed here. Existing Theory, Quiz, Mind Map, Papers, Games, Projects, Videos and Skills data remains in its original collection and can be edited without migration.</p><hr style="border:0;border-top:1px solid var(--brd);margin:18px 0"><div id="legacy-status" class="hint">Scanning legacy collections…</div></div><div class="card"><h3>🎯 Quick actions</h3><div class="actions"><button class="btn btn-primary" onclick="switchPage('content')">➕ Add content</button><button class="btn btn-primary" onclick="switchPage('panels')">➕ Create panel</button><button class="btn btn-primary" onclick="switchPage('users')">👤 Add user</button></div></div></div>
-<div id="page-content" class="page-section"><div class="card"><h3>📝 Create / update content</h3><form onsubmit="publishContent(event)"><div class="grid-2"><div class="form-group"><label>Target Panel</label><input id="content-subject" class="form-inp" list="panel-options" placeholder="e.g. 1st to 10th Class Student Panel" required><datalist id="panel-options"></datalist><div class="hint">Free text is supported. Existing panels and legacy subjects are suggested.</div></div><div class="form-group" id="class-field"><label>Class / Level</label><input id="content-class" class="form-inp" placeholder="e.g. 6, Grade 6, or All classes"></div></div><div class="form-group"><label>Title</label><input id="content-title" class="form-inp" required placeholder="Content title"></div><div class="form-group"><label>Content <span class="badge">HTML supported</span><span class="badge">iframes</span><span class="badge">video</span><span class="badge">images</span></label><textarea id="content-body" class="form-inp" required placeholder="Paste raw HTML, embedded media, styled text, or plain text…"></textarea><div class="hint">Preview runs in a sandboxed frame. Publishing preserves your HTML exactly for the student panel.</div><div class="preview" id="content-preview"><div class="preview-head">LIVE PREVIEW</div><iframe id="preview-frame" sandbox="allow-scripts allow-forms allow-popups allow-presentation"></iframe></div></div><div class="form-group"><label>Tags <span style="color:var(--mut)">(optional, comma-separated)</span></label><input id="content-tags" class="form-inp" placeholder="math, chapter-1"></div><div class="actions"><button type="button" class="btn btn-secondary" onclick="previewContent()">👁 Live preview</button><button type="submit" class="btn btn-success">📤 Publish</button><button type="button" class="btn btn-secondary" onclick="resetContentForm()">🔄 Clear</button></div></form></div><div class="card"><h3>📚 Recent & legacy content</h3><div id="content-list">Loading…</div></div></div>
-<div id="page-panels" class="page-section"><div class="card"><h3>📁 Create / edit panel</h3><form onsubmit="savePanel(event)"><input type="hidden" id="panel-id"><div class="form-group"><label>Panel name</label><input id="panel-name" class="form-inp" required placeholder="Any custom panel name"></div><div class="form-group"><label>Panel architecture / purpose <span style="color:var(--mut)">(optional free text)</span></label><input id="panel-type" class="form-inp" placeholder="Student learning hub, exams, resources…"></div><div class="form-group"><label>Description</label><textarea id="panel-desc" class="form-inp" placeholder="Describe the panel and its content model"></textarea></div><div class="form-group"><label>Route URL <span style="color:var(--mut)">(generated automatically; editable)</span></label><input id="panel-route" class="form-inp" placeholder="/panels/my-panel"></div><div class="actions"><button class="btn btn-success" id="panel-submit">✅ Create panel</button><button type="button" class="btn btn-secondary" onclick="resetPanelForm()">🔄 Clear</button></div></form></div><div class="card"><h3>📊 Connected panels</h3><div id="panels-list">Loading…</div></div></div>
-<div id="page-links" class="page-section"><div class="card"><h3>🔗 Navigation link</h3><form onsubmit="saveLink(event)"><input type="hidden" id="link-id"><div class="grid-2"><div class="form-group"><label>Label</label><input id="link-label" class="form-inp" required></div><div class="form-group"><label>URL</label><input id="link-url" class="form-inp" required placeholder="/my-panel or https://…"></div></div><div class="grid-2"><div class="form-group"><label>Icon</label><input id="link-icon" class="form-inp" value="📘"></div><div class="form-group"><label>Placement <span style="color:var(--mut)">(free text)</span></label><input id="link-position" class="form-inp" placeholder="top, sidebar, footer…"></div></div><label style="display:block;margin-bottom:18px"><input type="checkbox" id="link-new-tab"> Open in a new tab</label><div class="actions"><button class="btn btn-success">➕ Save link</button><button type="button" class="btn btn-secondary" onclick="resetLinkForm()">🔄 Clear</button></div></form></div><div class="card"><h3>🌐 Navigation links</h3><div id="links-list">Loading…</div></div></div>
-<div id="page-users" class="page-section"><div class="card"><h3>👤 Add new user</h3><form onsubmit="saveUser(event)"><div class="grid-2"><div class="form-group"><label>Username *</label><input id="user-name" class="form-inp" required></div><div class="form-group"><label>Password *</label><input id="user-pass" type="password" class="form-inp" required></div></div><div class="grid-2"><div class="form-group"><label>Email <span style="color:var(--mut)">(optional)</span></label><input id="user-email" type="email" class="form-inp"></div><div class="form-group"><label>User type <span style="color:var(--mut)">(optional)</span></label><input id="user-type" class="form-inp" placeholder="student, editor, guest…"></div></div><div class="form-group"><label>Notes / permissions <span style="color:var(--mut)">(optional)</span></label><textarea id="user-notes" class="form-inp"></textarea></div><div class="actions"><button class="btn btn-success">✅ Save user</button><button type="button" class="btn btn-secondary" onclick="resetUserForm()">🔄 Clear</button></div></form></div><div class="card"><h3>👥 Active users</h3><div id="users-list">Loading…</div></div></div>
-<div id="page-settings" class="page-section"><div class="card"><h3>⚙️ Enterprise settings</h3><p class="hint" style="margin-bottom:20px">Configure platform-wide behavior. Changes are stored in Vercel KV and are shared with the student experience.</p><div class="toggle-row"><div class="toggle-copy"><strong>Site Maintenance Mode</strong><small>Show a maintenance experience to visitors while you work.</small></div><label class="switch"><input type="checkbox" id="setting-maintenance" onchange="saveSettings()"><span class="slider"></span></label></div><div class="toggle-row"><div class="toggle-copy"><strong>Global SEO / Meta Settings</strong><small>Allow global title, description and social metadata to be applied.</small></div><label class="switch"><input type="checkbox" id="setting-seo" onchange="saveSettings()"><span class="slider"></span></label></div><div class="toggle-row"><div class="toggle-copy"><strong>Security Configurations</strong><small>Enable hardened access defaults and protected content controls.</small></div><label class="switch"><input type="checkbox" id="setting-security" onchange="saveSettings()"><span class="slider"></span></label></div><div class="toggle-row"><div class="toggle-copy"><strong>Allow content copying</strong><small>Permit copy and selection in the student panel.</small></div><label class="switch"><input type="checkbox" id="setting-copy" onchange="saveSettings()"><span class="slider"></span></label></div><div class="grid-2" style="margin-top:22px"><div class="form-group"><label>Site name</label><input id="setting-site-name" class="form-inp" placeholder="Clever Students"></div><div class="form-group"><label>Site tagline</label><input id="setting-tagline" class="form-inp" placeholder="Learn smarter"></div></div><div class="grid-2"><div class="form-group"><label>SEO title</label><input id="setting-seo-title" class="form-inp"></div><div class="form-group"><label>SEO description</label><textarea id="setting-seo-description" class="form-inp"></textarea></div></div><button class="btn btn-primary" onclick="saveSettings()">💾 Save all settings</button></div><div class="card"><h3>🔐 Operations</h3><div class="actions"><button class="btn btn-primary btn-sm" onclick="backupDatabase()">📥 Export CMS backup</button><button class="btn btn-warning btn-sm" onclick="clearCache()">🧹 Clear local cache</button></div></div></div>
-</main></section></div><div id="preview-modal" class="modal"><div class="modal-box"><div class="modal-head"><span>HTML Live Preview</span><button class="btn btn-secondary btn-sm" onclick="closePreview()">✕ Close</button></div><iframe id="modal-frame" sandbox="allow-scripts allow-forms allow-popups allow-presentation"></iframe></div></div><div id="toast" style="display:none"></div>
-<script>
-/* Vercel KV wrapper retained for compatibility with the existing /api/db route. */
-var db={ref:function(path){return{once:function(){return fetch('/api/db?path='+encodeURIComponent(path)).then(function(r){if(!r.ok)throw Error('Database request failed');return r.json()}).then(function(d){return{val:function(){return d.result}}})},set:function(data){return write('set',path,data)},update:function(data){return write('update',path,data)},remove:function(){return write('remove',path)},push:function(){var key='item_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);return{key:key,set:function(data){return write('set',path+'/'+key,data)}}}}}};
-function write(action,path,data){return fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:action,path:path,data:data})}).then(function(r){if(!r.ok)throw Error('Database write failed');return r.json()})}
-var LEGACY={theory:'theoryDatabase',quiz:'questionBank',mindmap:'mindMapDatabase',papers:'papersDatabase',games:'gamesDatabase',projects:'projectsDatabase',videos:'videosDatabase',skills:'skillsDatabase'},legacyData={},contentData={},panelsData={},linksData={},usersData={},settings={};var editingContent=null,editingPanel=null,editingLink=null;
-function $(id){return document.getElementById(id)}function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}function toast(msg,type){var t=$('toast');t.textContent=msg;t.style.cssText='display:block;position:fixed;right:20px;bottom:20px;z-index:30;padding:14px 20px;border-radius:9px;color:#fff;font-weight:800;background:'+(type==='error'?'#ef4444':'#10b981');setTimeout(function(){t.style.display='none'},2800)}
-function initTheme(){if(localStorage.getItem('ma_theme')==='light')document.body.classList.add('light-mode')}function toggleTheme(){document.body.classList.toggle('light-mode');localStorage.setItem('ma_theme',document.body.classList.contains('light-mode')?'light':'dark')}initTheme();function toggleMenu(){$('sidebar').classList.toggle('open')}
-function attemptLogin(){var id=$('login-id').value.trim(),pass=$('login-pass').value.trim();if(id==='admin'&&pass==='admin123'){localStorage.setItem('ma_admin_id',id);localStorage.setItem('ma_admin_token','ma_'+Date.now());showDashboard()}else $('login-error').textContent='Invalid credentials'}function checkAuth(){if(localStorage.getItem('ma_admin_id')==='admin'&&localStorage.getItem('ma_admin_token'))showDashboard()}function showDashboard(){$('login-overlay').style.display='none';$('main-layout').style.display='flex';$('admin-name').textContent=localStorage.getItem('ma_admin_id')||'Admin';loadAll()}function logout(){localStorage.removeItem('ma_admin_id');localStorage.removeItem('ma_admin_token');location.reload()}
-var titles={dashboard:'📊 Dashboard',content:'📝 Manage Content',panels:'📁 Manage Panels',links:'🔗 Layout & Links',users:'👥 Users',settings:'⚙️ Settings'};function switchPage(page){document.querySelectorAll('.page-section').forEach(function(x){x.classList.toggle('active',x.id==='page-'+page)});document.querySelectorAll('.sidebar-link[data-page]').forEach(function(x){x.classList.toggle('active',x.dataset.page===page)});$('page-title').textContent=titles[page];if(page==='content')renderContent();if(page==='panels')renderPanels();if(page==='links')renderLinks();if(page==='users')renderUsers();if(page==='settings')renderSettings();$('sidebar').classList.remove('open')}
-function asObject(v){if(!v)return{};if(Array.isArray(v)){var o={};v.forEach(function(x,i){o['item_'+i]=x});return o}return typeof v==='object'?v:{}}
-function fetchPath(path){return db.ref(path).once('value').then(function(s){return s.val()||{}}).catch(function(){return{}})}
-function loadAll(){var paths=Object.keys(LEGACY).map(function(k){return fetchPath(LEGACY[k]).then(function(v){legacyData[k]=asObject(v)})});paths.push(fetchPath('cmsContent').then(function(v){contentData=asObject(v)}),fetchPath('cmsPanels').then(function(v){panelsData=asObject(v)}),fetchPath('cmsLinks').then(function(v){linksData=asObject(v)}),fetchPath('users').then(function(v){usersData=asObject(v)}),fetchPath('settings').then(function(v){settings=v||{}}));Promise.all(paths).then(function(){indexLegacy();renderDashboard();renderContent();renderPanels();renderLinks();renderUsers();renderSettings()})}
-/* Legacy compatibility: read the exact old collection names and dynamic keys (Class_Subject_Chapter, etc.). */
-function indexLegacy(){var count=0;Object.keys(legacyData).forEach(function(type){var source=legacyData[type];Object.keys(source).forEach(function(key){var item=source[key],first=Array.isArray(item)?item[0]:item;if(!first||typeof first!=='object')first={content:String(item)};var id='legacy_'+type+'_'+key;contentData[id]={id:id,legacy:true,legacyPath:LEGACY[type]+'/'+key,legacyType:type,legacyKey:key,targetPanel:first.subject||type,class:first.class||'',title:first.title||key,content:first.content||first.question||JSON.stringify(item),tags:first.topic||''};count++})});$('legacy-status').textContent='✓ Indexed '+count+' records from legacy Vercel KV collections without altering the originals.';populatePanelOptions()}
-function populatePanelOptions(){var names=Object.keys(panelsData).map(function(k){return panelsData[k].name}).filter(Boolean);Object.keys(legacyData).forEach(function(k){if(names.indexOf(k)<0)names.push(k)});$('panel-options').innerHTML=names.map(function(n){return'<option value="'+esc(n)+'">'}).join('')}
-function renderDashboard(){$('stat-content').textContent=Object.keys(contentData).length;$('stat-panels').textContent=Object.keys(panelsData).length;$('stat-users').textContent=Object.keys(usersData).length}
-function panelNeedsClass(v){return /class|student|grade|school|learning|subject/i.test(v||'')}function updateContentFields(){var v=$('content-subject').value;$('class-field').style.display=panelNeedsClass(v)?'block':'none';if(!panelNeedsClass(v))$('content-class').value=''}$('content-subject').addEventListener('input',updateContentFields);
-function previewHTML(html,frame){frame.srcdoc='<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;padding:18px;line-height:1.6;color:#111}img,video,iframe{max-width:100%}iframe{min-height:220px;border:0}</style></head><body>'+html+'</body></html>'}function previewContent(){var html=$('content-body').value;if(!html){toast('Enter content first','error');return}previewHTML(html,$('preview-frame'));$('content-preview').classList.add('show');$('preview-modal').classList.add('show');previewHTML(html,$('modal-frame'))}function closePreview(){$('preview-modal').classList.remove('show')}
-function publishContent(e){e.preventDefault();var id=editingContent||'content_'+Date.now();contentData[id]={id:id,title:$('content-title').value.trim(),targetPanel:$('content-subject').value.trim(),subject:$('content-subject').value.trim(),class:$('content-class').value.trim(),content:$('content-body').value,tags:$('content-tags').value,updatedAt:new Date().toISOString()};db.ref('cmsContent/'+id).set(contentData[id]).then(function(){toast('Content published');resetContentForm();renderContent();renderDashboard()}).catch(function(){toast('Could not save content','error')})}function resetContentForm(){editingContent=null;['content-title','content-subject','content-class','content-body','content-tags'].forEach(function(id){$(id).value=''});$('content-preview').classList.remove('show');updateContentFields()}
-function renderContent(){var a=Object.keys(contentData);$('content-list').innerHTML=a.length?a.sort(function(x,y){return(contentData[y].updatedAt||'').localeCompare(contentData[x].updatedAt||'')}).slice(0,100).map(function(k){var x=contentData[k];return'<div class="item"><div class="item-main"><strong>'+esc(x.title||x.legacyKey||k)+'</strong><small><span class="badge">'+esc(x.targetPanel||x.subject||x.legacyType||'custom')+'</span> '+(x.class?'Class '+esc(x.class):'')+(x.legacy?' · legacy KV':'')+'</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editContent('+JSON.stringify(k)+')">✏️ Edit</button></div></div>'}).join(''):'<div class="empty">No content found.</div>'}function editContent(id){var x=contentData[id];editingContent=id;$('content-title').value=x.title||'';$('content-subject').value=x.targetPanel||x.subject||'';$('content-class').value=x.class||'';$('content-body').value=x.content||'';$('content-tags').value=x.tags||'';updateContentFields();switchPage('content');window.scrollTo(0,0)}
-function slug(s){return String(s||'panel').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'panel'}function savePanel(e){e.preventDefault();var id=$('panel-id').value||'panel_'+Date.now(),name=$('panel-name').value.trim();var route=$('panel-route').value.trim()||'/panels/'+slug(name);panelsData[id]={id:id,name:name,type:$('panel-type').value.trim(),description:$('panel-desc').value,route:route.charAt(0)==='/'?route:'/'+route,updatedAt:new Date().toISOString()};db.ref('cmsPanels/'+id).set(panelsData[id]).then(function(){toast(editingPanel?'Panel updated':'Panel created');resetPanelForm();populatePanelOptions();renderPanels();renderDashboard()}).catch(function(){toast('Could not save panel','error')})}function resetPanelForm(){editingPanel=null;['panel-id','panel-name','panel-type','panel-desc','panel-route'].forEach(function(id){$(id).value=''});$('panel-submit').textContent='✅ Create panel'}function renderPanels(){var a=Object.keys(panelsData);$('panels-list').innerHTML=a.length?a.map(function(k){var x=panelsData[k];return'<div class="item"><div class="item-main"><strong>'+esc(x.name)+'</strong><small>'+esc(x.route||'')+' · '+esc(x.type||'custom')+'<br>'+esc(x.description||'')+'</small></div><div class="item-actions"><button class="btn btn-primary btn-sm" onclick="editPanel('+JSON.stringify(k)+')">✏️ Edit</button><a class="btn btn-secondary btn-sm" href="'+esc(x.route||'#')+'" target="_blank">↗ Open</a></div></div>'}).join(''):'<div class="empty">No panels created yet.</div>'}function editPanel(id){var x=panelsData[id];editingPanel=id;$('panel-id').value=id;$('panel-name').value=x.name||'';$('panel-type').value=x.type||'';$('panel-desc').value=x.description||'';$('panel-route').value=x.route||'';$('panel-submit').textContent='💾 Update panel';switchPage('panels')}
-function saveLink(e){e.preventDefault();var id=$('link-id').value||'link_'+Date.now();linksData[id]={id:id,label:$('link-label').value,url:$('link-url').value,icon:$('link-icon').value,position:$('link-position').value,newTab:$('link-new-tab').checked};db.ref('cmsLinks/'+id).set(linksData[id]).then(function(){toast('Link saved');resetLinkForm();renderLinks()})}function resetLinkForm(){['link-id','link-label','link-url','link-icon','link-position'].forEach(function(id){$(id).value=''});$('link-icon').value='📘';$('link-new-tab').checked=false}function renderLinks(){$('links-list').innerHTML=Object.keys(linksData).map(function(k){var x=linksData[k];return'<div class="item"><div class="item-main"><strong>'+esc(x.icon||'🔗')+' '+esc(x.label)+'</strong><small>'+esc(x.url)+' · '+esc(x.position||'custom')+'</small></div></div>'}).join('')||'<div class="empty">No links yet.</div>'}
-function saveUser(e){e.preventDefault();var name=$('user-name').value.trim(),id='user_'+name.toLowerCase().replace(/[^a-z0-9]+/g,'_');usersData[id]={username:name,password:$('user-pass').value,email:$('user-email').value,type:$('user-type').value,notes:$('user-notes').value,updatedAt:new Date().toISOString()};db.ref('users/'+id).set(usersData[id]).then(function(){toast('User saved');resetUserForm();renderUsers();renderDashboard()})}function resetUserForm(){['user-name','user-pass','user-email','user-type','user-notes'].forEach(function(id){$(id).value=''})}function renderUsers(){$('users-list').innerHTML=Object.keys(usersData).map(function(k){var x=usersData[k];return'<div class="item"><div class="item-main"><strong>'+esc(x.username||k)+'</strong><small>'+esc(x.email||'No email')+' · '+esc(x.type||'unspecified')+'</small></div></div>'}).join('')||'<div class="empty">No users yet.</div>'}
-function renderSettings(){['maintenance','seo','security','copy'].forEach(function(k){$('setting-'+k).checked=!!settings[k+(k==='copy'?'Enabled':'Mode')]} )$('setting-site-name').value=settings.siteName||'';$('setting-tagline').value=settings.tagline||'';$('setting-seo-title').value=settings.seoTitle||'';$('setting-seo-description').value=settings.seoDescription||''}function saveSettings(){settings={maintenanceMode:$('setting-maintenance').checked,seoMode:$('setting-seo').checked,securityMode:$('setting-security').checked,copyEnabled:$('setting-copy').checked,siteName:$('setting-site-name').value,tagline:$('setting-tagline').value,seoTitle:$('setting-seo-title').value,seoDescription:$('setting-seo-description').value};db.ref('settings').set(settings).then(function(){toast('Settings saved')})}function backupDatabase(){var data={content:contentData,panels:panelsData,links:linksData,users:usersData,settings:settings,exportedAt:new Date().toISOString()};var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='cleverstudents-cms-backup.json';a.click()}function clearCache(){localStorage.removeItem('ma_theme');toast('Local cache cleared; reload to apply','info')}
-$('login-pass').addEventListener('keydown',function(e){if(e.key==='Enter')attemptLogin()});checkAuth();
-</script></body></html>
+  <div id="login-overlay">
+    <div class="login-box">
+      <h1>Master Admin</h1>
+      <p>Secure CMS dashboard access</p>
+      <div class="login-info">
+        <strong>Default:</strong><br>
+        ID: admin<br>
+        Password: admin123
+      </div>
+      <input class="login-inp" id="login-id" type="text" placeholder="Admin ID" autocomplete="username">
+      <input class="login-inp" id="login-pass" type="password" placeholder="Password" autocomplete="current-password">
+      <button class="btn btn-warning" style="width:100%;justify-content:center;" onclick="attemptLogin()">🔓 Login</button>
+      <div id="login-error"></div>
+    </div>
+  </div>
+
+  <div class="main-layout" id="main-layout" style="display:none;">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📊 Master Admin</div>
+      <div class="sidebar-link active" data-page="dashboard" onclick="switchPage('dashboard')">📊 Dashboard</div>
+      <div class="sidebar-link" data-page="content" onclick="switchPage('content')">📝 Manage Content</div>
+      <div class="sidebar-link" data-page="panels" onclick="switchPage('panels')">📁 Manage Panels</div>
+      <div class="sidebar-link" data-page="links" onclick="switchPage('links')">🔗 Layout & Links</div>
+      <div class="sidebar-link" data-page="users" onclick="switchPage('users')">👥 Users</div>
+      <div class="sidebar-link" data-page="settings" onclick="switchPage('settings')">⚙️ Settings</div>
+      <div class="sidebar-link danger" onclick="logout()">🚪 Logout</div>
+    </aside>
+
+    <div class="content-area">
+      <header class="top-bar">
+        <h2 id="page-title">📊 Dashboard</h2>
+        <div class="top-bar-actions">
+          <div class="admin-status">
+            <div class="dot"></div>
+            <span id="admin-name">Admin</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="toggleTheme()">🌙 Theme</button>
+        </div>
+      </header>
+
+      <main class="content-main">
+        <div id="page-dashboard" class="page-section active">
+          <div class="grid-3">
+            <div class="stat-box">
+              <div class="number" id="stat-content">0</div>
+              <div class="label">Managed Content</div>
+            </div>
+            <div class="stat-box">
+              <div class="number" id="stat-panels">0</div>
+              <div class="label">Connected Panels</div>
+            </div>
+            <div class="stat-box">
+              <div class="number" id="stat-users">0</div>
+              <div class="label">Users</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>🧩 Legacy Vercel Data Sync</h3>
+            <p class="hint" style="line-height:1.8;">
+              The Master Dashboard reads the original Vercel KV collections used by the old admin and student panels.
+              This keeps all previous uploaded content visible in the new unified CMS without migrating the original data.
+            </p>
+            <div id="legacy-status" class="hint" style="margin-top:12px;">Scanning legacy collections…</div>
+          </div>
+
+          <div class="card">
+            <h3>🎯 Quick Actions</h3>
+            <div class="btn-wrap">
+              <button class="btn btn-primary" onclick="switchPage('content')">➕ Add Content</button>
+              <button class="btn btn-primary" onclick="switchPage('panels')">➕ Create Panel</button>
+              <button class="btn btn-primary" onclick="switchPage('users')">👤 Add User</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="page-content" class="page-section">
+          <div class="card">
+            <h3>📝 Manage Content</h3>
+            <form onsubmit="publishContent(event)">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Target Panel</label>
+                  <input id="content-panel" class="form-inp" list="panel-options" placeholder="e.g. 1st to 10th Class Student Panel" required>
+                  <datalist id="panel-options"></datalist>
+                  <div class="hint">Type or select a panel name. Relevant fields update automatically based on the selected target.</div>
+                </div>
+                <div class="form-group" id="content-class-wrap">
+                  <label>Class / Level</label>
+                  <input id="content-class" class="form-inp" placeholder="e.g. 6, Grade 6, All classes">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Title</label>
+                <input id="content-title" class="form-inp" placeholder="Enter title" required>
+              </div>
+
+              <div class="form-group">
+                <label>Content (HTML Supported)
+                  <span class="badge">HTML</span>
+                  <span class="badge">videos</span>
+                  <span class="badge">embeds</span>
+                  <span class="badge">images</span>
+                </label>
+                <textarea id="content-body" class="form-inp" placeholder="Paste raw HTML, embedded video, iframe, image, styled text, or plain text" required></textarea>
+                <div class="hint">Rich content is preserved exactly for panel rendering. Use preview before publishing.</div>
+                <div class="preview-box" id="content-preview">
+                  <div class="preview-head">LIVE PREVIEW</div>
+                  <iframe id="content-preview-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-presentation"></iframe>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Tags (optional)</label>
+                <input id="content-tags" class="form-inp" placeholder="math, class-6, chapter-1">
+              </div>
+
+              <div class="btn-wrap">
+                <button type="button" class="btn btn-secondary" onclick="previewContent()">👁 Live Preview</button>
+                <button type="submit" class="btn btn-success">📤 Publish</button>
+                <button type="button" class="btn btn-secondary" onclick="resetContentForm()">🔄 Clear</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>📚 Legacy & Recent Content</h3>
+            <div id="content-list">Loading content…</div>
+          </div>
+        </div>
+
+        <div id="page-panels" class="page-section">
+          <div class="card">
+            <h3>📁 Manage Panels</h3>
+            <form onsubmit="savePanel(event)">
+              <input type="hidden" id="panel-id">
+              <div class="form-group">
+                <label>Panel Name</label>
+                <input id="panel-name" class="form-inp" placeholder="e.g. 1st to 10th Class Student Panel" required>
+              </div>
+
+              <div class="form-group">
+                <label>Panel Architecture / Purpose</label>
+                <input id="panel-purpose" class="form-inp" placeholder="e.g. Student learning dashboard, resource hub, exam panel, custom architecture">
+              </div>
+
+              <div class="form-group">
+                <label>Description</label>
+                <textarea id="panel-description" class="form-inp" placeholder="Describe what this panel is for"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Route URL</label>
+                <input id="panel-route" class="form-inp" placeholder="/panels/my-panel">
+              </div>
+
+              <div class="btn-wrap">
+                <button type="submit" class="btn btn-success" id="panel-submit-btn">✅ Create Panel</button>
+                <button type="button" class="btn btn-secondary" onclick="resetPanelForm()">🔄 Clear</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>📊 Active Panels</h3>
+            <div id="panels-list">Loading panels…</div>
+          </div>
+        </div>
+
+        <div id="page-links" class="page-section">
+          <div class="card">
+            <h3>🔗 Layout & Links</h3>
+            <form onsubmit="saveLink(event)">
+              <input type="hidden" id="link-id">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Link Label</label>
+                  <input id="link-label" class="form-inp" placeholder="Learning Hub" required>
+                </div>
+                <div class="form-group">
+                  <label>Link URL</label>
+                  <input id="link-url" class="form-inp" placeholder="/panels/my-panel or https://example.com" required>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Icon / Emoji</label>
+                  <input id="link-icon" class="form-inp" placeholder="📘" value="📘">
+                </div>
+                <div class="form-group">
+                  <label>Placement</label>
+                  <input id="link-position" class="form-inp" placeholder="top, sidebar, footer">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="inline">
+                  <input type="checkbox" id="link-new-tab"> Open in new tab
+                </label>
+              </div>
+
+              <div class="btn-wrap">
+                <button type="submit" class="btn btn-success">➕ Save Link</button>
+                <button type="button" class="btn btn-secondary" onclick="resetLinkForm()">🔄 Clear</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>🌐 Navigation Links</h3>
+            <div id="links-list">Loading links…</div>
+          </div>
+        </div>
+
+        <div id="page-users" class="page-section">
+          <div class="card">
+            <h3>👤 Add New User</h3>
+            <form onsubmit="saveUser(event)">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Username *</label>
+                  <input id="user-name" class="form-inp" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                  <label>Password *</label>
+                  <input id="user-pass" class="form-inp" type="password" placeholder="Password" required>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Email (optional)</label>
+                  <input id="user-email" class="form-inp" type="email" placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                  <label>User Type (optional)</label>
+                  <input id="user-type" class="form-inp" placeholder="student, admin, guest, editor">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Notes / Permissions (optional)</label>
+                <textarea id="user-notes" class="form-inp" placeholder="Optional notes or permission summary"></textarea>
+              </div>
+
+              <div class="btn-wrap">
+                <button type="submit" class="btn btn-success">✅ Save User</button>
+                <button type="button" class="btn btn-secondary" onclick="resetUserForm()">🔄 Clear</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>👥 Users</h3>
+            <div id="users-list">Loading users…</div>
+          </div>
+        </div>
+
+        <div id="page-settings" class="page-section">
+          <div class="card">
+            <h3>⚙️ Premium Enterprise Settings</h3>
+            <div class="toggle-row">
+              <div class="toggle-copy">
+                <strong>Site Maintenance Mode</strong>
+                <small>Enable website maintenance page and restrict public access while you work.</small>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="setting-maintenance">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div class="toggle-copy">
+                <strong>Global SEO / Meta Settings</strong>
+                <small>Manage global titles, meta descriptions, and sharing previews across the site.</small>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="setting-seo">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div class="toggle-copy">
+                <strong>Security Configurations</strong>
+                <small>Use hardened settings for admin access, protected routes, and content restrictions.</small>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="setting-security">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div class="toggle-copy">
+                <strong>Redirect / Content Protection</strong>
+                <small>Control public redirects and restrict access to premium areas.</small>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="setting-redirect-protection">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="grid-2" style="margin-top:18px;">
+              <div class="form-group">
+                <label>Site Name</label>
+                <input id="setting-site-name" class="form-inp" placeholder="Clever Students">
+              </div>
+              <div class="form-group">
+                <label>Tagline</label>
+                <input id="setting-tagline" class="form-inp" placeholder="Learn smarter">
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>SEO Title</label>
+                <input id="setting-seo-title" class="form-inp" placeholder="Global SEO title">
+              </div>
+              <div class="form-group">
+                <label>SEO Description</label>
+                <textarea id="setting-seo-description" class="form-inp" placeholder="Meta description for search engines and social previews"></textarea>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+          </div>
+
+          <div class="card">
+            <h3>🔐 Operational Controls</h3>
+            <div class="btn-wrap">
+              <button class="btn btn-primary btn-sm" onclick="backupData()">📥 Export Backup</button>
+              <button class="btn btn-warning btn-sm" onclick="clearLocalCache()">🧹 Clear Cache</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="modal-preview" class="modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <span>HTML Live Preview</span>
+        <button class="btn btn-secondary btn-sm" onclick="closePreview()">✕ Close</button>
+      </div>
+      <iframe id="modal-preview-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-presentation"></iframe>
+    </div>
+  </div>
+
+  <script>
+    var db = {
+      ref: function(path) {
+        return {
+          once: function() {
+            return fetch('/api/db?path=' + encodeURIComponent(path))
+              .then(function(res){ if(!res.ok) throw new Error('DB request failed'); return res.json(); })
+              .then(function(data){ return { val: function(){ return data.result; } }; });
+          },
+          set: function(data) {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'set', path: path, data: data })
+            }).then(function(res){ if(!res.ok) throw new Error('DB write failed'); return res.json(); });
+          },
+          update: function(data) {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'update', path: path, data: data })
+            }).then(function(res){ if(!res.ok) throw new Error('DB write failed'); return res.json(); });
+          },
+          remove: function() {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'remove', path: path })
+            }).then(function(res){ if(!res.ok) throw new Error('DB write failed'); return res.json(); });
+          }
+        };
+      }
+    };
+
+    var DEFAULT_ADMIN_ID = 'admin';
+    var DEFAULT_ADMIN_PASS = 'admin123';
+    var admin = {
+      id: '',
+      token: ''
+    };
+
+    var appState = {
+      legacyCollections: {
+        theoryDatabase: 'theory',
+        questionBank: 'quiz',
+        mindMapDatabase: 'mindmap',
+        papersDatabase: 'papers',
+        gamesDatabase: 'games',
+        projectsDatabase: 'projects',
+        videosDatabase: 'videos',
+        skillsDatabase: 'skills'
+      },
+      panels: {},
+      links: {},
+      users: {},
+      content: {},
+      settings: {
+        maintenanceMode: false,
+        seoMode: false,
+        securityMode: false,
+        redirectProtection: false,
+        siteName: 'Clever Students',
+        tagline: 'Learn smarter',
+        seoTitle: '',
+        seoDescription: ''
+      },
+      legacyContent: {},
+      activePage: 'dashboard'
+    };
+
+    function escHtml(value) {
+      return String(value || '').replace(/[&<>\"']/g, function(ch) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[ch];
+      });
+    }
+
+    function toast(msg, type) {
+      var t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = msg;
+      t.style.display = 'block';
+      t.style.background = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6';
+      setTimeout(function() {
+        t.style.display = 'none';
+      }, 2600);
+    }
+
+    function initTheme() {
+      var theme = localStorage.getItem('ma_theme') || 'dark';
+      if (theme === 'light') {
+        document.body.classList.add('light-mode');
+      }
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+      localStorage.setItem('ma_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    }
+
+    function switchPage(page) {
+      appState.activePage = page;
+      var titleMap = {
+        dashboard: '📊 Dashboard',
+        content: '📝 Manage Content',
+        panels: '📁 Manage Panels',
+        links: '🔗 Layout & Links',
+        users: '👥 Users',
+        settings: '⚙️ Settings'
+      };
+      document.getElementById('page-title').textContent = titleMap[page];
+      document.querySelectorAll('.page-section').forEach(function(section) {
+        section.classList.toggle('active', section.id === 'page-' + page);
+      });
+      document.querySelectorAll('.sidebar-link').forEach(function(link) {
+        link.classList.toggle('active', link.getAttribute('data-page') === page);
+      });
+      if (page === 'content') loadContentList();
+      if (page === 'panels') loadPanelsList();
+      if (page === 'links') loadLinksList();
+      if (page === 'users') loadUsersList();
+      if (page === 'settings') loadSettings();
+    }
+
+    function showDashboard() {
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('main-layout').style.display = 'flex';
+      document.getElementById('admin-name').textContent = admin.id;
+      loadAllData();
+    }
+
+    function checkAuth() {
+      var storedId = localStorage.getItem('ma_admin_id');
+      var storedToken = localStorage.getItem('ma_admin_token');
+      if (storedId && storedToken && storedId === DEFAULT_ADMIN_ID) {
+        admin.id = storedId;
+        admin.token = storedToken;
+        showDashboard();
+      } else {
+        document.getElementById('login-overlay').style.display = 'flex';
+      }
+    }
+
+    function attemptLogin() {
+      var id = document.getElementById('login-id').value.trim();
+      var pass = document.getElementById('login-pass').value.trim();
+      var errorBox = document.getElementById('login-error');
+      if (!id || !pass) {
+        errorBox.style.display = 'block';
+        errorBox.textContent = 'Enter both ID and password.';
+        return;
+      }
+      if (id === DEFAULT_ADMIN_ID && pass === DEFAULT_ADMIN_PASS) {
+        errorBox.style.display = 'none';
+        admin.id = id;
+        admin.token = 'ma_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+        localStorage.setItem('ma_admin_id', id);
+        localStorage.setItem('ma_admin_token', admin.token);
+        showDashboard();
+        return;
+      }
+      errorBox.style.display = 'block';
+      errorBox.textContent = 'Invalid credentials.';
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('ma_admin_id');
+        localStorage.removeItem('ma_admin_token');
+        admin.id = '';
+        admin.token = '';
+        location.reload();
+      }
+    }
+
+    function readPath(path) {
+      return db.ref(path).once('value').then(function(snapshot) {
+        return snapshot.val() || {};
+      }).catch(function() {
+        return {};
+      });
+    }
+
+    function isPlainObject(value) {
+      return value && typeof value === 'object' && !Array.isArray(value);
+    }
+
+    function normalizeObject(value) {
+      if (!value || typeof value !== 'object') {
+        return {};
+      }
+      if (Array.isArray(value)) {
+        return value.reduce(function(acc, item, idx) {
+          acc['item_' + idx] = item;
+          return acc;
+        }, {});
+      }
+      return value;
+    }
+
+    function loadAllData() {
+      var keys = Object.keys(appState.legacyCollections);
+      var fetches = [];
+      keys.forEach(function(k) {
+        fetches.push(
+          readPath(k).then(function(data) {
+            appState.legacyContent[k] = normalizeObject(data);
+          })
+        );
+      });
+
+      fetches.push(
+        readPath('cmsPanels').then(function(data) {
+          appState.panels = normalizeObject(data);
+        }),
+        readPath('cmsLinks').then(function(data) {
+          appState.links = normalizeObject(data);
+        }),
+        readPath('cmsUsers').then(function(data) {
+          appState.users = normalizeObject(data);
+        }),
+        readPath('users').then(function(data) {
+          appState.users = Object.assign({}, appState.users, normalizeObject(data));
+        }),
+        readPath('settings').then(function(data) {
+          appState.settings = Object.assign({}, appState.settings, data || {});
+        }),
+        readPath('cmsContent').then(function(data) {
+          appState.content = normalizeObject(data);
+        })
+      );
+
+      Promise.all(fetches).then(function() {
+        populatePanelOptions();
+        renderDashboard();
+        renderSettings();
+        loadContentList();
+        loadPanelsList();
+        loadLinksList();
+        loadUsersList();
+        updateLegacyStatus();
+      }).catch(function() {
+        toast('Initial data sync failed.', 'error');
+      });
+    }
+
+    function updateLegacyStatus() {
+      var totalLegacy = 0;
+      Object.keys(appState.legacyContent).forEach(function(key) {
+        totalLegacy += Object.keys(appState.legacyContent[key]).length;
+      });
+      var legacyEl = document.getElementById('legacy-status');
+      if (legacyEl) {
+        legacyEl.textContent = '✓ Indexed ' + totalLegacy + ' legacy records from Vercel KV collections without altering the source data.';
+      }
+    }
+
+    function populatePanelOptions() {
+      var list = document.getElementById('panel-options');
+      if (!list) return;
+      var panelNames = [];
+
+      Object.keys(appState.panels).forEach(function(id) {
+        var item = appState.panels[id];
+        if (item && item.name) panelNames.push(item.name);
+      });
+
+      Object.keys(appState.legacyContent).forEach(function(collection) {
+        var entries = appState.legacyContent[collection];
+        Object.keys(entries).forEach(function(key) {
+          var data = entries[key];
+          if (data && (data.title || data.name || key)) {
+            panelNames.push(data.title || data.name || key);
+          }
+        });
+      });
+
+      panelNames = panelNames.filter(function(item, index, arr) {
+        return item && arr.indexOf(item) === index;
+      });
+
+      list.innerHTML = panelNames.map(function(name) {
+        return '<option value="' + escHtml(name) + '"></option>';
+      }).join('');
+    }
+
+    function renderDashboard() {
+      document.getElementById('stat-content').textContent = Object.keys(appState.content).length + Object.keys(appState.legacyContent).reduce(function(sum, collection) {
+        var items = appState.legacyContent[collection];
+        return sum + Object.keys(items).length;
+      }, 0);
+
+      document.getElementById('stat-panels').textContent = Object.keys(appState.panels).length;
+      document.getElementById('stat-users').textContent = Object.keys(appState.users).length;
+    }
+
+    function previewContent() {
+      var html = document.getElementById('content-body').value.trim();
+      if (!html) {
+        toast('Please enter content first.', 'error');
+        return;
+      }
+      var iframe = document.getElementById('content-preview-frame');
+      var modalIframe = document.getElementById('modal-preview-frame');
+      if (iframe) {
+        iframe.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;padding:18px;line-height:1.6;color:#111}img,video,iframe{max-width:100%;height:auto}body.light-mode{color:#111}img{max-width:100%}iframe{min-height:220px}</style></head><body>' + html + '</body></html>';
+      }
+      if (modalIframe) {
+        modalIframe.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;padding:18px;line-height:1.6;color:#111}img,video,iframe{max-width:100%;height:auto}body.light-mode{color:#111}img{max-width:100%}iframe{min-height:220px}</style></head><body>' + html + '</body></html>';
+      }
+      document.getElementById('content-preview').classList.add('show');
+      document.getElementById('modal-preview').classList.add('show');
+    }
+
+    function closePreview() {
+      document.getElementById('modal-preview').classList.remove('show');
+    }
+
+    function resetContentForm() {
+      document.getElementById('content-panel').value = '';
+      document.getElementById('content-class').value = '';
+      document.getElementById('content-title').value = '';
+      document.getElementById('content-body').value = '';
+      document.getElementById('content-tags').value = '';
+      document.getElementById('content-preview').classList.remove('show');
+      document.getElementById('content-class-wrap').style.display = 'block';
+    }
+
+    function renderFieldMode() {
+      var panel = document.getElementById('content-panel').value || '';
+      var classWrap = document.getElementById('content-class-wrap');
+      if (panel && /class|student|grade|learning|panel/i.test(panel)) {
+        classWrap.style.display = 'block';
+      } else {
+        classWrap.style.display = 'none';
+      }
+    }
+    document.getElementById('content-panel').addEventListener('input', renderFieldMode);
+
+    function publishContent(event) {
+      event.preventDefault();
+      var panelName = document.getElementById('content-panel').value.trim();
+      var title = document.getElementById('content-title').value.trim();
+      var body = document.getElementById('content-body').value.trim();
+      if (!panelName || !title || !body) {
+        toast('Target Panel, Title, and Content are required.', 'error');
+        return;
+      }
+
+      var classValue = document.getElementById('content-class').value.trim();
+      var item = {
+        id: 'content_' + Date.now(),
+        title: title,
+        targetPanel: panelName,
+        class: classValue || '',
+        content: body,
+        tags: document.getElementById('content-tags').value.trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      db.ref('cmsContent/' + item.id).set(item).then(function() {
+        toast('Content published successfully.', 'success');
+        resetContentForm();
+        loadContentList();
+        renderDashboard();
+      }).catch(function() {
+        toast('Content publish failed.', 'error');
+      });
+    }
+
+    function loadContentList() {
+      var container = document.getElementById('content-list');
+      if (!container) return;
+      var items = Object.keys(appState.content).map(function(id) {
+        return appState.content[id];
+      }).concat(Object.keys(appState.legacyContent).reduce(function(acc, collection) {
+        var entries = appState.legacyContent[collection];
+        Object.keys(entries).forEach(function(key) {
+          var entry = entries[key];
+          if (entry && typeof entry === 'object') {
+            acc.push({
+              id: key,
+              title: entry.title || entry.name || key,
+              targetPanel: entry.subject || entry.class || collection,
+              class: entry.class || '',
+              content: entry.content || entry.question || '',
+              createdAt: entry.createdAt || new Date().toISOString()
+            });
+          }
+        });
+        return acc;
+      }, []));
+
+      items = items.filter(function(item) {
+        return item && item.title;
+      }).slice(0, 20);
+
+      container.innerHTML = items.length ? items.map(function(item) {
+        return '<div class=\"item\">' +
+          '<div class=\"item-main\">' +
+          '<strong>' + escHtml(item.title) + '</strong>' +
+          '<small>' + escHtml(item.targetPanel || 'General panel') + (item.class ? ' · Class ' + escHtml(item.class) : '') + '</small>' +
+          '</div>' +
+          '<div class=\"item-actions\">' +
+          '<button class=\"btn btn-primary btn-sm\" onclick=\"editContent(\'' + item.id + '\')\">✏️ Edit</button>' +
+          '</div>' +
+          '</div>';
+      }).join('') : '<div class=\"empty\">No content found yet.</div>';
+    }
+
+    function editContent(id) {
+      var item = appState.content[id] || null;
+      var legacy = null;
+      Object.keys(appState.legacyContent).forEach(function(collection) {
+        var entries = appState.legacyContent[collection];
+        Object.keys(entries).forEach(function(key) {
+          if (key === id) {
+            legacy = entries[key];
+          }
+        });
+      });
+
+      var found = item || legacy;
+      if (!found) return;
+
+      document.getElementById('content-panel').value = found.targetPanel || found.subject || found.title || '';
+      document.getElementById('content-class').value = found.class || '';
+      document.getElementById('content-title').value = found.title || found.name || '';
+      document.getElementById('content-body').value = found.content || found.question || '';
+      document.getElementById('content-tags').value = found.tags || '';
+      renderFieldMode();
+
+      switchPage('content');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function savePanel(event) {
+      event.preventDefault();
+      var name = document.getElementById('panel-name').value.trim();
+      var purpose = document.getElementById('panel-purpose').value.trim();
+      var description = document.getElementById('panel-description').value.trim();
+      var routeInput = document.getElementById('panel-route').value.trim();
+
+      if (!name) {
+        toast('Panel name is required.', 'error');
+        return;
+      }
+
+      var route = routeInput || '/panels/' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      var item = {
+        id: 'panel_' + Date.now(),
+        name: name,
+        purpose: purpose,
+        description: description,
+        route: route,
+        createdAt: new Date().toISOString()
+      };
+
+      db.ref('cmsPanels/' + item.id).set(item).then(function() {
+        toast('Panel created successfully.', 'success');
+        resetPanelForm();
+        loadPanelsList();
+      }).catch(function() {
+        toast('Panel create failed.', 'error');
+      });
+    }
+
+    function resetPanelForm() {
+      document.getElementById('panel-id').value = '';
+      document.getElementById('panel-name').value = '';
+      document.getElementById('panel-purpose').value = '';
+      document.getElementById('panel-description').value = '';
+      document.getElementById('panel-route').value = '';
+      document.getElementById('panel-submit-btn').textContent = '✅ Create Panel';
+    }
+
+    function loadPanelsList() {
+      var container = document.getElementById('panels-list');
+      if (!container) return;
+      var items = Object.keys(appState.panels).map(function(id) {
+        return appState.panels[id];
+      });
+
+      container.innerHTML = items.length ? items.map(function(item) {
+        return '<div class=\"item\">' +
+          '<div class=\"item-main\">' +
+          '<strong>' + escHtml(item.name) + '</strong>' +
+          '<small>' + escHtml(item.route || '/panels/custom') + (item.purpose ? ' · ' + escHtml(item.purpose) : '') + '</small>' +
+          '</div>' +
+          '<div class=\"item-actions\">' +
+          '<button class=\"btn btn-primary btn-sm\" onclick=\"editPanel(\'' + item.id + '\')\">✏️ Edit</button>' +
+          '<a class=\"btn btn-secondary btn-sm\" href=\"' + escHtml(item.route || '#') + '\" target=\"_blank\" rel=\"noopener\">↗ Open</a>' +
+          '</div>' +
+          '</div>';
+      }).join('') : '<div class=\"empty\">No panels yet.</div>';
+    }
+
+    function editPanel(id) {
+      var item = appState.panels[id];
+      if (!item) return;
+      document.getElementById('panel-id').value = id;
+      document.getElementById('panel-name').value = item.name || '';
+      document.getElementById('panel-purpose').value = item.purpose || '';
+      document.getElementById('panel-description').value = item.description || '';
+      document.getElementById('panel-route').value = item.route || '';
+      document.getElementById('panel-submit-btn').textContent = '💾 Update Panel';
+      switchPage('panels');
+    }
+
+    function saveLink(event) {
+      event.preventDefault();
+      var label = document.getElementById('link-label').value.trim();
+      var url = document.getElementById('link-url').value.trim();
+      var icon = document.getElementById('link-icon').value.trim() || '📘';
+      var position = document.getElementById('link-position').value.trim() || 'top';
+      var openInNewTab = document.getElementById('link-new-tab').checked;
+
+      if (!label || !url) {
+        toast('Label and URL are required.', 'error');
+        return;
+      }
+
+      var item = {
+        id: 'link_' + Date.now(),
+        label: label,
+        url: url,
+        icon: icon,
+        position: position,
+        newTab: openInNewTab
+      };
+
+      db.ref('cmsLinks/' + item.id).set(item).then(function() {
+        toast('Link saved successfully.', 'success');
+        resetLinkForm();
+        loadLinksList();
+      }).catch(function() {
+        toast('Link save failed.', 'error');
+      });
+    }
+
+    function resetLinkForm() {
+      document.getElementById('link-id').value = '';
+      document.getElementById('link-label').value = '';
+      document.getElementById('link-url').value = '';
+      document.getElementById('link-icon').value = '📘';
+      document.getElementById('link-position').value = '';
+      document.getElementById('link-new-tab').checked = false;
+    }
+
+    function loadLinksList() {
+      var container = document.getElementById('links-list');
+      if (!container) return;
+      var items = Object.keys(appState.links).map(function(id) {
+        return appState.links[id];
+      });
+
+      container.innerHTML = items.length ? items.map(function(item) {
+        return '<div class=\"item\">' +
+          '<div class=\"item-main\">' +
+          '<strong>' + escHtml(item.icon || '🔗') + ' ' + escHtml(item.label) + '</strong>' +
+          '<small>' + escHtml(item.url) + ' · ' + escHtml(item.position || 'top') + '</small>' +
+          '</div>' +
+          '<div class=\"item-actions\">' +
+          '<button class=\"btn btn-primary btn-sm\" onclick=\"editLink(\'' + item.id + '\')\">✏️ Edit</button>' +
+          '</div>' +
+          '</div>';
+      }).join('') : '<div class=\"empty\">No links yet.</div>';
+    }
+
+    function editLink(id) {
+      var item = appState.links[id];
+      if (!item) return;
+      document.getElementById('link-id').value = id;
+      document.getElementById('link-label').value = item.label || '';
+      document.getElementById('link-url').value = item.url || '';
+      document.getElementById('link-icon').value = item.icon || '📘';
+      document.getElementById('link-position').value = item.position || '';
+      document.getElementById('link-new-tab').checked = item.newTab || false;
+      switchPage('links');
+    }
+
+    function saveUser(event) {
+      event.preventDefault();
+      var username = document.getElementById('user-name').value.trim();
+      var password = document.getElementById('user-pass').value.trim();
+
+      if (!username || !password) {
+        toast('Username and password are required.', 'error');
+        return;
+      }
+
+      var item = {
+        id: 'user_' + Date.now(),
+        username: username,
+        password: password,
+        email: document.getElementById('user-email').value.trim(),
+        type: document.getElementById('user-type').value.trim(),
+        notes: document.getElementById('user-notes').value.trim()
+      };
+
+      db.ref('cmsUsers/' + item.id).set(item).then(function() {
+        toast('User saved successfully.', 'success');
+        resetUserForm();
+        loadUsersList();
+      }).catch(function() {
+        toast('User save failed.', 'error');
+      });
+    }
+
+    function resetUserForm() {
+      document.getElementById('user-name').value = '';
+      document.getElementById('user-pass').value = '';
+      document.getElementById('user-email').value = '';
+      document.getElementById('user-type').value = '';
+      document.getElementById('user-notes').value = '';
+    }
+
+    function loadUsersList() {
+      var container = document.getElementById('users-list');
+      if (!container) return;
+      var items = Object.keys(appState.users).map(function(id) {
+        return appState.users[id];
+      });
+
+      container.innerHTML = items.length ? items.map(function(item) {
+        return '<div class=\"item\">' +
+          '<div class=\"item-main\">' +
+          '<strong>' + escHtml(item.username || item.id || 'Unnamed user') + '</strong>' +
+          '<small>' + escHtml(item.email || 'No email') + ' · ' + escHtml(item.type || 'General') + '</small>' +
+          '</div>' +
+          '<div class=\"item-actions\">' +
+          '<button class=\"btn btn-primary btn-sm\" onclick=\"editUser(\'' + item.id + '\')\">✏️ Edit</button>' +
+          '</div>' +
+          '</div>';
+      }).join('') : '<div class=\"empty\">No users yet.</div>';
+    }
+
+    function editUser(id) {
+      var item = appState.users[id];
+      if (!item) return;
+      document.getElementById('user-name').value = item.username || '';
+      document.getElementById('user-pass').value = item.password || '';
+      document.getElementById('user-email').value = item.email || '';
+      document.getElementById('user-type').value = item.type || '';
+      document.getElementById('user-notes').value = item.notes || '';
+      switchPage('users');
+    }
+
+    function loadSettings() {
+      var settings = appState.settings || {};
+      document.getElementById('setting-maintenance').checked = !!settings.maintenanceMode;
+      document.getElementById('setting-seo').checked = !!settings.seoMode;
+      document.getElementById('setting-security').checked = !!settings.securityMode;
+      document.getElementById('setting-redirect-protection').checked = !!settings.redirectProtection;
+      document.getElementById('setting-site-name').value = settings.siteName || '';
+      document.getElementById('setting-tagline').value = settings.tagline || '';
+      document.getElementById('setting-seo-title').value = settings.seoTitle || '';
+      document.getElementById('setting-seo-description').value = settings.seoDescription || '';
+    }
+
+    function saveSettings() {
+      var settings = {
+        maintenanceMode: document.getElementById('setting-maintenance').checked,
+        seoMode: document.getElementById('setting-seo').checked,
+        securityMode: document.getElementById('setting-security').checked,
+        redirectProtection: document.getElementById('setting-redirect-protection').checked,
+        siteName: document.getElementById('setting-site-name').value.trim(),
+        tagline: document.getElementById('setting-tagline').value.trim(),
+        seoTitle: document.getElementById('setting-seo-title').value.trim(),
+        seoDescription: document.getElementById('setting-seo-description').value.trim()
+      };
+      appState.settings = settings;
+      db.ref('settings').set(settings).then(function() {
+        toast('Settings saved successfully.', 'success');
+      }).catch(function() {
+        toast('Settings save failed.', 'error');
+      });
+    }
+
+    function backupData() {
+      var payload = {
+        content: appState.content,
+        panels: appState.panels,
+        links: appState.links,
+        users: appState.users,
+        settings: appState.settings,
+        exportedAt: new Date().toISOString()
+      };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'cleverstudents-cms-backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Backup downloaded.', 'success');
+    }
+
+    function clearLocalCache() {
+      localStorage.removeItem('ma_theme');
+      localStorage.removeItem('ma_admin_id');
+      localStorage.removeItem('ma_admin_token');
+      toast('Cache cleared. Refreshing…', 'success');
+      setTimeout(function() {
+        location.reload();
+      }, 600);
+    }
+
+    initTheme();
+    checkAuth();
+  </script>
+</body>
+</html>
