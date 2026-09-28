@@ -125,54 +125,133 @@
 
 <script>
 // ==========================================
-// VERCEL KV DATABASE WRAPPER
-// ==========================================
-const db = {
-  ref: function(path) {
-    return {
-      once: function(event) {
-        return fetch('/api/db?path=' + encodeURIComponent(path))
-          .then(res => res.json())
-          .then(data => ({ val: () => data.result }));
-      },
-      set: function(data) {
-        return fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'set', path: path, data: data })
-        }).then(res => res.json());
-      },
-      update: function(data) {
-        return fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'update', path: path, data: data })
-        }).then(res => res.json());
-      },
-      remove: function() {
-        return fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'remove', path: path })
-        }).then(res => res.json());
-      },
-      push: function() {
-        const newKey = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-        const pushPath = path + '/' + newKey;
+    // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
+    // ==========================================
+    const db = {
+      ref: function(path) {
+        let parts = path.split('/').filter(Boolean);
+        let rootKey = parts[0]; // e.g., "proGames" or "sscQuestionBank"
+
         return {
-          key: newKey,
-          set: function(data) {
-            return fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'set', path: pushPath, data: data })
-            }).then(res => res.json());
+          once: async function(event) {
+            try {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const data = await res.json();
+              let val = data.result;
+              
+              // 1. Fix for Games not opening (String to Object conversion)
+              if (typeof val === 'string') {
+                try { val = JSON.parse(val); } catch(e) {}
+              }
+
+              // 2. Fix for missing data (Tree traversal)
+              for (let i = 1; i < parts.length; i++) {
+                if (val && typeof val === 'object') {
+                  val = val[parts[i]];
+                } else {
+                  val = null;
+                  break;
+                }
+              }
+              return { val: () => val };
+            } catch (err) {
+              console.error("DB Fetch Error:", err);
+              return { val: () => null };
+            }
+          },
+          set: async function(dataToSet) {
+            if (parts.length === 1) {
+              return fetch('/api/db', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'set', path: rootKey, data: dataToSet })
+              }).then(res => res.json());
+            } else {
+              // 3. Fix for Saving issues (Fetch root, update branch, save root)
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+
+              let current = rootObj;
+              for (let i = 1; i < parts.length - 1; i++) {
+                if (!current[parts[i]]) current[parts[i]] = {};
+                current = current[parts[i]];
+              }
+              current[parts[parts.length - 1]] = dataToSet;
+
+              return fetch('/api/db', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj })
+              }).then(res => res.json());
+            }
+          },
+          update: async function(updatesObj) {
+            if (parts.length === 1) {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+
+              Object.keys(updatesObj).forEach(updPath => {
+                let updParts = updPath.split('/').filter(Boolean);
+                let current = rootObj;
+                for (let i = 0; i < updParts.length - 1; i++) {
+                  if (!current[updParts[i]]) current[updParts[i]] = {};
+                  current = current[updParts[i]];
+                }
+                current[updParts[updParts.length - 1]] = updatesObj[updPath];
+              });
+
+              return fetch('/api/db', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj })
+              }).then(res => res.json());
+            }
+          },
+          remove: async function() {
+            if (parts.length === 1) {
+              return fetch('/api/db', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'remove', path: rootKey })
+              }).then(res => res.json());
+            } else {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+
+              let current = rootObj;
+              for (let i = 1; i < parts.length - 1; i++) {
+                if (!current[parts[i]]) return; 
+                current = current[parts[i]];
+              }
+              delete current[parts[parts.length - 1]];
+
+              return fetch('/api/db', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj })
+              }).then(res => res.json());
+            }
+          },
+          push: function() {
+            const newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            const pushPath = path + (path.endsWith('/') ? '' : '/') + newKey;
+            return {
+              key: newKey,
+              set: function(data) {
+                 return db.ref(pushPath).set(data);
+              }
+            };
           }
         };
       }
     };
-  }
-};
+    // ==========================================
 
 var curAdm=null, allD={games:{},students:{},subs:{},rev:{total:0},pkgs:{},stgs:{}}, curTab='games', edKey=null;
 var PATH='proGames/';
