@@ -161,40 +161,34 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <script>
     // ============ VERCEL KV API HELPERS ============
-async function fetchDB(key) {
+    async function fetchDB(key) {
       try {
-        const res = await fetch(`/api/db?key=${encodeURIComponent(key)}`);
+        const res = await fetch(`/api/db?path=${encodeURIComponent(key)}`);
         if (!res.ok) return null;
         let data = await res.json();
         
-        // 1. Unwrap Vercel REST API wrappers ('value' or 'result')
+        // Unwrap Vercel REST API wrappers
         if (data && typeof data === 'object') {
           if ('result' in data) data = data.result;
           else if ('value' in data) data = data.value;
         }
         
-        // 2. Parse stringified JSON if Vercel returned it as a text string
+        // Parse stringified JSON
         if (typeof data === 'string') {
-          try { 
-            data = JSON.parse(data); 
-          } catch (e) { 
-            console.warn(`Data for ${key} is a string but not valid JSON.`); 
-          }
+          try { data = JSON.parse(data); } catch (e) { }
         }
         
-        // 3. 🚨 THE NEW FIX: Auto-Unwrap Firebase Double-Nesting 🚨
-        // If the imported JSON kept the root folder name, we unwrap it automatically.
+        // Auto-Unwrap Firebase Double-Nesting
         if (data && typeof data === 'object' && data[key]) {
-            console.log(`⚠️ Auto-unwrapped double-nested Firebase data for: ${key}`);
             data = data[key]; 
         }
 
-        // 4. Fix Firebase Object-to-Array conversion (numbered keys to arrays)
+        // Fix Firebase Object-to-Array conversion
         if (data && typeof data === 'object' && !Array.isArray(data)) {
            if (key === 'sscQuestionBank') {
              Object.keys(data).forEach(groupKey => {
                if (data[groupKey] && typeof data[groupKey] === 'object' && !Array.isArray(data[groupKey])) {
-                 data[groupKey] = Object.values(data[groupKey]); // Convert {0: {...}, 1: {...}} to [...]
+                 data[groupKey] = Object.values(data[groupKey]); 
                }
              });
            }
@@ -207,12 +201,13 @@ async function fetchDB(key) {
         return null;
       }
     }
+
     async function saveDB(key, value) {
       try {
         await fetch('/api/db', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key, value })
+          body: JSON.stringify({ action: 'set', path: key, data: value })
         });
       } catch (err) {
         console.error("DB Save Error:", err);
