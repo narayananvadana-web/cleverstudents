@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Only Games | Student Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px}
+    body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
+    *,::before,::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;min-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
+    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+
+    .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important;-ms-user-select:none!important;-webkit-touch-callout:none!important}
+    input,textarea,select{user-select:auto!important;-webkit-user-select:auto!important}
+
+    img{user-drag:none;-webkit-user-drag:none}
+    .img-th,.modal img{pointer-events:auto!important;cursor:pointer}
+
+    :target{scroll-margin-top:80px}
+
+    .main-wrap{max-width:100%!important;width:100%!important;padding:20px 10px 80px!important;margin:0 auto}
+    .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
+    .banner{padding:12px 20px!important;display:flex;align-items:center;justify-content:center;gap:15px;box-shadow:0 4px 10px rgba(0,0,0,.2);flex-wrap:wrap;text-align:center}
+    .banner h1{font-size:1.4rem!important;font-weight:900!important;color:#fff!important}
+    .banner p{font-size:.95rem!important;font-weight:700!important;color:#fff!important}
+    .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:12px 15px 0;color:#fff;font-weight:800;font-size:1rem;border-radius:6px;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.2);transition:all .3s ease}
+    .ch-row:hover{filter:brightness(1.15);transform:translateY(-2px)}
+    .ch-content{display:none;background:rgba(0,0,0,.25);border:1px solid var(--brd);margin:0 15px 15px;padding:20px;border-radius:0 0 6px 6px;line-height:1.8;font-size:1rem;color:#f8fafc}
+    body.light-mode .ch-content{color:#334155;background:rgba(0,0,0,.02)}
+    .ch-content.show{display:block;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .img-th{max-width:200px;max-height:150px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid var(--brd);margin:5px}
+
+    .btn{padding:10px 20px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .2s ease}
+    .btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+    .btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+
+    .filter-bar{display:flex;gap:10px;padding:12px 15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd);flex-wrap:wrap;align-items:center;justify-content:center}
+    .filter-bar select{padding:8px 12px;border-radius:20px;background:var(--srf);color:var(--txt);border:1px solid var(--brd);font-family:var(--font);font-weight:700;outline:0;cursor:pointer;transition:all .3s ease}
+    .filter-bar select:hover{border-color:#3b82f6}
+
+    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
+    .login-box{background:var(--srf);padding:40px 30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:380px;border:1px solid var(--brd);text-align:center}
+    .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1rem;outline:0;transition:border-color .3s ease}
+    .login-inp:focus{border-color:#3b82f6}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;display:none;justify-content:center;align-items:center}
+    .modal.show{display:flex}
+    .modal img{max-width:92%;max-height:92%;border-radius:8px}
+    .modal-close{position:absolute;top:18px;right:24px;color:#fff;font-size:2rem;cursor:pointer}
+    .spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .game-meta{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:700;margin-left:8px}
+    .meta-category{background:#7c3aed;color:#fff}
+    .meta-subcategory{background:#0d9488;color:#fff}
+
+    .game-iframe{width:100%;min-height:550px;border:none;border-radius:8px;background:#fff}
+
+    .refresh-btn{position:fixed;bottom:20px;right:20px;z-index:9999;width:50px;height:50px;border-radius:50%;background:#f59e0b;color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;transition:all .3s}
+    .refresh-btn:hover{transform:rotate(180deg);background:#ef4444}
+    
+    .logo {font-family:'Fredoka One',cursive;}
+
+    @media(max-width:600px){.banner{flex-direction:column}.filter-bar{flex-direction:column;align-items:stretch}.game-iframe{min-height:400px}}
+  </style>
+</head>
+<body class="protected-mode" oncontextmenu="return false;" oncopy="return false;" oncut="return false;">
+
+  <div id="login-overlay">
+    <div class="login-box">
+      <div class="logo" style="margin-bottom:20px; font-size: 1.5rem; background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🎮 Only Games</div>
+      <h2 style="margin-bottom:25px;color:var(--txt);">Student Login</h2>
+      <input type="text" id="login-phone" class="login-inp" placeholder="User ID / Phone">
+      <input type="password" id="login-pass" class="login-inp" placeholder="Password">
+      <button class="btn btn-blue" style="width:100%;padding:14px;font-size:1.1rem;margin-top:10px;" onclick="attemptLogin()">Login</button>
+      <button class="btn btn-dark" style="width:100%;padding:12px;font-size:.9rem;margin-top:10px;border-radius:8px;" onclick="logout()">Logout / Clear Data</button>
+      <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:700;display:none;"></div>
+    </div>
+  </div>
+
+  <div class="main-wrap">
+    <div id="shell" class="shell">
+      <div class="banner" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+        <h1>🎮 All Games</h1>
+        <p>Learn & Play</p>
+      </div>
+      <div class="filter-bar" id="filter-bar"></div>
+      <div class="content" id="content-area">
+        <div style="padding:40px;text-align:center;color:var(--mut);">Loading games...</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="img-modal" class="modal" onclick="closeModal()">
+    <span class="modal-close">&times;</span>
+    <img id="modal-img" src="" alt="Preview">
+  </div>
+
+  <!-- Note: Refreshes data from Vercel KV -->
+  <button class="refresh-btn" onclick="refreshData()" title="Refresh Games">🔄</button>
+
+  <script>
+    // ==========================================
+    // VERCEL KV DATABASE WRAPPER
+    // ==========================================
+    const db = {
+      ref: function(path) {
+        return {
+          once: function(event) {
+            return fetch('/api/db?path=' + encodeURIComponent(path))
+              .then(res => res.json())
+              .then(data => ({ val: () => data.result }));
+          },
+          set: function(data) {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'set', path: path, data: data })
+            }).then(res => res.json());
+          },
+          remove: function() {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'remove', path: path })
+            }).then(res => res.json());
+          }
+        };
+      }
+    };
+
+    var DB = { games: {} };
+    var settings = { loginEnabled: true, users: {}, copyEnabled: false };
+    var activeSessions = {};
+    var myPhone = localStorage.getItem('cs_ph') || "";
+    var myToken = localStorage.getItem('cs_tk') || "";
+
+    var selectedCategory = 'ALL';
+    var GAME_CATEGORIES = ["Puzzle", "Quiz Games", "Memory", "Word Games", "Math Games", "Science Games", "Action", "Strategy"];
+
+    function initTheme() {
+      var t = localStorage.getItem('cs_th') || 'dark';
+      t === 'light' ? document.body.classList.add('light-mode') : document.body.classList.remove('light-mode');
+    }
+    initTheme();
+
+    function applyCopyProtection() {
+      if (settings.copyEnabled === true) {
+        document.body.classList.remove('protected-mode');
+        document.body.removeAttribute('oncontextmenu');
+        document.body.removeAttribute('oncopy');
+        document.body.removeAttribute('oncut');
+      } else {
+        document.body.classList.add('protected-mode');
+        document.body.setAttribute('oncontextmenu', 'return false;');
+        document.body.setAttribute('oncopy', 'return false;');
+        document.body.setAttribute('oncut', 'return false;');
+      }
+    }
+
+    function checkAuth() {
+      var o = document.getElementById('login-overlay');
+      if (!settings.loginEnabled) { o.style.display = 'none'; return; }
+      if (myPhone && myToken && activeSessions[myPhone] === myToken) {
+        o.style.display = 'none';
+      } else {
+        o.style.display = 'flex';
+      }
+    }
+
+    function logout() {
+      if(myPhone) {
+        db.ref('activeSessions/' + myPhone).remove().catch(() => {});
+      }
+      localStorage.removeItem('cs_ph');
+      localStorage.removeItem('cs_tk');
+      location.reload();
+    }
+
+    function attemptLogin() {
+      var p = document.getElementById('login-phone').value.trim();
+      var pa = document.getElementById('login-pass').value.trim();
+      var e = document.getElementById('login-error');
+      
+      if (!p || !pa) { e.innerText = 'Enter ID and Password'; e.style.display = 'block'; return; }
+      
+      if (settings.users && settings.users[p] && settings.users[p].pass === pa) {
+        e.style.display = 'none';
+        var t = "sess_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+        myPhone = p;
+        myToken = t;
+        localStorage.setItem('cs_ph', p);
+        localStorage.setItem('cs_tk', t);
+        
+        activeSessions[p] = t;
+        db.ref('activeSessions').set(activeSessions);
+        
+        document.getElementById('login-overlay').style.display = 'none';
+      } else {
+        e.innerText = 'Invalid credentials';
+        e.style.display = 'block';
+      }
+    }
+
+    function getArr(obj) {
+      if (!obj) return [];
+      var r = [];
+      Object.keys(obj).forEach(function(k) { r.push(obj[k]); });
+      r.sort(function(a, b) {
+        var oA = a.order !== undefined ? a.order : 999999;
+        var oB = b.order !== undefined ? b.order : 999999;
+        return oA - oB;
+      });
+      return r;
+    }
+
+    function getImgs(urls) {
+      if (!urls || !Array.isArray(urls) || !urls.length) return '';
+      var h = '';
+      urls.forEach(function(u) { if (u) h += '<img src="' + u + '" class="img-th" onclick="openModal(\'' + encodeURIComponent(u) + '\')">'; });
+      return h;
+    }
+
+    window.tog = function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('show');
+    };
+
+    function refreshUI() {
+      var fb = document.getElementById('filter-bar');
+      var ca = document.getElementById('content-area');
+
+      var co = '<option value="ALL">🎮 All Categories</option>';
+      for (var ci = 0; ci < GAME_CATEGORIES.length; ci++) {
+        var sc = selectedCategory === GAME_CATEGORIES[ci] ? 'selected' : '';
+        co += '<option value="' + GAME_CATEGORIES[ci] + '" ' + sc + '>' + GAME_CATEGORIES[ci] + '</option>';
+      }
+      fb.innerHTML = '<select onchange="updateCategory(this.value)">' + co + '</select>';
+
+      var items = getArr(DB.games);
+      if (selectedCategory !== 'ALL') {
+        items = items.filter(function(g) { return g.category === selectedCategory; });
+      }
+
+      var h = '';
+      if (items.length) {
+        items.forEach(function(t, i) {
+          var sid = 'gm_' + i;
+          var categoryTag = t.category ? '<span class="game-meta meta-category">' + t.category + '</span>' : '';
+          var subcategoryTag = t.subcategory ? '<span class="game-meta meta-subcategory">' + t.subcategory + '</span>' : '';
+          h += '<div class="ch-row" style="background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="togGame(\'' + sid + '\',' + i + ')"><span>🎮 ' + (t.title || 'Game ' + (i + 1)) + categoryTag + subcategoryTag + '</span><span>▶ Play</span></div><div id="' + sid + '" class="ch-content"></div>';
+        });
+      } else {
+        h += '<div style="padding:40px;text-align:center;color:var(--mut);">No games found for this category.</div>';
+      }
+      ca.innerHTML = h;
+    }
+
+    function updateCategory(val) {
+      selectedCategory = val;
+      refreshUI();
+    }
+
+    function togGame(sid, index) {
+      var contentDiv = document.getElementById(sid);
+      if (!contentDiv) return;
+
+      if (contentDiv.classList.contains('show')) {
+        contentDiv.classList.remove('show');
+        contentDiv.innerHTML = '';
+        return;
+      }
+
+      var allGames = document.querySelectorAll('.ch-content.show');
+      allGames.forEach(function(g) { g.classList.remove('show'); g.innerHTML = ''; });
+
+      var items = getArr(DB.games);
+      if (selectedCategory !== 'ALL') items = items.filter(function(g) { return g.category === selectedCategory; });
+      var gameData = items[index];
+
+      if (!gameData) {
+        contentDiv.innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px;">⚠️ Game data not found!</p>';
+        contentDiv.classList.add('show');
+        return;
+      }
+
+      var iframe = document.createElement('iframe');
+      iframe.className = 'game-iframe';
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-pointer-lock allow-popups-to-escape-sandbox');
+      iframe.setAttribute('allow', 'geolocation; microphone; camera; midi; encrypted-media;');
+      iframe.setAttribute('loading', 'lazy');
+      iframe.setAttribute('title', gameData.title || 'Game');
+
+      // Uses htmlContent if provided, otherwise falls back to standard content
+      var renderContent = gameData.htmlContent || gameData.content || '<p>No content available</p>';
+
+      var gameHTML = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=yes">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:Arial,Helvetica,sans-serif;overflow-x:hidden;width:100%;min-height:100vh}\nimg{max-width:100%;height:auto}\n</style>\n</head>\n<body>\n' + renderContent + '\n</body>\n</html>';
+
+      iframe.srcdoc = gameHTML;
+      contentDiv.innerHTML = '';
+      contentDiv.appendChild(iframe);
+      contentDiv.classList.add('show');
+
+      setTimeout(function() {
+        contentDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    }
+
+    function openModal(d) {
+      var m = document.getElementById('img-modal');
+      document.getElementById('modal-img').src = decodeURIComponent(d);
+      m.classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('img-modal').classList.remove('show');
+    }
+
+    function refreshData() {
+      var ca = document.getElementById('content-area');
+      ca.innerHTML = '<div style="padding:40px;text-align:center;color:var(--mut);">Refreshing Games...</div>';
+      initApp();
+    }
+
+    function initApp() {
+      Promise.all([
+        db.ref('appSettings').once('value'),
+        db.ref('activeSessions').once('value'),
+        db.ref('proGames/gamesDatabase').once('value') // Assumed path based on admin panel
+      ]).then(results => {
+        settings = results[0].val() || { loginEnabled: true, users: {}, copyEnabled: false };
+        activeSessions = results[1].val() || {};
+        
+        // Attempting to fetch from generic gamesDatabase if proGames is empty
+        DB.games = results[2].val();
+        if(!DB.games) {
+          return db.ref('gamesDatabase').once('value').then(fallback => {
+            DB.games = fallback.val() || {};
+            applyCopyProtection();
+            checkAuth();
+            refreshUI();
+          });
+        }
+
+        applyCopyProtection();
+        checkAuth();
+        refreshUI();
+      }).catch(err => {
+        console.error("Vercel KV Load Error:", err);
+        // Fallback execute
+        applyCopyProtection();
+        checkAuth();
+        refreshUI();
+      });
+    }
+
+    window.onload = initApp;
+  </script>
+
+  <!-- Global Navbar & Footer -->
+  <script src="/footer.js"></script>
+  <script src="/global-navbar.js"></script>
+
+</body>
+</html>
