@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PRO Brain Games | Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif}
+    body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
+    *,::before,::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%!important;max-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
+    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh}
+    
+    .logo{font-family:'Fredoka One',cursive;font-size:1.3rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .pro-badge{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;padding:3px 10px;border-radius:20px;font-size:.65rem;font-weight:800}
+    .btn{padding:8px 16px;border:none;border-radius:25px;cursor:pointer;font-weight:700;color:#fff;font-family:var(--font);transition:.2s;font-size:.85rem}
+    .btn:hover{filter:brightness(1.15)}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-gold{background:linear-gradient(135deg,#f59e0b,#ef4444)}.btn-blue{background:#3b82f6}.btn-teal{background:#0d9488}.btn-purple{background:#8b5cf6}
+    .btn-sm{padding:5px 12px;font-size:.75rem}.btn-xs{padding:3px 8px;font-size:.7rem}
+    .theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:700;font-size:.8rem;cursor:pointer;padding:5px 10px;border-radius:25px}
+    
+    .main-wrap{max-width:1400px;margin:20px auto;padding:15px}
+    .shell{background:var(--srf);border-radius:12px;border:1px solid var(--brd);overflow:hidden}
+    .hero-banner{background:linear-gradient(135deg,#1e293b,#0f172a);padding:20px;text-align:center}
+    .hero-banner h1{font-size:1.5rem;font-weight:900;color:#f59e0b}
+    
+    .tab-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 15px;background:var(--srf);border-bottom:1px solid var(--brd);flex-wrap:wrap;gap:12px}
+    .tab-buttons{display:flex;gap:8px;flex-wrap:wrap;}
+    .tab-nav .btn{opacity:.7;font-size:.8rem}.tab-nav .btn.active{opacity:1;transform:scale(1.05)}
+    
+    .category-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:15px;padding:15px}
+    .category-card{background:var(--srf);border:2px solid var(--brd);border-radius:10px;overflow:hidden}
+    .category-header{background:rgba(245,158,11,.1);padding:12px 15px;display:flex;align-items:center;gap:8px;cursor:pointer;border-bottom:1px solid var(--brd)}
+    .category-header h3{font-size:.9rem;color:#f59e0b;flex:1}.category-body{display:none;padding:8px}.category-body.open{display:block}
+    .game-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:6px;margin-bottom:4px;flex-wrap:wrap;gap:6px}
+    .game-item:hover{border-color:#3b82f6}.game-info{flex:1;min-width:150px}.game-info strong{font-size:.82rem}.game-info small{color:var(--mut);font-size:.7rem}
+    .tag{display:inline-block;padding:2px 7px;border-radius:12px;font-size:.65rem;font-weight:700}
+    .tag-green{background:#15803d;color:#fff}.tag-red{background:#b91c1c;color:#fff}.tag-teal{background:#0d9488;color:#fff}.tag-purple{background:#7c3aed;color:#fff}
+    
+    .card{background:rgba(255,255,255,.03);border:1px solid var(--brd);border-radius:10px;padding:15px;margin-bottom:15px}
+    .form-group{margin-bottom:15px}.form-group label{display:block;font-weight:700;margin-bottom:5px;color:var(--txt);font-size:.85rem}
+    .form-inp{width:100%;padding:10px 14px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:8px;font-family:var(--font);color:var(--txt);font-size:.9rem;outline:0;margin-bottom:8px}
+    textarea.form-inp{min-height:80px;resize:vertical}select.form-inp{cursor:pointer}
+    
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10000;display:none;align-items:center;justify-content:center;padding:15px}
+    .modal-overlay.show{display:flex}.modal{background:var(--srf);border:2px solid #f59e0b;border-radius:14px;padding:25px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto}
+    .modal h2{color:#f59e0b;margin-bottom:12px}
+    
+    .toast{position:fixed;bottom:15px;right:15px;padding:12px 20px;border-radius:6px;font-weight:700;z-index:99999;animation:slideIn .3s;color:#fff}
+    .toast.success{background:#15803d}.toast.error{background:#b91c1c}.toast.info{background:#1d4ed8}
+    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    
+    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
+    .login-box{background:var(--srf);padding:35px 25px;border-radius:14px;width:90%;max-width:360px;border:1px solid var(--brd);text-align:center}
+    .login-inp{width:100%;padding:12px;margin-bottom:12px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:.9rem;outline:0}
+    .login-info{background:rgba(59,130,246,.15);border:1px solid #3b82f6;border-radius:6px;padding:8px;margin-bottom:12px;font-size:.75rem;color:var(--txt)}
+    
+    .db-info{background:rgba(0,0,0,.3);border:1px solid #f59e0b;border-radius:8px;padding:8px;margin-bottom:10px;font-family:monospace;font-size:.7rem;max-height:120px;overflow-y:auto}
+    .setting-row{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:8px;margin-bottom:10px;flex-wrap:wrap;gap:10px}
+    .setting-info{flex:1;min-width:200px}.setting-info strong{font-size:.9rem}.setting-info small{color:var(--mut);font-size:.75rem}
+    .toggle-switch{position:relative;display:inline-block;width:48px;height:26px}
+    .toggle-switch input{opacity:0;width:0;height:0}.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#64748b;transition:.3s;border-radius:26px}
+    .toggle-slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;background-color:white;transition:.3s;border-radius:50%}
+    input:checked+.toggle-slider{background-color:#f59e0b}input:checked+.toggle-slider:before{transform:translateX(22px)}
+    
+    table{width:100%;border-collapse:collapse;font-size:.8rem}th{background:rgba(245,158,11,.1);padding:8px;text-align:left;font-weight:800}td{padding:8px;border-bottom:1px solid var(--brd)}
+    .pricing-card{background:var(--srf);border:2px solid var(--brd);border-radius:14px;padding:25px;text-align:center;transition:.3s;cursor:pointer}
+    .pricing-card:hover{transform:translateY(-5px);box-shadow:0 10px 30px rgba(245,158,11,.2)}
+    .pricing-card.popular{border-color:#f59e0b;border-width:3px;background:rgba(245,158,11,.05)}
+    .price-tag{font-size:3rem;font-weight:900;color:#f59e0b;cursor:pointer}
+    
+    @media(max-width:600px){.category-grid{grid-template-columns:1fr}}
+    .blank-input{border:2px solid #f59e0b !important; background:rgba(245,158,11,.15) !important; font-weight:700 !important;}
+    .highlight-toggle{border:2px solid #10b981 !important; background:rgba(16,185,129,.1) !important;}
+  </style>
+</head>
+<body>
+
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="logo">🧠 PRO Brain Games</div>
+    <h3 style="margin:15px 0;color:var(--txt);">Admin Login</h3>
+    <div class="login-info"><strong>ID:</strong> admin | <strong>Pass:</strong> admin123</div>
+    <input type="text" id="login-id" class="login-inp" placeholder="Admin ID">
+    <input type="password" id="login-pass" class="login-inp" placeholder="Password">
+    <button class="btn btn-gold" style="width:100%;padding:12px;" onclick="adminLogin()">🔐 Login</button>
+    <div id="login-error" style="color:#ef4444;margin-top:10px;display:none;font-weight:bold;font-size:0.85rem;"></div>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <div class="shell">
+    <div class="hero-banner">
+      <h1>🎮 PRO Brain Games Management</h1>
+      <p style="color:#e2e8f0;">11 Categories | Custom Games | proGames/ Path</p>
+    </div>
+    
+    <div class="tab-nav">
+      <div class="tab-buttons">
+        <button class="btn btn-blue btn-sm active" onclick="switchTab('games',this)">🎮 Games</button>
+        <button class="btn btn-teal btn-sm" onclick="switchTab('students',this)">👨‍🎓 Students</button>
+        <button class="btn btn-gold btn-sm" onclick="switchTab('subscriptions',this)">👥 Subs</button>
+        <button class="btn btn-purple btn-sm" onclick="switchTab('pricing',this)">💲 Pricing</button>
+        <button class="btn btn-dark btn-sm" onclick="switchTab('settings',this)">⚙️ Settings</button>
+      </div>
+      
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="color:#f59e0b; font-weight:900; font-size: 0.9rem;">💰 $<span id="rev">0</span></span>
+        <span style="color:#10b981; font-weight:900; font-size: 0.9rem;">👥 <span id="subs">0</span></span>
+        <span id="admin-display" style="font-weight:bold; font-size:0.8rem; color:var(--mut);"></span>
+        <button class="theme-btn" onclick="toggleTheme()">☀️</button>
+        <button class="btn btn-red btn-xs" onclick="adminLogout()">Logout</button>
+      </div>
+    </div>
+    
+    <div id="tab-content" style="padding:15px;">
+      <div style="padding:40px;text-align:center;color:var(--mut);">Connecting to Vercel KV Database...</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal" id="edit-modal-content"></div>
+</div>
+
+<script>
+// ==========================================
+// VERCEL KV DATABASE WRAPPER
+// ==========================================
+const db = {
+  ref: function(path) {
+    return {
+      once: function(event) {
+        return fetch('/api/db?path=' + encodeURIComponent(path))
+          .then(res => res.json())
+          .then(data => ({ val: () => data.result }));
+      },
+      set: function(data) {
+        return fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'set', path: path, data: data })
+        }).then(res => res.json());
+      },
+      update: function(data) {
+        return fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update', path: path, data: data })
+        }).then(res => res.json());
+      },
+      remove: function() {
+        return fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'remove', path: path })
+        }).then(res => res.json());
+      },
+      push: function() {
+        const newKey = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+        const pushPath = path + '/' + newKey;
+        return {
+          key: newKey,
+          set: function(data) {
+            return fetch('/api/db', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'set', path: pushPath, data: data })
+            }).then(res => res.json());
+          }
+        };
+      }
+    };
+  }
+};
+
+var curAdm=null, allD={games:{},students:{},subs:{},rev:{total:0},pkgs:{},stgs:{}}, curTab='games', edKey=null;
+var PATH='proGames/';
+
+var CATS=[{name:"1. Memory & Recall",icon:"🧠",brain:"Hippocampus & PFC"},{name:"2. Attention & Focus",icon:"👁️",brain:"Anterior Cingulate"},{name:"3. Logic & Reasoning",icon:"🔢",brain:"DLPFC"},{name:"4. Problem Solving",icon:"🧩",brain:"Frontal Lobe"},{name:"5. Processing Speed",icon:"⚡",brain:"White Matter"},{name:"6. Cognitive Flexibility",icon:"🔄",brain:"Striatum"},{name:"7. Verbal Intelligence",icon:"📚",brain:"Broca's Area"},{name:"8. Mathematical",icon:"🧮",brain:"Parietal Lobe"},{name:"9. N-Back Training",icon:"🎯",brain:"DLPFC"},{name:"10. Advanced Technology",icon:"🕹️",brain:"Multiple Regions"},{name:"11. Creativity",icon:"🎨",brain:"Default Mode"}];
+
+function initTheme(){if(localStorage.getItem('pro_ad_th')==='light')document.body.classList.add('light-mode');}
+function toggleTheme(){var l=document.body.classList.toggle('light-mode');localStorage.setItem('pro_ad_th',l?'light':'dark');}
+function toast(m,t){var d=document.createElement('div');d.className='toast '+(t||'info');d.innerText=m;document.body.appendChild(d);setTimeout(function(){d.remove();},2500);}
+
+function adminLogin(){
+  var id=document.getElementById('login-id').value.trim(),p=document.getElementById('login-pass').value.trim();
+  if(id==='admin'&&p===(allD.stgs?.adminPass||'admin123')){
+    curAdm={id:'admin'};
+    localStorage.setItem('pro_ad_id','admin');
+    document.getElementById('login-overlay').style.display='none';
+    document.getElementById('admin-display').innerText='👤 Admin';
+    loadAll();
+  }else{
+    document.getElementById('login-error').innerText='Invalid ID or Password';
+    document.getElementById('login-error').style.display='block';
+  }
+}
+function adminLogout(){localStorage.clear();curAdm=null;document.getElementById('login-overlay').style.display='flex';document.getElementById('admin-display').innerText='';}
+
+function loadAll(){
+  Promise.all([
+    db.ref(PATH+'gamesDatabase').once('value'),
+    db.ref(PATH+'students').once('value'),
+    db.ref(PATH+'subscriptions').once('value'),
+    db.ref(PATH+'revenue').once('value'),
+    db.ref(PATH+'proPackages').once('value'),
+    db.ref(PATH+'appSettings').once('value')
+  ]).then(results => {
+    allD.games = results[0].val() || {};
+    allD.students = results[1].val() || {};
+    allD.subs = results[2].val() || {};
+    allD.rev = results[3].val() || {total: 0};
+    allD.pkgs = results[4].val() || {};
+    allD.stgs = results[5].val() || {};
+    
+    updateStats();
+    if(curTab==='games') renderGames();
+    else if(curTab==='students') renderStudents();
+    else if(curTab==='subscriptions') renderSubs();
+    else if(curTab==='pricing') renderPricing();
+    else if(curTab==='settings') renderSettings();
+  }).catch(err => {
+    console.error("Vercel KV Load Error:", err);
+    toast("Failed to connect to database.", "error");
+  });
+}
+
+function updateStats(){
+  var a=Object.values(allD.subs).filter(function(s){return s.status==='active';});
+  document.getElementById('subs').innerText=a.length;
+  document.getElementById('rev').innerText=(allD.rev.total||0).toFixed(2);
+}
+
+function switchTab(t,b){
+  curTab=t;
+  document.querySelectorAll('.tab-nav .btn').forEach(function(x){x.classList.remove('active');});
+  if(b)b.classList.add('active');
+  if(t==='games') renderGames();
+  else if(t==='students') renderStudents();
+  else if(t==='subscriptions') renderSubs();
+  else if(t==='pricing') renderPricing();
+  else if(t==='settings') renderSettings();
+}
+
+function renderGames(){
+  var c=document.getElementById('tab-content');
+  var sc=Object.keys(allD.games).length;
+  var h='<div class="db-info">📊 PRO PATH: <strong>'+PATH+'</strong> | Saved: <strong>'+sc+'</strong> games</div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:10px;"><input type="text" class="form-inp" id="gs" placeholder="Search..." onkeyup="renderGL()" style="margin-bottom:0;"><select class="form-inp" id="gf" onchange="renderGL()" style="max-width:280px;margin-bottom:0;"><option value="ALL">All Categories</option>';
+  CATS.forEach(function(cat){h+='<option value="'+cat.name+'">'+cat.icon+' '+cat.name+'</option>';});
+  h+='</select></div><div style="margin-bottom:10px;"><button class="btn btn-gold btn-sm" onclick="addNewGame()">➕ Add New Game</button></div><div class="category-grid" id="grid"></div>';
+  c.innerHTML=h;
+  renderGL();
+}
+
+function renderGL(){
+  var g=document.getElementById('grid');if(!g)return;
+  var s=(document.getElementById('gs')?.value||'').toLowerCase(),f=document.getElementById('gf')?.value||'ALL';
+  g.innerHTML='';
+  var allGames=Object.entries(allD.games);
+  CATS.forEach(function(cat){
+    if(f!=='ALL'&&f!==cat.name)return;
+    var cg=allGames.filter(function(e){return e[1].category===cat.name;});
+    if(s)cg=cg.filter(function(e){return (e[1].title||'').toLowerCase().includes(s);});
+    var card=document.createElement('div');
+    card.className='category-card';
+    card.innerHTML='<div class="category-header" onclick="this.nextElementSibling.classList.toggle(\'open\')"><span>'+cat.icon+'</span><h3>'+cat.name+'</h3><span class="tag tag-purple">'+cg.length+'</span><span>▼</span></div><div class="category-body"></div>';
+    g.appendChild(card);
+    var b=card.querySelector('.category-body');
+    cg.forEach(function(e){
+      var key=e[0],gm=e[1];
+      var has=gm.htmlContent&&gm.htmlContent.trim().length>10;
+      var kb=has?Math.round(gm.htmlContent.length/1024):0;
+      var it=document.createElement('div');
+      it.className='game-item';
+      it.innerHTML='<div class="game-info"><strong>'+gm.title+'</strong> <span class="pro-badge">PRO</span> '+(has?'<span class="tag tag-green">✅ '+kb+' KB</span>':'<span class="tag tag-red">❌ No HTML</span>')+'<br><small>'+gm.subcategory+'</small><br><span class="tag tag-teal">'+gm.category+'</span></div><div style="display:flex;gap:4px;"><button class="btn btn-blue btn-xs" onclick="editGame(\''+key+'\')">✏️</button><button class="btn btn-red btn-xs" onclick="delGame(\''+key+'\')">🗑</button></div>';
+      b.appendChild(it);
+    });
+  });
+}
+
+function addNewGame(){edKey=null;openModal('','','','','','');}
+function editGame(key){edKey=key;var g=allD.games[key];if(!g)return;openModal(g.title,g.category,g.subcategory||'',g.content||'',g.htmlContent||'');}
+
+function openModal(t,c,s,ct,ht){
+  var m=document.getElementById('edit-modal-content');while(m.firstChild)m.removeChild(m.firstChild);
+  var h2=document.createElement('h2');h2.textContent=(edKey?'✏️ Edit':'➕ Add New')+' Game';m.appendChild(h2);
+  var d1=document.createElement('div');d1.className='form-group';d1.innerHTML='<label>Category</label>';var s1=document.createElement('select');s1.id='ef-cat';s1.className='form-inp';CATS.forEach(function(x){var o=document.createElement('option');o.value=x.name;o.textContent=x.icon+' '+x.name;if(c===x.name)o.selected=true;s1.appendChild(o);});d1.appendChild(s1);m.appendChild(d1);
+  var d2=document.createElement('div');d2.className='form-group';d2.innerHTML='<label>🎮 Game Name <span style="color:#f59e0b;">(Type your game name)</span></label><input type="text" id="ef-sub" class="form-inp blank-input" value="'+(s||'').replace(/"/g,'&quot;')+'" placeholder="Enter game name here...">';m.appendChild(d2);
+  var d3=document.createElement('div');d3.className='form-group';d3.innerHTML='<label>📝 Title <span style="color:#f59e0b;">(Type your title)</span></label><input type="text" id="ef-title" class="form-inp blank-input" value="'+(t||'').replace(/"/g,'&quot;')+'" placeholder="Enter title here...">';m.appendChild(d3);
+  var d4=document.createElement('div');d4.className='form-group';d4.innerHTML='<label>Description</label>';var t4=document.createElement('textarea');t4.id='ef-content';t4.className='form-inp';t4.style.minHeight='60px';t4.value=ct||'';d4.appendChild(t4);m.appendChild(d4);
+  var d5=document.createElement('div');d5.className='form-group';d5.innerHTML='<label>HTML Code</label><div style="border:2px dashed #f59e0b;border-radius:8px;padding:12px;text-align:center;cursor:pointer;margin-bottom:8px;" onclick="document.getElementById(\'ef-html-file\').click()"><p>📤 Click to Upload .html File</p><input type="file" id="ef-html-file" accept=".html" style="display:none;" onchange="loadF(this)"></div>';var t5=document.createElement('textarea');t5.id='ef-html';t5.className='form-inp';t5.style.cssText='min-height:350px;font-family:monospace;font-size:13px;';t5.value=ht||'';d5.appendChild(t5);m.appendChild(d5);
+  var dB=document.createElement('div');dB.innerHTML='<button class="btn btn-green btn-sm" onclick="saveGame()">💾 Save</button> <button class="btn btn-dark btn-sm" onclick="closeModal()" style="margin-left:8px;">❌ Cancel</button>';m.appendChild(dB);
+  document.getElementById('edit-modal').classList.add('show');
+}
+
+function loadF(i){var f=i.files[0];if(!f||!f.name.endsWith('.html'))return;var r=new FileReader();r.onload=function(e){document.getElementById('ef-html').value=e.target.result;toast('✅ Loaded!','success');};r.readAsText(f);}
+function closeModal(){document.getElementById('edit-modal').classList.remove('show');edKey=null;}
+
+function saveGame(){
+  var t=document.getElementById('ef-title').value.trim(),ct=document.getElementById('ef-content').value,c=document.getElementById('ef-cat').value,s=document.getElementById('ef-sub').value.trim(),ht=document.getElementById('ef-html').value;
+  if(!t){toast('Title required','error');return;}
+  if(!s){toast('Game name required','error');return;}
+  if(!c){toast('Category required','error');return;}
+  var d={title:t,content:ct,category:c,subcategory:s||t,imageUrls:[],isPro:true,htmlContent:ht};
+  
+  var req = edKey ? db.ref(PATH+'gamesDatabase/'+edKey).set(d) : db.ref(PATH+'gamesDatabase').push().set(d);
+  req.then(function(){
+    toast('✅ Saved! '+Math.round(ht.length/1024)+' KB','success');
+    closeModal();
+    loadAll();
+  });
+}
+
+function delGame(key){
+  if(confirm('Delete this game?')){
+    db.ref(PATH+'gamesDatabase/'+key).remove().then(function(){
+      toast('🗑 Deleted!','success');
+      loadAll();
+    });
+  }
+}
+
+function renderStudents(){
+  var c=document.getElementById('tab-content'),st=allD.students,sl=Object.entries(st);
+  c.innerHTML='<div class="card"><h3>➕ Create Student</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><input type="text" id="nsn" class="form-inp" placeholder="Name"><input type="text" id="nsi" class="form-inp" placeholder="ID"><input type="text" id="nsp" class="form-inp" placeholder="Password"><input type="text" id="nsc" class="form-inp" placeholder="Confirm"></div><button class="btn btn-green btn-sm" style="margin-top:8px;" onclick="crStu()">➕ Create</button></div><div class="card"><h3>📋 Students ('+sl.length+')</h3>'+(sl.length===0?'<p style="color:var(--mut);">No students</p>':'<table><tr><th>ID</th><th>Name</th><th>Pass</th><th>Sub</th><th>Actions</th></tr>'+sl.map(function(e){var sub=allD.subs[e[0]];return'<tr><td>'+e[0]+'</td><td>'+e[1].name+'</td><td>'+e[1].password+'</td><td>'+(sub&&sub.status==='active'?'<span class="tag tag-green">PRO</span>':'<span class="tag tag-red">FREE</span>')+'</td><td><button class="btn btn-blue btn-xs" onclick="edStu(\''+e[0]+'\')">✏️</button> <button class="btn btn-red btn-xs" onclick="delStu(\''+e[0]+'\')">🗑</button></td></tr>';}).join('')+'</table>')+'</div>';
+}
+
+function crStu(){
+  var n=document.getElementById('nsn').value.trim(),i=document.getElementById('nsi').value.trim(),p=document.getElementById('nsp').value.trim(),c=document.getElementById('nsc').value.trim();
+  if(!n||!i||!p||!c)return toast('All fields required','error');
+  if(p!==c)return toast('Passwords mismatch','error');
+  db.ref(PATH+'students/'+i).set({name:n,password:p,registeredAt:new Date().toISOString()}).then(function(){
+    toast('✅ Created!','success');
+    loadAll();
+  });
+}
+
+function edStu(id){
+  var s=allD.students[id];if(!s)return;
+  var n=prompt('Name:',s.name);if(n===null)return;
+  var p=prompt('Password (blank to keep):');
+  var u={name:n};if(p&&p.trim())u.password=p.trim();
+  db.ref(PATH+'students/'+id).update(u).then(function(){
+    toast('✅ Updated!','success');
+    loadAll();
+  });
+}
+
+function delStu(id){
+  if(confirm('Delete?')){
+    Promise.all([
+      db.ref(PATH+'students/'+id).remove(),
+      db.ref(PATH+'subscriptions/'+id).remove()
+    ]).then(function(){
+      toast('🗑 Deleted!','success');
+      loadAll();
+    });
+  }
+}
+
+function renderSubs(){
+  var c=document.getElementById('tab-content'),subs=allD.subs,sl=Object.entries(subs);
+  c.innerHTML='<div class="card"><h3>👥 Subscriptions ('+sl.length+')</h3>'+(sl.length===0?'<p style="color:var(--mut);">No subscriptions</p>':'<table><tr><th>Student</th><th>Plan</th><th>Price</th><th>Expiry</th><th>Status</th><th>Actions</th></tr>'+sl.map(function(e){return'<tr><td>'+e[0]+'</td><td>'+e[1].plan+'</td><td>$'+e[1].price+'</td><td>'+(e[1].expiryDate||'N/A')+'</td><td><span class="tag '+(e[1].status==='active'?'tag-green':'tag-red')+'">'+e[1].status+'</span></td><td><button class="btn btn-green btn-xs" onclick="renSub(\''+e[0]+'\')">🔄</button> <button class="btn btn-red btn-xs" onclick="canSub(\''+e[0]+'\')">❌</button></td></tr>';}).join('')+'</table>')+'</div>';
+}
+
+function renSub(id){
+  var d=prompt('New expiry (YYYY-MM-DD):','2025-12-31');
+  if(d&&d.match(/^\d{4}-\d{2}-\d{2}$/)){
+    db.ref(PATH+'subscriptions/'+id).update({expiryDate:d,status:'active'}).then(function(){
+      toast('✅ Renewed','success');
+      loadAll();
+    });
+  }
+}
+
+function canSub(id){
+  if(confirm('Cancel?')){
+    db.ref(PATH+'subscriptions/'+id).update({status:'cancelled'}).then(function(){
+      toast('❌ Cancelled','success');
+      loadAll();
+    });
+  }
+}
+
+function renderPricing(){
+  var c=document.getElementById('tab-content');
+  var pk=allD.pkgs||{};
+  
+  var defaults={
+    monthly:{name:"Monthly Pro",price:1},
+    yearly:{name:"Yearly Pro",price:8},
+    lifetime:{name:"Lifetime Pro",price:199.99}
+  };
+  
+  var plans=[
+    {key:'monthly',icon:'📅',color:'#3b82f6',per:'month',popular:false},
+    {key:'yearly',icon:'⭐',color:'#f59e0b',per:'year',popular:true},
+    {key:'lifetime',icon:'💎',color:'#8b5cf6',per:'lifetime',popular:false}
+  ];
+  
+  var h='<h3 style="color:#f59e0b;">💲 Pricing Plans</h3><p style="color:var(--mut);margin-bottom:15px;">Click on price to edit | Default: Monthly $1 | Yearly $8</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;">';
+  
+  plans.forEach(function(plan){
+    var p=pk[plan.key]||defaults[plan.key];
+    h+='<div class="pricing-card'+(plan.popular?' popular':'')+'" style="border-color:'+plan.color+';">'+
+      (plan.popular?'<span class="pro-badge">⭐ BEST VALUE</span>':'')+
+      '<div style="font-size:2rem;">'+plan.icon+'</div>'+
+      '<h3 style="color:'+plan.color+';">'+p.name+'</h3>'+
+      '<div class="price-tag" onclick="edPr(\''+plan.key+'\','+p.price+')" title="Click to edit">$'+p.price.toFixed(2)+'</div>'+
+      '<small style="color:var(--mut);">per '+plan.per+'</small><br><br>'+
+      '<button class="btn btn-blue btn-xs" onclick="edPr(\''+plan.key+'\','+p.price+')">✏️ Edit Price</button>'+
+    '</div>';
+  });
+  
+  c.innerHTML=h+'</div>';
+}
+
+function edPr(k,cp){
+  var np=prompt('Enter new price for '+k+' plan (current: $'+cp.toFixed(2)+'):',cp);
+  if(np!==null && !isNaN(np) && parseFloat(np)>0){
+    db.ref(PATH+'proPackages/'+k+'/price').set(parseFloat(np)).then(function(){
+      toast('✅ '+k+' price updated to $'+parseFloat(np).toFixed(2),'success');
+      loadAll();
+    });
+  }else if(np!==null){
+    toast('❌ Please enter a valid positive number','error');
+  }
+}
+
+function renderSettings(){
+  var c=document.getElementById('tab-content'),s=allD.stgs||{};
+  c.innerHTML='<div class="card"><h2>⚙️ Settings</h2><div class="setting-row"><div class="setting-info"><strong>🔐 Admin Password</strong></div><input type="text" id="sp" class="form-inp" value="'+(s.adminPass||'admin123')+'" style="max-width:200px;"></div><button class="btn btn-green btn-sm" onclick="svStg()">💾 Save Settings</button></div>';
+}
+
+function svStg(){
+  var p=document.getElementById('sp').value.trim();
+  if(!p||p.length<4)return toast('Admin Password 4+ chars','error');
+  db.ref(PATH+'appSettings').update({adminPass:p}).then(function(){
+    toast('✅ Settings Saved!','success');
+    loadAll();
+  });
+}
+
+function autoLogin(){
+  initTheme();
+  
+  // Try to load initial database state before triggering auth check
+  Promise.all([db.ref(PATH+'appSettings').once('value')]).then(res => {
+      allD.stgs = res[0].val() || {};
+      var i=localStorage.getItem('pro_ad_id');
+      if(i) {
+         document.getElementById('login-id').value=i;
+         curAdm={id:i};
+         document.getElementById('login-overlay').style.display='none';
+         document.getElementById('admin-display').innerText='👤 Admin';
+         loadAll();
+      }
+  }).catch(() => {
+     // fallback if settings load fails
+     var i=localStorage.getItem('pro_ad_id');
+     if(i){ curAdm={id:i}; document.getElementById('login-overlay').style.display='none'; loadAll(); }
+  });
+}
+
+window.onload=autoLogin;
+</script>
+
+<!-- Global Navbar & Footer -->
+<script src="/footer.js"></script>
+<script src="/global-navbar.js"></script>
+
+</body>
+</html>
