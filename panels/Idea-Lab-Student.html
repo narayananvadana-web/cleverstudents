@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💡 The Idea Lab | Clever Students</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e1a;--srf:#0f1420;--srf2:#1a2030;--brd:rgba(255,255,255,.08);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif}
+body.light-mode{--bg:#f8fafc;--srf:#fff;--srf2:#f1f5f9;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:.3s}
+
+.top-bar{background:var(--srf);border-bottom:1px solid var(--brd);padding:0 15px;position:sticky;top:0;z-index:999}
+.top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:15px;flex-wrap:wrap}
+.logo{font-family:'Fredoka One',cursive;font-size:1.5rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.user-info{font-weight:700;font-size:.85rem;color:var(--mut)}
+.theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:700;font-size:.85rem;cursor:pointer;padding:6px 12px;border-radius:50px;font-family:var(--font)}
+.btn{padding:8px 18px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;font-family:var(--font);display:inline-flex;align-items:center;gap:6px;font-size:.85rem}
+.btn-red{background:#ef4444}
+.btn-sm{padding:6px 14px;font-size:.8rem}
+
+.main-wrap{max-width:1400px;margin:20px auto;padding:0 15px 60px}
+.shell{background:var(--srf);border-radius:8px;overflow:hidden;border:1px solid var(--brd)}
+
+.banner{padding:24px 20px;text-align:center;background:linear-gradient(135deg,#f59e0b,#db2777);border-bottom:3px solid #fbbf24}
+.banner h1{font-size:1.6rem;font-weight:900;color:#fff;letter-spacing:1px;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+.banner p{font-size:.9rem;color:rgba(255,255,255,.9);font-weight:600}
+
+.cat-row{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:16px 12px;background:rgba(0,0,0,.25);border-bottom:1px solid var(--brd)}
+.cat-btn{padding:10px 22px;border:2px solid transparent;border-radius:6px;color:#fff;font-weight:800;font-size:.92rem;cursor:pointer;opacity:.65;transform:scale(.95);white-space:nowrap;font-family:var(--font);transition:.2s;background:linear-gradient(135deg,#f59e0b,#d97706)}
+.cat-btn:hover{opacity:.9}
+.cat-btn.active{opacity:1;transform:scale(1.05);border-color:#fff;box-shadow:0 0 14px rgba(255,255,255,.35)}
+
+.pink-banner{padding:16px 20px;text-align:center;background:linear-gradient(135deg,#db2777,#be185d);border-bottom:2px solid rgba(255,255,255,.15)}
+.pink-banner h2{font-size:1.4rem;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px}
+
+.content{padding:20px;background:var(--srf);min-height:200px}
+
+/* Topic item */
+.topic-item{margin-bottom:12px}
+.topic-item > summary{list-style:none;cursor:pointer;display:block;padding:0}
+.topic-item > summary::-webkit-details-marker{display:none}
+.topic-item > summary::marker{display:none}
+
+.topic-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-radius:8px;color:#fff;font-weight:800;gap:12px;flex-wrap:wrap;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:.15s}
+.topic-head:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.topic-head .th-title{flex:1;min-width:200px}
+.topic-head .view-btn{background:rgba(0,0,0,.35);padding:5px 14px;border-radius:20px;font-size:.8rem;font-weight:800;white-space:nowrap;transition:.2s}
+.topic-item[open] > summary .view-btn{background:rgba(255,255,255,.4)}
+.topic-item[open] > summary .view-btn .arr{display:inline-block;transform:rotate(180deg)}
+
+/* Sub-topic item */
+.subtopic-container{padding:12px 0 6px 20px;display:flex;flex-direction:column;gap:8px}
+
+.subtopic-item{margin-bottom:0}
+.subtopic-item > summary{list-style:none;cursor:pointer;display:block;padding:0}
+.subtopic-item > summary::-webkit-details-marker{display:none}
+.subtopic-item > summary::marker{display:none}
+
+.subtopic-head{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-radius:8px;color:#fff;font-weight:700;gap:10px;flex-wrap:wrap;font-size:.88rem;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:.15s}
+.subtopic-head:hover{filter:brightness(1.12)}
+.subtopic-head .sh-left{display:flex;align-items:center;gap:10px;flex:1;min-width:160px}
+.subtopic-head .sh-title{font-size:.9rem}
+.subtopic-head .sh-meta{font-size:.7rem;opacity:.85;font-weight:600}
+.subtopic-head .view-btn{background:rgba(0,0,0,.35);padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:800;transition:.2s}
+.subtopic-item[open] > summary .view-btn{background:rgba(255,255,255,.4)}
+.subtopic-item[open] > summary .view-btn .arr{display:inline-block;transform:rotate(180deg)}
+
+/* Content */
+.subtopic-body{background:rgba(0,0,0,.35);border:1px solid var(--brd);border-radius:0 0 8px 8px;padding:24px;margin-top:-4px;line-height:1.8;color:#f8fafc;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.subtopic-body h1{font-size:1.4rem;font-weight:900;margin-bottom:14px;color:#fff}
+.subtopic-body h2{font-size:1.15rem;font-weight:800;margin:22px 0 12px;color:#fbbf24;border-bottom:2px solid rgba(255,255,255,.15);padding-bottom:8px}
+.subtopic-body h3{font-size:1rem;font-weight:800;margin:16px 0 8px;color:#fff}
+.subtopic-body p{font-size:.95rem;margin-bottom:14px}
+.subtopic-body ul,.subtopic-body ol{margin:12px 0 16px 24px}
+.subtopic-body li{margin-bottom:6px}
+.subtopic-body blockquote{background:rgba(219,39,119,.15);border-left:4px solid #db2777;padding:14px 18px;margin:14px 0;border-radius:8px;font-style:italic}
+.subtopic-body code{background:rgba(255,255,255,.1);padding:2px 8px;border-radius:4px;font-family:monospace;font-size:.85rem;color:#fbbf24}
+.subtopic-body img{max-width:100%;border-radius:8px;margin:10px 0}
+
+.empty{text-align:center;padding:60px 20px;color:var(--mut)}
+.empty .icon{font-size:3rem;margin-bottom:12px;opacity:.5}
+.spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#f59e0b;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.footer{text-align:center;padding:30px 20px;color:var(--mut);font-size:.85rem;border-top:1px solid var(--brd);margin-top:20px}
+
+@media(max-width:600px){
+  .banner h1{font-size:1.2rem}
+  .cat-row{gap:6px;padding:12px}
+  .cat-btn{padding:8px 14px;font-size:.78rem}
+  .pink-banner h2{font-size:1.05rem}
+  .topic-head{padding:12px 14px;font-size:.88rem}
+  .subtopic-container{padding-left:10px}
+  .subtopic-body{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-inner">
+    <div class="logo">💡 THE IDEA LAB</div>
+    <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
+      <span class="user-info">👤 Guest</span>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">Light Mode</button>
+    </div>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <div class="shell">
+    <div class="banner">
+      <h1>💡 THE IDEA LAB</h1>
+      <p>Smart Shortcuts · Unconventional Thinking · Mental Models</p>
+    </div>
+
+    <div class="cat-row" id="catRow"></div>
+
+    <div class="pink-banner" id="pinkBanner">
+      <h2 id="bannerTitle">📂 Select a Category</h2>
+    </div>
+
+    <div class="content">
+      <div id="treeArea">
+        <div class="empty"><span class="spinner"></span> Loading Content...</div>
+      </div>
+    </div>
+
+    <div class="footer">© Clever Students — The Idea Lab</div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   VERCEL KV DATABASE WRAPPER & STATE
+========================================================= */
+const DB_NODE = 'ideaLabDatabase';
+let DATA = {};
+let activeCat = null;
+
+async function fetchIdeaLabData() {
+  try {
+    const response = await fetch('/api/db?path=' + encodeURIComponent(DB_NODE));
+    if (!response.ok) throw new Error('Failed to fetch from Vercel KV database');
+    const data = await response.json();
+    
+    DATA = data.result || {};
+    
+    let ids = Object.keys(DATA).sort(function(a, b) { 
+        return (DATA[a].order || 0) - (DATA[b].order || 0); 
+    });
+    
+    if (!activeCat || !DATA[activeCat]) activeCat = ids[0] || null;
+    render();
+  } catch (err) {
+    document.getElementById('treeArea').innerHTML =
+      '<div class="empty"><div class="icon">⚠️</div><p>Error: ' + escHtml(err.message) + '</p></div>';
+  }
+}
+
+function render() {
+  renderCategoryButtons();
+  renderBanner();
+  renderTree();
+}
+
+function renderCategoryButtons() {
+  var row = document.getElementById('catRow');
+  var ids = Object.keys(DATA).sort(function(a, b) { return (DATA[a].order || 0) - (DATA[b].order || 0); });
+  if (!ids.length) {
+    row.innerHTML = '<span style="color:var(--mut);font-size:.85rem;padding:10px;">No categories yet.</span>';
+    return;
+  }
+  var h = '';
+  ids.forEach(function(id) {
+    var c = DATA[id];
+    var isActive = (id === activeCat);
+    h += '<button class="cat-btn' + (isActive ? ' active' : '') + '" onclick="setCat(\'' + escAttr(id) + '\')">';
+    h += (isActive ? '✓ ' : '') + (c.icon || '📂') + ' ' + escHtml(c.title || id);
+    h += '</button>';
+  });
+  row.innerHTML = h;
+}
+
+function renderBanner() {
+  var c = DATA[activeCat];
+  if (!c) { document.getElementById('bannerTitle').innerText = '📂 Select a Category'; return; }
+  document.getElementById('bannerTitle').innerText = (c.icon || '📂') + ' ' + (c.title || activeCat);
+}
+
+function renderTree() {
+  var area = document.getElementById('treeArea');
+  var c = DATA[activeCat];
+  if (!c) {
+    area.innerHTML = '<div class="empty"><div class="icon">📭</div><p>No content yet. Please check back later.</p></div>';
+    return;
+  }
+
+  var topicIds = c.topics ? Object.keys(c.topics).sort(function(a, b) {
+    return (c.topics[a].order || 0) - (c.topics[b].order || 0);
+  }) : [];
+
+  if (!topicIds.length) {
+    area.innerHTML = '<div class="empty"><div class="icon">📭</div><p>No topics in this category yet.</p></div>';
+    return;
+  }
+
+  var palette = [
+    'linear-gradient(135deg,#db2777,#be185d)',
+    'linear-gradient(135deg,#8b5cf6,#6d28d9)',
+    'linear-gradient(135deg,#3b82f6,#1d4ed8)',
+    'linear-gradient(135deg,#10b981,#047857)',
+    'linear-gradient(135deg,#f59e0b,#d97706)',
+    'linear-gradient(135deg,#ec4899,#be185d)',
+    'linear-gradient(135deg,#06b6d4,#0891b2)',
+    'linear-gradient(135deg,#84cc16,#4d7c0f)'
+  ];
+
+  var h = '';
+  topicIds.forEach(function(tid, i) {
+    h += renderTopicDetails(c.topics[tid], palette[i % palette.length]);
+  });
+  area.innerHTML = h;
+}
+
+function renderTopicDetails(topic, grad) {
+  var subIds = topic.subtopics ? Object.keys(topic.subtopics).sort(function(a, b) {
+    return (topic.subtopics[a].order || 0) - (topic.subtopics[b].order || 0);
+  }) : [];
+
+  var h = '<details class="topic-item">';
+  h += '<summary>';
+  h += '<div class="topic-head" style="background:' + grad + '">';
+  h += '<span class="th-title">📄 ' + escHtml(topic.title || 'Untitled') + '</span>';
+  h += '<span class="view-btn">View <span class="arr">[+]</span></span>';
+  h += '</div></summary>';
+
+  h += '<div class="subtopic-container">';
+  if (!subIds.length) {
+    h += '<div class="empty" style="padding:14px;font-size:.82rem;">No sub-topics in this topic yet.</div>';
+  } else {
+    subIds.forEach(function(sid) {
+      h += renderSubTopicDetails(topic.subtopics[sid], grad);
+    });
+  }
+  h += '</div></details>';
+  return h;
+}
+
+function renderSubTopicDetails(sub, parentGrad) {
+  var h = '<details class="subtopic-item">';
+  h += '<summary>';
+  h += '<div class="subtopic-head" style="background:' + parentGrad + ';opacity:.92">';
+  h += '<div class="sh-left">';
+  h += '<span>📄</span>';
+  h += '<div>';
+  h += '<div class="sh-title">' + escHtml(sub.title) + '</div>';
+  h += '<div class="sh-meta">⏱ ' + escHtml(sub.readTime || '5 min read') + '</div>';
+  h += '</div></div>';
+  h += '<span class="view-btn">View <span class="arr">[+]</span></span>';
+  h += '</div></summary>';
+  h += '<div class="subtopic-body">' + (sub.content || '<p style="color:var(--mut);">No content yet.</p>') + '</div>';
+  h += '</details>';
+  return h;
+}
+
+function setCat(id) { activeCat = id; render(); }
+
+function escHtml(s) { if (!s) return ''; var d = document.createElement('div'); d.appendChild(document.createTextNode(String(s))); return d.innerHTML; }
+function escAttr(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function toggleTheme() {
+  var isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('idealab_student_theme', isLight ? 'light' : 'dark');
+  document.getElementById('themeBtn').innerText = isLight ? 'Dark Mode' : 'Light Mode';
+}
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+document.addEventListener("DOMContentLoaded", () => {
+    if (localStorage.getItem('idealab_student_theme') === 'light') {
+      document.body.classList.add('light-mode');
+      document.getElementById('themeBtn').innerText = 'Dark Mode';
+    }
+    // Fetch data from Vercel KV instead of Firebase
+    fetchIdeaLabData();
+});
+</script>
+</body>
+</html>
