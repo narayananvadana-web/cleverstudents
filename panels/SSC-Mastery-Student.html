@@ -18,8 +18,9 @@
     input,textarea,select{user-select:auto!important;-webkit-user-select:auto!important}
     img{user-drag:none;-webkit-user-drag:none}.img-th,.modal img{pointer-events:auto!important;cursor:pointer}
 
-    /* UTILITY BAR */
-    .utility-bar {display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 15px;background:var(--srf);border:1px solid var(--brd);border-radius:var(--r-md);margin-bottom:15px;flex-wrap:wrap;box-shadow:0 4px 10px rgba(0,0,0,.15)}
+    @keyframes redBlink{0%,100%{box-shadow:0 0 5px rgba(255,0,0,.4)}50%{box-shadow:0 0 20px rgba(255,0,0,.9)}}
+    
+    .utility-bar {display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; padding:10px; background:var(--srf); border-radius:var(--r-md); border:1px solid var(--brd);}
     .news-ticker-wrap{flex:1;min-width:250px;overflow:hidden;background:rgba(0,0,0,.3);border-radius:20px;padding:8px 15px;border:1px solid rgba(255,215,0,.3);display:flex;align-items:center;gap:10px}
     .news-icon{flex-shrink:0;font-size:1.2rem;animation:pulse 1.5s ease-in-out infinite}
     @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}
@@ -30,14 +31,11 @@
     .news-link{color:#ffd700;font-weight:700;font-size:.9rem;cursor:pointer;margin:0 15px;pointer-events:auto!important;user-select:auto!important}
     .news-link:hover{color:#fff;text-shadow:0 0 10px rgba(255,215,0,.8)}
     
-    .user-actions {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-    .user-info{font-weight:700;font-size:.85rem;color:var(--mut)}
-
-    @keyframes redBlink{0%,100%{box-shadow:0 0 5px rgba(255,0,0,.4)}50%{box-shadow:0 0 20px rgba(255,0,0,.9)}}
-    .lang-select{padding:6px 12px;border-radius:20px;border:2px solid rgba(255,0,0,.5);background:var(--bg);color:var(--txt);font-weight:700;font-size:.85rem;cursor:pointer;animation:redBlink 1s ease-in-out infinite;flex-shrink:0;}
+    .lang-select{padding:6px 12px;border-radius:20px;border:2px solid rgba(255,0,0,.5);background:var(--bg);color:var(--txt);font-weight:700;font-size:.85rem;cursor:pointer;animation:redBlink 1s ease-in-out infinite;}
+    .theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:700;font-size:.85rem;cursor:pointer;padding:6px 12px;border-radius:50px}
+    
     .goog-te-banner-frame,#goog-gt-tt,.goog-tooltip,.goog-text-highlight,.goog-te-spinner-pos,.goog-logo-link,.goog-te-gadget span,.VIpgJd-ZVi9od-ORHb,.VIpgJd-ZVi9od-l4eHX,.goog-te-gadget img,.skiptranslate{display:none!important}
     #google_translate_element{position:absolute!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important}
-    .theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:700;font-size:.85rem;cursor:pointer;padding:6px 12px;border-radius:50px}
 
     .main-wrap{max-width:100%!important;width:100%!important;padding:20px 10px 80px!important;margin:0 auto}
     .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
@@ -45,8 +43,7 @@
     .banner h1{font-size:1.4rem!important;font-weight:900!important;color:#fff!important}
     .banner p{font-size:.95rem!important;font-weight:700!important;color:#fff!important;border-left:2px solid rgba(255,255,255,.6);padding-left:12px}
     .sub-row{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd)}
-    .btn-sub{padding:8px 20px;border:2px solid transparent;border-radius:6px;color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;opacity:.6;transform:scale(.95);white-space:nowrap;transition:0.2s;}
-    .btn-sub:hover{opacity:.9}
+    .btn-sub{padding:8px 20px;border:2px solid transparent;border-radius:6px;color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;opacity:.6;transform:scale(.95);white-space:nowrap}
     .btn-sub.active{opacity:1;transform:scale(1.05);border-color:#fff;box-shadow:0 0 10px rgba(255,255,255,.3)}
     .cls-row{display:flex;gap:8px;padding:12px 15px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--brd);overflow-x:auto}
     .btn-cls{background:0 0;border:2px solid transparent;color:var(--mut);font-weight:700;font-size:.9rem;cursor:pointer;padding:6px 14px;border-radius:4px;white-space:nowrap}
@@ -69,9 +66,12 @@
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:15px}
     .q-card{border:none;border-radius:8px;padding:20px 12px;text-align:center;cursor:pointer;color:#fff}
     .q-card:hover{transform:translateY(-4px)}
-    .tag{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.7rem;font-weight:700;margin:2px}
-    .tag-blue{background:#1d4ed8;color:#fff}.tag-orange{background:#c2410c;color:#fff}.tag-green{background:#15803d;color:#fff}.tag-purple{background:#7c3aed;color:#fff}
+    
+    .btn{padding:10px 20px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:6px}
+    .btn:hover{filter:brightness(1.15)}.btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-orange{background:#f59e0b}.btn-purple{background:#7c3aed}
+    .btn-sm{padding:6px 14px;font-size:.8rem}.btn-xs{padding:4px 10px;font-size:.7rem}
 
+    /* Quiz Player Styles */
     .q-player{padding:20px;background:var(--srf);border:1px solid var(--brd);border-radius:8px;max-width:1400px;margin:0 auto}
     .q-panel{border-radius:16px;padding:20px;background:rgba(0,0,0,.2)}
     .exam-wrap{display:flex;gap:16px;flex-wrap:wrap}
@@ -97,20 +97,7 @@
     .exam-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
     .exam-stats{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;font-weight:700;color:var(--mut)}
     .exam-stats b{color:var(--txt)}
-    .nested-sub{display:none;padding-left:16px}
-    .nested-sub.show{display:block}
-    .nested-list{border-left:2px solid var(--brd);margin-left:6px;padding-left:12px}
-    .nested-row{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;margin:8px 0 0;color:#fff;font-weight:800;border-radius:6px;cursor:pointer;font-size:.9rem}
-    .nested-row.sub{background:rgba(255,255,255,.08)!important;font-weight:700}
-    .nested-row.sub2{background:rgba(255,255,255,.05)!important;font-weight:600;font-size:.85rem}
-    .q-chip{border:none;border-radius:8px;padding:14px 10px;text-align:center;cursor:pointer;color:#fff;font-weight:800;font-size:.8rem;margin:6px}
-    .q-chip:hover{transform:translateY(-2px)}
-    .opt-btn{padding:14px 18px;background:rgba(255,255,255,.05);border:2px solid var(--brd);border-radius:8px;cursor:pointer;font-weight:700;color:var(--txt);text-align:left;margin-bottom:8px;width:100%}
-    .opt-btn.correct{background:#15803d!important;border-color:#22c55e!important;color:#fff!important}
-    .opt-btn.wrong{background:#b91c1c!important;border-color:#ef4444!important;color:#fff!important}
-    .feedback{display:none;padding:14px;border-radius:8px;font-weight:700;color:#fff!important;margin-bottom:20px}
-    .feedback.show{display:block}.feedback.correct{background:#15803d}.feedback.wrong{background:#b91c1c}
-
+    
     .results-container{padding:20px;max-height:70vh;overflow-y:auto}
     .results-header{text-align:center;margin-bottom:30px;padding:20px;background:rgba(0,0,0,.2);border-radius:12px}
     .results-score{font-size:4rem;font-weight:900}
@@ -123,16 +110,19 @@
     .result-option{padding:4px 0}
     .correct-answer{color:#4ade80}.user-correct{color:#60a5fa}.user-wrong{color:#f87171}
     .result-explanation{color:#fbbf24;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
+    
+    .q-chip{border:none;border-radius:8px;padding:14px 10px;text-align:center;cursor:pointer;color:#fff;font-weight:800;font-size:.8rem;margin:6px}
+    .q-chip:hover{transform:translateY(-2px)}
+    .nested-sub{display:none;padding-left:16px}
+    .nested-sub.show{display:block}
+    .nested-list{border-left:2px solid var(--brd);margin-left:6px;padding-left:12px}
+    .nested-row{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;margin:8px 0 0;color:#fff;font-weight:800;border-radius:6px;cursor:pointer;font-size:.9rem}
+    .nested-row.sub{background:rgba(255,255,255,.08)!important;font-weight:700}
 
-    .btn{padding:10px 20px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:6px;transition:0.2s;}
-    .btn:hover{filter:brightness(1.15)}.btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-orange{background:#f59e0b}.btn-purple{background:#7c3aed}
-    .btn-sm{padding:6px 14px;font-size:.8rem}.btn-xs{padding:4px 10px;font-size:.7rem}
-
-    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
+    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center}
     .login-box{background:var(--srf);padding:40px 30px;border-radius:var(--r-lg);box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:380px;border:1px solid var(--brd);text-align:center}
     .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-family:var(--font);font-size:1rem;outline:0}
     .login-info{background:rgba(59,130,246,.15);border:1px solid #3b82f6;border-radius:8px;padding:12px;margin-bottom:20px;font-size:.85rem;color:var(--txt);text-align:left;line-height:1.6}.login-info strong{color:#60a5fa}
-    .info-banner{background:rgba(139,92,246,.1);border:1px solid #8b5cf6;border-radius:8px;padding:10px 16px;margin-bottom:15px;font-size:.85rem;color:#a78bfa}
     .guest-info-box{background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:20px;font-size:.85rem;color:var(--txt);text-align:left;line-height:1.6}.guest-info-box strong{color:#fbbf24}
 
     .mm-theory-view{padding:20px;background:rgba(0,0,0,.15);border-radius:8px;border:1px solid var(--brd);max-height:70vh;overflow-y:auto;line-height:1.8;color:#f8fafc}
@@ -145,44 +135,46 @@
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;display:none;justify-content:center;align-items:center}
     .modal.show{display:flex}.modal img{max-width:92%;max-height:92%;border-radius:8px}
     .modal-close{position:absolute;top:18px;right:24px;color:#fff;font-size:2rem;cursor:pointer}
-    .spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
 
-    @media(max-width:768px){.utility-bar{flex-direction:column;align-items:stretch}.news-ticker-wrap{flex:0 0 100%}.banner{flex-direction:column}.results-score{font-size:3rem}.game-iframe-container,.game-iframe-container iframe{min-height:400px;height:400px}.exam-palette{width:100%}.exam-wrap{flex-direction:column-reverse}}
+    @media(max-width:768px){.utility-bar{flex-wrap:wrap}.news-ticker-wrap{flex:0 0 100%}.banner{flex-direction:column}.results-score{font-size:3rem}.game-iframe-container,.game-iframe-container iframe{min-height:400px;height:400px}.exam-palette{width:100%}.exam-wrap{flex-direction:column-reverse}}
   </style>
 </head>
 <body class="protected-mode">
 
   <div id="login-overlay">
     <div class="login-box">
-      <div style="margin-bottom:20px; font-size: 1.5rem; font-family: 'Fredoka One', cursive; background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">⭐ CleverStudents</div>
+      <div class="logo" style="margin-bottom:20px; font-size: 1.5rem; background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">⭐ CleverStudents</div>
       <h2 style="margin-bottom:25px;color:var(--txt);">Student Login</h2>
       <div class="login-info" id="guest-info-box" style="display:none;"><strong>👤 Guest Auto-Login Active</strong></div>
       <input type="text" id="login-phone" class="login-inp" placeholder="User ID / Phone">
       <input type="password" id="login-pass" class="login-inp" placeholder="Password">
       <button class="btn btn-blue" style="width:100%;padding:14px;font-size:1.1rem;margin-top:10px;" onclick="attemptLogin()">🔐 Login</button>
       <button class="btn btn-orange" style="width:100%;padding:12px;font-size:.9rem;margin-top:10px;" onclick="loginAsGuest()">👤 Login as Guest</button>
-      <button class="btn btn-dark" style="width:100%;padding:12px;font-size:.9rem;margin-top:10px;" onclick="logout()">🚪 Logout</button>
       <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:700;display:none;"></div>
     </div>
   </div>
 
   <div class="main-wrap">
     
-    <!-- Utility Bar (Replaces Top Bar to prevent Global Navbar collision) -->
+    <!-- Top Utility Bar inside main-wrap to prevent global navbar conflict -->
     <div class="utility-bar">
       <div class="news-ticker-wrap">
         <span class="news-icon">📢</span>
         <div class="ticker-container"><span id="newsTicker"></span></div>
       </div>
-      <div class="user-actions">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <div id="google_translate_element"></div>
         <select class="lang-select" id="lang-select" onchange="changeLanguage(this.value)">
-          <option value="en">🌐 English</option><option value="te">🔴 తెలుగు</option><option value="hi">🔴 हिन्दी</option><option value="ta">🔴 தமிழ்</option><option value="ml">🔴 മലയാളം</option><option value="kn">🔴 ಕನ್ನಡ</option>
+          <option value="en">🌐 English</option>
+          <option value="te">🔴 తెలుగు</option>
+          <option value="hi">🔴 हिन्दी</option>
+          <option value="ta">🔴 தமிழ்</option>
+          <option value="ml">🔴 മലയാളം</option>
+          <option value="kn">🔴 ಕನ್ನಡ</option>
         </select>
-        <span id="user-display" class="user-info"></span>
-        <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">☀️ Theme</button>
-        <button class="btn btn-red btn-xs" onclick="logout()">Logout</button>
+        <span id="user-display" style="font-weight:bold; color:var(--mut); font-size:0.85rem; margin: 0 5px;"></span>
+        <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+        <button class="btn btn-red btn-xs" onclick="logout()">🚪 Logout</button>
       </div>
     </div>
 
@@ -209,7 +201,7 @@
 
   <script>
     // ==========================================
-    // SMART VERCEL KV WRAPPER
+    // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
     // ==========================================
     const db = {
       ref: function(path) {
@@ -250,26 +242,6 @@
               return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
             }
           },
-          update: async function(updatesObj) {
-            if (parts.length === 1) {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const fetched = await res.json();
-              let rootObj = fetched.result || {};
-              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-
-              Object.keys(updatesObj).forEach(updPath => {
-                let updParts = updPath.split('/').filter(Boolean);
-                let current = rootObj;
-                for (let i = 0; i < updParts.length - 1; i++) {
-                  if (!current[updParts[i]]) current[updParts[i]] = {};
-                  current = current[updParts[i]];
-                }
-                current[updParts[updParts.length - 1]] = updatesObj[updPath];
-              });
-
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
-            }
-          },
           remove: async function() {
             if (parts.length === 1) {
               return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: rootKey }) }).then(res => res.json());
@@ -286,16 +258,6 @@
               delete current[parts[parts.length - 1]];
               return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
             }
-          },
-          push: function() {
-            const newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-            const pushPath = path + (path.endsWith('/') ? '' : '/') + newKey;
-            return {
-              key: newKey,
-              set: function(data) {
-                 return db.ref(pushPath).set(data);
-              }
-            };
           }
         };
       }
@@ -372,12 +334,19 @@
     }
     function initTheme(){
       var t=localStorage.getItem('cs_st_th')||'dark',b=document.getElementById('theme-toggle');
-      t==='light'?(document.body.classList.add('light-mode'),b.innerText='🌙 Theme'):(document.body.classList.remove('light-mode'),b.innerText='☀️ Theme');
+      if (t === 'light') {
+         document.body.classList.add('light-mode');
+         if (b) b.innerText='🌙';
+      } else {
+         document.body.classList.remove('light-mode');
+         if (b) b.innerText='☀️';
+      }
     }
+    initTheme();
     function toggleTheme(){
       var l=document.body.classList.toggle('light-mode');
       localStorage.setItem('cs_st_th',l?'light':'dark');
-      document.getElementById('theme-toggle').innerText=l?'🌙 Theme':'☀️ Theme';
+      document.getElementById('theme-toggle').innerText=l?'🌙':'☀️';
     }
     function getArr(o){
       if(!o)return[];
@@ -482,7 +451,7 @@
         localStorage.setItem('cs_st_tk',t);
         localStorage.setItem('cs_st_guest','true');
         activeSessions[gi]=t;
-        db.ref('activeSessions/' + gi).set(t);
+        db.ref('activeSessions').set(activeSessions);
         document.getElementById('login-overlay').style.display='none';
         applyPerms(true);
         updateUserDisplay();
@@ -493,38 +462,23 @@
       var p=document.getElementById('login-phone').value.trim();
       var pa=document.getElementById('login-pass').value.trim();
       var e=document.getElementById('login-error');
-      
-      var btn = document.querySelector('.login-box .btn-blue');
-      
       if(!p||!pa){
         e.innerText='Enter ID and Password';
         e.style.display='block';
         return;
       }
-      
-      btn.innerText = 'Authenticating...';
-      btn.disabled = true;
-      
       var gi=settings.guestId||DEFAULT_GUEST_ID;
       var gp=settings.guestPass||DEFAULT_GUEST_PASS;
-      
       if(p===gi&&pa===gp){
         performLogin(p,true);
-        btn.innerText = 'Login';
-        btn.disabled = false;
         return;
       }
       if(settings.users&&settings.users[p]&&settings.users[p].pass===pa){
         performLogin(p,false);
-        btn.innerText = 'Login';
-        btn.disabled = false;
         return;
       }
-      
       e.innerText='Invalid credentials';
       e.style.display='block';
-      btn.innerText = 'Login';
-      btn.disabled = false;
     }
 
     function loginAsGuest(){
@@ -544,7 +498,7 @@
       localStorage.setItem('cs_st_tk',t);
       localStorage.setItem('cs_st_guest',isGuest?'true':'false');
       activeSessions[phone]=t;
-      db.ref('activeSessions/' + phone).set(t);
+      db.ref('activeSessions').set(activeSessions);
       document.getElementById('login-overlay').style.display='none';
       applyPerms(isGuest);
       updateUserDisplay();
@@ -552,7 +506,8 @@
 
     function logout(){
       if(currentUser.phone){
-        db.ref('activeSessions/' + currentUser.phone).remove().catch(() => {});
+        delete activeSessions[currentUser.phone];
+        db.ref('activeSessions').set(activeSessions);
       }
       localStorage.removeItem('cs_st_ph');
       localStorage.removeItem('cs_st_tk');
@@ -1210,6 +1165,9 @@
         let sess = results[1].val() || {};
         if (typeof sess === 'string') { try { sess = JSON.parse(sess); } catch(e) { sess = {}; } }
         activeSessions = sess;
+
+        if (settings.copyEnabled) document.body.classList.remove('protected-mode');
+        else document.body.classList.add('protected-mode');
 
         checkAuth();
         loadAllData(function(){
