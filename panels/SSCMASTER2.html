@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SSC Mastery | Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px}
+    body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
+    *,::before,::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
+    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:background .3s,color .3s}
+    .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important}
+    input,textarea,select{user-select:auto!important;-webkit-user-select:auto!important}
+    #editForm,#editForm *,#groupView,#groupView *,#hierarchyManager,#hierarchyManager *{user-select:auto!important}
+    .notranslate{translate:no!important}
+    @keyframes redBlink{0%,100%{box-shadow:0 0 5px rgba(255,0,0,.4)}50%{box-shadow:0 0 20px rgba(255,0,0,.9)}}
+    .lang-select{padding:6px 10px;border-radius:16px;border:2px solid rgba(255,0,0,.5);background:var(--srf);color:var(--txt);font-weight:700;font-size:.78rem;cursor:pointer;animation:redBlink 1s ease-in-out infinite;flex-shrink:0;min-width:100px;z-index:10}
+    .goog-te-banner-frame,#goog-gt-tt,.goog-tooltip,.goog-text-highlight,.goog-te-spinner-pos,.goog-logo-link,.goog-te-gadget span,.VIpgJd-ZVi9od-ORHb,.VIpgJd-ZVi9od-l4eHX,.goog-te-gadget img,.skiptranslate{display:none!important}
+    #google_translate_element{position:absolute!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important}
+    .top-bar{background:var(--srf);border-bottom:1px solid var(--brd);padding:0 12px;position:sticky;top:0;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+    .top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;justify-content:space-between}
+    .logo{font-family:'Fredoka One',cursive;font-size:1.2rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:700;font-size:.75rem;cursor:pointer;padding:5px 10px;border-radius:50px}
+    .btn{padding:8px 16px;border:none;border-radius:50px;cursor:pointer;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:.78rem;transition:.2s}
+    .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+    .btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-orange{background:#f59e0b}.btn-teal{background:#0d9488}.btn-purple{background:#8b5cf6}.btn-pink{background:#ec4899}.btn-yellow{background:#eab308;color:#000}
+    .btn-sm{padding:5px 12px;font-size:.72rem}.btn-xs{padding:3px 8px;font-size:.68rem}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .main-wrap{max-width:100%!important;width:100%!important;padding:15px 8px 50px!important;margin:0 auto}
+    .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
+    .banner{padding:8px 16px!important;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 3px 8px rgba(0,0,0,.2);flex-wrap:wrap;text-align:center}
+    .banner h1{font-size:1.1rem!important;font-weight:800!important;color:#fff!important}
+    .admin-tabs{display:flex;gap:4px;padding:8px 12px;background:rgba(0,0,0,.15);border-bottom:1px solid var(--brd);flex-wrap:wrap;justify-content:center;overflow-x:auto}
+    .admin-tab-btn{padding:6px 14px;border-radius:50px;border:1px solid var(--brd);background:0 0;color:var(--mut);font-weight:700;font-size:.75rem;cursor:pointer;transition:.2s;white-space:nowrap}
+    .admin-tab-btn:hover{color:var(--txt)}.admin-tab-btn.active{background:#ef4444;color:#fff;border-color:#ef4444}
+    .admin-content{padding:15px;background:var(--srf);min-height:400px}
+    .form-group{margin-bottom:10px}.form-group label{display:block;font-weight:700;margin-bottom:3px;color:var(--txt);font-size:.8rem}
+    .form-inp{width:100%;padding:8px 12px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:6px;color:var(--txt);font-size:.85rem;outline:0;margin-bottom:6px}
+    textarea.form-inp{min-height:50px;resize:vertical}select.form-inp{appearance:none;cursor:pointer}
+    .card{background:rgba(255,255,255,.03);border:1px solid var(--brd);border-radius:var(--r-md);padding:15px;margin-bottom:12px}
+    .info-banner{background:rgba(139,92,246,.1);border:1px solid #8b5cf6;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:.78rem;color:#a78bfa}
+    .csv-box{background:rgba(14,165,233,.08);border:2px dashed #0ea5e9;border-radius:var(--r-md);padding:15px;margin-bottom:15px}.csv-box h3{color:#38bdf8;font-size:.9rem}
+    .csv-fmt{background:rgba(0,0,0,.3);border-radius:6px;padding:10px;font-size:.7rem;color:var(--mut);line-height:1.5;margin:8px 0;overflow-x:auto;white-space:pre-wrap;font-family:monospace}
+    .toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:6px;border:1px solid var(--brd)}
+    .toolbar select{min-width:140px;margin-bottom:0!important;padding:6px 10px;font-size:.78rem}
+    .list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:6px;margin-bottom:5px;flex-wrap:wrap;gap:8px;transition:.2s;cursor:grab}
+    .list-item:hover{border-color:#3b82f6}.list-item.selected{background:rgba(59,130,246,.15);border-color:#3b82f6}
+    .list-item.dragging{opacity:0.5;cursor:grabbing}.list-item.drag-over{border-color:#10b981;background:rgba(16,185,129,.15)}
+    .list-item .item-info{flex:1;min-width:150px;pointer-events:none}
+    .list-item .item-actions{display:flex;gap:4px;pointer-events:auto}
+    .drag-handle{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;cursor:grab;color:var(--mut);font-size:1rem;border-radius:4px;flex-shrink:0}
+    .tag{display:inline-block;padding:2px 7px;border-radius:14px;font-size:.65rem;font-weight:700;margin:1px}
+    .tag-green{background:#15803d;color:#fff}.tag-blue{background:#1d4ed8;color:#fff}.tag-orange{background:#c2410c;color:#fff}.tag-teal{background:#0d9488;color:#fff}.tag-purple{background:#7c3aed;color:#fff}.tag-pink{background:#ec4899;color:#fff}
+    .answer-display-box{background:rgba(34,197,94,.08);border:2px solid #22c55e;border-radius:6px;padding:10px 14px;margin-top:8px;color:#86efac;font-weight:600;line-height:1.6;font-size:.8rem}
+    .answer-display-box strong{color:#4ade80}
+    .toggle-switch{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0}
+    .toggle-switch input{opacity:0;width:0;height:0}
+    .toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#64748b;transition:.3s;border-radius:22px}
+    .toggle-slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:white;transition:.3s;border-radius:50%}
+    input:checked+.toggle-slider{background-color:#10b981}input:checked+.toggle-slider:before{transform:translateX(18px)}
+    .toggle-setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:8px;margin-bottom:8px}
+    .toggle-setting-row .toggle-label{font-weight:700;font-size:.82rem;color:var(--txt)}
+    .toggle-status{font-size:.68rem;font-weight:800;min-width:32px;text-align:center;padding:2px 6px;border-radius:10px}
+    .toggle-status.on{color:#10b981;background:rgba(16,185,129,.15)}.toggle-status.off{color:#ef4444;background:rgba(239,68,68,.15)}
+    .toggle-checkbox-label{display:flex;align-items:center;gap:6px;font-size:.78rem;cursor:pointer;padding:6px 10px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:16px}
+    .checkbox-group{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast{position:fixed;bottom:15px;right:15px;padding:10px 18px;border-radius:6px;font-weight:700;z-index:99999;animation:slideIn .3s ease;color:#fff;max-width:350px;font-size:.8rem}
+    .toast.success{background:#15803d}.toast.error{background:#b91c1c}
+    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
+    .login-box{background:var(--srf);padding:28px 22px;border-radius:var(--r-lg);box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:340px;border:1px solid var(--brd);text-align:center}
+    .login-inp{width:100%;padding:10px;margin-bottom:10px;border-radius:6px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:.85rem;outline:0}
+    .login-info{background:rgba(59,130,246,.15);border:1px solid #3b82f6;border-radius:6px;padding:8px;margin-bottom:12px;font-size:.75rem;color:var(--txt)}
+    .guest-info-box{background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:6px;padding:8px;margin-bottom:12px;font-size:.75rem;color:var(--txt)}.guest-info-box strong{color:#fbbf24}
+    .file-upload-area{border:2px dashed #0ea5e9;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(14,165,233,.05);margin-bottom:10px}
+    .file-upload-area:hover{border-color:#38bdf8;background:rgba(14,165,233,.1)}
+    .file-upload-area.drag-over{border-color:#22c55e;background:rgba(34,197,94,.1)}
+    .file-upload-icon{font-size:2rem;margin-bottom:8px}
+    .file-types-info{font-size:.7rem;color:var(--mut);margin-top:5px}
+    .optional-label{color:var(--mut);font-weight:400;font-size:.7rem}
+    .edit-question-card{border:1px solid var(--brd);border-radius:8px;padding:15px;margin-bottom:12px;background:rgba(0,0,0,.2)}
+    
+    /* Collapsible Hierarchy Styles */
+    .hm-card{border:2px solid #f59e0b!important;background:rgba(245,158,11,.05)!important}
+    .hm-collapse-btn{background:none;border:none;color:var(--txt);cursor:pointer;font-size:1rem;padding:0 4px;transition:transform .2s;display:inline-flex;align-items:center}
+    .hm-collapse-btn.collapsed{transform:rotate(-90deg)}
+    .hm-subject{border:1px solid rgba(245,158,11,.4);padding:10px;margin-bottom:8px;border-radius:8px;background:rgba(245,158,11,.03)}
+    .hm-subject-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;cursor:pointer;padding:4px 0}
+    .hm-subject-body{padding-left:5px;margin-top:8px}
+    .hm-subsubject{border-left:3px solid #3b82f6;background:rgba(59,130,246,.05);border-radius:0 6px 6px 0;padding:8px;margin:4px 0 4px 10px}
+    .hm-subsubject-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;cursor:pointer}
+    .hm-subsubject-body{padding-left:5px;margin-top:4px}
+    .hm-topic{border-left:3px solid #f59e0b;background:rgba(245,158,11,.03);border-radius:0 4px 4px 0;padding:6px;margin:3px 0 3px 10px}
+    .hm-topic-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;cursor:pointer}
+    .hm-topic-body{padding-left:5px;margin-top:3px}
+    .hm-subtopic{display:inline-flex;align-items:center;gap:3px;margin:2px 4px;font-size:.7rem;color:var(--mut);padding:2px 6px;background:rgba(0,0,0,.1);border-radius:10px}
+    .hm-input-row{display:flex;gap:6px;margin:6px 0;align-items:center;flex-wrap:wrap}
+    .hm-input-row input{flex:1;min-width:120px;margin-bottom:0!important;padding:5px 8px;font-size:.7rem}
+    .hm-input-row button{flex-shrink:0;font-size:.6rem;padding:4px 8px}
+    .hm-header-main{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+    .ad-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 12px;margin:4px 0;color:#fff;font-weight:700;font-size:.78rem;border-radius:4px;cursor:pointer;flex-wrap:wrap;user-select:none}
+    .ad-h:hover{filter:brightness(1.08)}
+    .ad-h-sub{border-left:3px solid #3b82f6;margin-left:12px;font-size:.74rem}
+    .ad-h-topic{border-left:3px solid #f59e0b;margin-left:26px;font-size:.7rem}
+    .ad-h-st{border-left:3px solid #ec4899;margin-left:40px;font-size:.66rem}
+    .ad-body{display:block}.ad-body.collapsed{display:none}
+    @media(max-width:600px){.list-item{flex-direction:column}.admin-tabs{gap:3px}.toolbar{flex-direction:column}.hm-subsubject,.hm-topic{margin-left:5px}.ad-h-st{margin-left:10px}.ad-h-topic{margin-left:8px}.ad-h-sub{margin-left:4px}}
+  </style>
+</head>
+<body class="protected-mode">
+
+  <div id="login-overlay">
+    <div class="login-box">
+      <div class="logo notranslate" style="margin-bottom:12px;">⚙️ SSC Admin Panel</div>
+      <h2 style="color:var(--txt);margin-bottom:18px;font-size:1rem;">Admin Login</h2>
+      <div class="login-info"><strong>🔑 Default:</strong><br>ID: admin<br>Pass: admin123</div>
+      <div class="guest-info-box"><strong>👤 Guest:</strong><br>ID: <span id="guest-id-display">guest</span><br>Pass: <span id="guest-pass-display">guest123</span></div>
+      <input class="login-inp" id="login-phone" placeholder="Admin ID" type="text">
+      <input class="login-inp" id="login-pass" placeholder="Password" type="password">
+      <button class="btn btn-orange" onclick="attemptLogin()" style="font-size:.9rem;margin-top:8px;padding:10px;width:100%;">Login</button>
+      <div id="login-error" style="color:#ef4444;display:none;font-weight:700;font-size:.75rem;margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div class="top-bar">
+    <div class="top-inner">
+      <div class="logo notranslate">⚙️ SSC Admin Panel</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div id="google_translate_element"></div>
+        <select class="lang-select" id="lang-select" onchange="changeLanguage(this.value)">
+          <option value="en">🌐 English</option><option value="te">🔴 తెలుగు</option><option value="hi">🔴 हिन्दी</option><option value="ta">🔴 தமிழ்</option><option value="ml">🔴 മലയാളം</option><option value="kn">🔴 ಕನ್ನಡ</option>
+        </select>
+        <span id="admin-info" style="font-weight:700;font-size:.78rem;"></span>
+        <button class="theme-btn notranslate" id="theme-toggle" onclick="toggleTheme()">Light Mode</button>
+        <button class="btn btn-red btn-sm" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-wrap">
+    <div class="shell" id="shell">
+      <div class="banner notranslate" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">
+        <h1>⚙️ SSC Admin Control Panel</h1>
+      </div>
+      <div class="admin-tabs" id="admin-tabs">
+        <button class="admin-tab-btn active notranslate" onclick="switchTab('quiz')">📝 Quiz</button>
+        <button class="admin-tab-btn notranslate" onclick="switchTab('syllabus')">📖 Syllabus</button>
+        <button class="admin-tab-btn notranslate" onclick="switchTab('users')">👥 Users</button>
+        <button class="admin-tab-btn notranslate" onclick="switchTab('settings')">⚙️ Settings</button>
+      </div>
+      <div class="admin-content" id="admin-content">
+        <div style="padding:30px;text-align:center;"><span class="spinner"></span> Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script>
+    // ============ VERCEL KV API HELPERS ============
+    async function fetchDB(key) {
+      try {
+        const res = await fetch(`/api/db?key=${encodeURIComponent(key)}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.value !== undefined ? data.value : data;
+      } catch (err) {
+        console.error("DB Fetch Error:", err);
+        return null;
+      }
+    }
+
+    async function saveDB(key, value) {
+      try {
+        await fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, value })
+        });
+      } catch (err) {
+        console.error("DB Save Error:", err);
+      }
+    }
+
+    // ============ GLOBAL STATE & CONFIG ============
+    window.googleTranslateElementInit=function(){new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'te,hi,ta,ml,kn,en',layout:google.translate.TranslateElement.InlineLayout.HORIZONTAL,autoDisplay:true},'google_translate_element');var ci=setInterval(function(){var gc=document.querySelector('.goog-te-combo');if(gc){clearInterval(ci);gc.addEventListener('change',function(){var ls=document.getElementById('lang-select');if(ls&&this.value!==ls.value)ls.value=this.value})}},300)};
+    function changeLanguage(l){var ls=document.getElementById('lang-select');ls.style.animation='none';ls.offsetHeight;ls.style.animation='redBlink 0.3s ease-in-out 5';var gc=document.querySelector('.goog-te-combo');if(gc){gc.value=l;gc.dispatchEvent(new Event('change',{bubbles:true}));var ns=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set;ns.call(gc,l);setTimeout(function(){ls.style.animation='redBlink 1s ease-in-out infinite'},1800)}}
+
+    var DEFAULT_ADMIN_ID='admin',DEFAULT_ADMIN_PASS='admin123',DEFAULT_GUEST_ID='guest',DEFAULT_GUEST_PASS='guest123';
+    var adminPhone='',adminToken='';
+    var settings={loginEnabled:true,users:{},adminPass:DEFAULT_ADMIN_PASS,copyEnabled:false,guestAutoLogin:false,guestId:DEFAULT_GUEST_ID,guestPass:DEFAULT_GUEST_PASS};
+    var activeSessions={},currentTab='quiz';
+    var allData={syllabus:{},quiz:{}},csvRows=[],selectedItems={};
+    var currentFilters={subject:'ALL',subSubject:'ALL',topic:'ALL',subTopic:'ALL',sort:'manual'};
+    var draggedItem=null,draggedKey=null,draggedIndex=null;window.answersVisible=false;
+
+    // Fixed default hierarchy (will be overwritten if Vercel KV has data)
+    var SSC_HIERARCHY={
+      'Reasoning & Intelligence':{ 'Verbal Reasoning':{ 'Analogy':['Number Analogy','Letter Analogy','Word Analogy'] } },
+      'Quantitative Aptitude':{ 'Arithmetic':{ 'Number System':['Types','Divisibility'] } }
+    };
+
+    function getMainSubjects(){return Object.keys(SSC_HIERARCHY)}
+    function getSubSubjects(main){var d=SSC_HIERARCHY[main];return d?Object.keys(d):[]}
+    function getTopics(main,sub){var d=SSC_HIERARCHY[main];if(!d)return[];var s=d[sub];return s?Object.keys(s):[]}
+    function getSubTopics(main,sub,topic){var d=SSC_HIERARCHY[main];if(!d)return[];var s=d[sub];if(!s)return[];var t=s[topic];return (t&&Array.isArray(t))?t:['General']}
+    function getSavedSubSubject(item){return item.subSubject||item.subsubject||''}
+    function getSavedTopic(item){return item.topic||''}
+    function getSavedSubTopic(item){return item.subTopic||item.subtopic||item.subSubSubject||item.subsubsubject||''}
+
+    async function saveHierarchy(){
+      await saveDB('sscHierarchy', SSC_HIERARCHY);
+    }
+    
+    function sanitizeHTML(s){if(!s)return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+    function scrubHtml(s){if(!s)return '';var d=document.createElement('div');d.innerHTML=s;var ws=d.querySelectorAll('script,iframe');for(var i=0;i<ws.length;i++)ws[i].remove();var as=d.querySelectorAll('*');for(var j=0;j<as.length;j++){var el=as[j];for(var k=el.attributes.length-1;k>=0;k--){var n=el.attributes[k].name.toLowerCase();if(n.indexOf('on')===0||/^(src|href)$/.test(n) && (el.getAttribute(n)||'').toLowerCase().indexOf('javascript:')===0)el.removeAttribute(el.attributes[k].name)}}return d.innerHTML}
+    function escapeAttr(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;')}
+    function escCSV(s){return s?s.replace(/"/g,'""'):''}
+    function escHTML(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
+    function initTheme(){var t=localStorage.getItem('ssc_ad_th')||'dark',b=document.getElementById('theme-toggle');t==='light'?(document.body.classList.add('light-mode'),b.innerText='Dark Mode'):(document.body.classList.remove('light-mode'),b.innerText='Light Mode')}
+    initTheme();
+    function toggleTheme(){var l=document.body.classList.toggle('light-mode');localStorage.setItem('ssc_ad_th',l?'light':'dark');document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode'}
+    function toast(msg,type){type=type||'info';var t=document.createElement('div');t.className='toast '+type;t.innerText=msg;document.body.appendChild(t);setTimeout(function(){t.remove()},3000)}
+    function updateGuestDisplay(){var g=document.getElementById('guest-id-display'),p=document.getElementById('guest-pass-display');if(g)g.innerText=settings.guestId||DEFAULT_GUEST_ID;if(p)p.innerText=settings.guestPass||DEFAULT_GUEST_PASS}
+
+    function checkAuth(){
+      var o=document.getElementById('login-overlay'),ph=localStorage.getItem('cs_ad_ph'),tk=localStorage.getItem('cs_ad_tk');
+      if(ph&&tk&&activeSessions[ph]===tk){
+        adminPhone=ph;adminToken=tk;o.style.display='none';
+        document.getElementById('admin-info').innerText='Admin: '+sanitizeHTML(ph);
+        refreshUI();
+      }else{
+        o.style.display='flex';
+      }
+      updateGuestDisplay();
+    }
+    
+    async function attemptLogin(){
+      var p=document.getElementById('login-phone').value.trim(),pa=document.getElementById('login-pass').value.trim(),e=document.getElementById('login-error');
+      if(!p||!pa){e.innerText='Enter ID and Password';e.style.display='block';return}
+      var cp=settings.adminPass||DEFAULT_ADMIN_PASS;
+      if(p===DEFAULT_ADMIN_ID&&pa===cp){
+        e.style.display='none';
+        var t="adm_"+Date.now()+"_"+Math.floor(Math.random()*10000);
+        adminPhone=p;adminToken=t;
+        localStorage.setItem('cs_ad_ph',p);localStorage.setItem('cs_ad_tk',t);
+        activeSessions[p]=t;
+        await saveDB('activeSessions', activeSessions);
+        document.getElementById('login-overlay').style.display='none';
+        document.getElementById('admin-info').innerText='Admin: '+sanitizeHTML(p);
+        refreshUI();
+      }else{
+        e.innerText='Invalid credentials';e.style.display='block';
+      }
+    }
+    
+    async function logout(){
+      if(adminPhone){
+        delete activeSessions[adminPhone];
+        await saveDB('activeSessions', activeSessions);
+      }
+      localStorage.removeItem('cs_ad_ph');localStorage.removeItem('cs_ad_tk');
+      adminPhone='';adminToken='';
+      document.getElementById('login-overlay').style.display='flex';
+      document.getElementById('admin-info').innerText='';
+      updateGuestDisplay();
+    }
+    
+    window.switchTab = function(tab){
+      currentTab=tab;csvRows=[];selectedItems={};
+      currentFilters={subject:'ALL',subSubject:'ALL',topic:'ALL',subTopic:'ALL',sort:'manual'};
+      var btns=document.querySelectorAll('.admin-tab-btn');
+      for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');
+      var ab=document.querySelector('.admin-tab-btn[onclick*="switchTab(\''+tab+'\')"]');
+      if(ab)ab.classList.add('active');
+      refreshUI();
+    }
+
+    async function refreshUI(){
+      var ac=document.getElementById('admin-content');
+      if(!adminPhone){ac.innerHTML='<div style="padding:30px;text-align:center;color:#ef4444;">Please login first</div>';return}
+      if(currentTab==='users'){renderUsers();return}
+      if(currentTab==='settings'){renderSettings();return}
+      
+      var refMap={syllabus:'sscTheoryDatabase',quiz:'sscQuestionBank'}, keyMap={syllabus:'syllabus',quiz:'quiz'};
+      ac.innerHTML='<div style="padding:30px;text-align:center;"><span class="spinner"></span> Loading Data...</div>';
+      
+      try {
+        const data = await fetchDB(refMap[currentTab]);
+        allData[keyMap[currentTab]] = data || {};
+        renderContent(keyMap[currentTab]);
+      } catch (err) {
+        ac.innerHTML='<div style="padding:30px;text-align:center;color:#ef4444;"><p>⚠️ Error loading data</p><button class="btn btn-blue btn-sm" onclick="refreshUI()">🔄 Retry</button></div>';
+      }
+    }
+
+    // ============ COLLAPSIBLE HIERARCHY MANAGER ============
+    var hmCollapseState={}; 
+    window.toggleHMCollapse = function(id){
+      hmCollapseState[id]=!hmCollapseState[id];
+      var body=document.getElementById('hm-body-'+id);
+      var btn=document.getElementById('hm-btn-'+id);
+      if(body)body.style.display=hmCollapseState[id]?'none':'block';
+      if(btn)btn.classList.toggle('collapsed',hmCollapseState[id]);
+    }
+
+    window.showHierarchyManager = function(){
+      var ac=document.getElementById('admin-content');
+      var h=buildHierarchyHTML();
+      ac.innerHTML=h;
+      var hm=document.getElementById('hierarchyManager');
+      if(hm)hm.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    function buildHierarchyHTML(){
+      var h='<div id="hierarchyManager" class="card hm-card">';
+      h+='<div class="hm-header-main"><h3 style="color:#f59e0b;margin:0;">🏗️ Manage Subject Hierarchy (4 Levels)</h3><div><button class="btn btn-orange btn-xs notranslate" onclick="expandAllHM()">📂 Expand All</button> <button class="btn btn-dark btn-xs notranslate" onclick="collapseAllHM()">📁 Collapse All</button> <button class="btn btn-dark btn-sm notranslate" onclick="refreshUI()" style="margin-left:5px;">✕ Close</button></div></div>';
+      h+='<p style="color:var(--mut);font-size:.72rem;margin:4px 0 10px;">Subject → Sub-Subject → Topic → Sub-Topic | Click ▼ to collapse/expand</p>';
+      h+='<div class="hm-input-row"><input id="hm-new-subject" class="form-inp" placeholder="➕ New Subject Name"><button class="btn btn-green btn-sm notranslate" onclick="addNewSubject()">Add Subject</button></div>';
+      
+      var mains=getMainSubjects();
+      if(mains.length===0){
+        h+='<p style="color:var(--mut);text-align:center;padding:20px;">No subjects defined yet. Add your first subject above.</p>';
+      }else{
+        for(var mi=0;mi<mains.length;mi++){
+          var main=mains[mi],safeM=main.replace(/[^a-zA-Z0-9]/g,''),subId='subj-'+safeM;
+          var isCollapsed=hmCollapseState[subId];
+          h+='<div class="hm-subject">';
+          h+='<div class="hm-subject-header" onclick="toggleHMCollapse(\''+subId+'\')">';
+          h+='<span><button class="hm-collapse-btn'+(isCollapsed?' collapsed':'')+'" id="hm-btn-'+subId+'">▼</button> <strong style="color:#f59e0b;">📚 '+sanitizeHTML(main)+'</strong> <small style="color:var(--mut);">('+getSubSubjects(main).length+' sub-subjects)</small></span>';
+          h+='<button class="btn btn-red btn-xs notranslate" onclick="event.stopPropagation();deleteSubject(\''+escapeAttr(main)+'\')">🗑</button>';
+          h+='</div>';
+          h+='<div class="hm-subject-body" id="hm-body-'+subId+'" style="display:'+(isCollapsed?'none':'block')+'">';
+          h+='<div class="hm-input-row"><input id="hm-new-ss-'+safeM+'" class="form-inp" placeholder="➕ New Sub-Subject"><button class="btn btn-blue btn-xs notranslate" onclick="addNewSubSubject(\''+escapeAttr(main)+'\')">Add</button></div>';
+          
+          var subs=getSubSubjects(main);
+          for(var si=0;si<subs.length;si++){
+            var sub=subs[si],safeS=sub.replace(/[^a-zA-Z0-9]/g,''),ssId='ss-'+safeM+'-'+safeS;
+            var ssCollapsed=hmCollapseState[ssId];
+            h+='<div class="hm-subsubject">';
+            h+='<div class="hm-subsubject-header" onclick="toggleHMCollapse(\''+ssId+'\')">';
+            h+='<span><button class="hm-collapse-btn'+(ssCollapsed?' collapsed':'')+'" id="hm-btn-'+ssId+'">▼</button> <span style="color:#3b82f6;font-weight:700;">📂 '+sanitizeHTML(sub)+'</span> <small style="color:var(--mut);">('+getTopics(main,sub).length+' topics)</small></span>';
+            h+='<button class="btn btn-red btn-xs notranslate" style="padding:1px 5px;font-size:.6rem;" onclick="event.stopPropagation();deleteSubSubject(\''+escapeAttr(main)+'\',\''+escapeAttr(sub)+'\')">×</button>';
+            h+='</div>';
+            h+='<div class="hm-subsubject-body" id="hm-body-'+ssId+'" style="display:'+(ssCollapsed?'none':'block')+'">';
+            h+='<div class="hm-input-row"><input id="hm-new-topic-'+safeM+'_'+safeS+'" class="form-inp" placeholder="➕ New Topic" style="font-size:.7rem;"><button class="btn btn-teal btn-xs notranslate" style="font-size:.6rem;" onclick="addNewTopic(\''+escapeAttr(main)+'\',\''+escapeAttr(sub)+'\')">Add</button></div>';
+            
+            var topics=getTopics(main,sub);
+            for(var ti=0;ti<topics.length;ti++){
+              var topic=topics[ti],safeT=topic.replace(/[^a-zA-Z0-9]/g,''),tpId='tp-'+safeM+'-'+safeS+'-'+safeT;
+              var tpCollapsed=hmCollapseState[tpId];
+              h+='<div class="hm-topic">';
+              h+='<div class="hm-topic-header" onclick="toggleHMCollapse(\''+tpId+'\')">';
+              h+='<span><button class="hm-collapse-btn'+(tpCollapsed?' collapsed':'')+'" id="hm-btn-'+tpId+'">▼</button> <span style="color:#f59e0b;">📌 '+sanitizeHTML(topic)+'</span> <small style="color:var(--mut);">('+getSubTopics(main,sub,topic).length+' sub-topics)</small></span>';
+              h+='<button class="btn btn-red btn-xs notranslate" style="padding:1px 4px;font-size:.55rem;" onclick="event.stopPropagation();deleteTopic(\''+escapeAttr(main)+'\',\''+escapeAttr(sub)+'\',\''+escapeAttr(topic)+'\')">×</button>';
+              h+='</div>';
+              h+='<div class="hm-topic-body" id="hm-body-'+tpId+'" style="display:'+(tpCollapsed?'none':'block')+'">';
+              h+='<div class="hm-input-row"><input id="hm-new-st-'+safeM+'_'+safeS+'_'+safeT+'" class="form-inp" placeholder="➕ New Sub-Topic" style="font-size:.65rem;padding:3px 6px;"><button class="btn btn-pink btn-xs notranslate" style="font-size:.55rem;padding:3px 6px;" onclick="addNewSubTopic(\''+escapeAttr(main)+'\',\''+escapeAttr(sub)+'\',\''+escapeAttr(topic)+'\')">Add</button></div>';
+              
+              var subTopics=getSubTopics(main,sub,topic);
+              for(var sti=0;sti<subTopics.length;sti++){
+                var st=subTopics[sti];
+                h+='<span class="hm-subtopic">🔹 '+sanitizeHTML(st)+' <button class="btn btn-red btn-xs notranslate" style="padding:0 2px;font-size:.5rem;" onclick="event.stopPropagation();deleteSubTopic(\''+escapeAttr(main)+'\',\''+escapeAttr(sub)+'\',\''+escapeAttr(topic)+'\',\''+escapeAttr(st)+'\')">×</button></span> ';
+              }
+              h+='</div></div>';
+            }
+            h+='</div></div>';
+          }
+          h+='</div></div>';
+        }
+      }
+      h+='</div>';
+      return h;
+    }
+
+    window.expandAllHM = function(){hmCollapseState={};showHierarchyManager();}
+    window.collapseAllHM = function(){
+      var mains=getMainSubjects();
+      for(var mi=0;mi<mains.length;mi++){
+        var main=mains[mi],safeM=main.replace(/[^a-zA-Z0-9]/g,'');
+        hmCollapseState['subj-'+safeM]=true;
+        var subs=getSubSubjects(main);
+        for(var si=0;si<subs.length;si++){
+          var sub=subs[si],safeS=sub.replace(/[^a-zA-Z0-9]/g,'');
+          hmCollapseState['ss-'+safeM+'-'+safeS]=true;
+          var topics=getTopics(main,sub);
+          for(var ti=0;ti<topics.length;ti++){
+            var topic=topics[ti],safeT=topic.replace(/[^a-zA-Z0-9]/g,'');
+            hmCollapseState['tp-'+safeM+'-'+safeS+'-'+safeT]=true;
+          }
+        }
+      }
+      showHierarchyManager();
+    }
+
+    window.addNewSubject = async function(){var el=document.getElementById('hm-new-subject');if(!el)return;var val=el.value.trim();if(!val){toast('Enter name','error');return}if(SSC_HIERARCHY[val]){toast('Exists!','error');return}SSC_HIERARCHY[val]={'General':{'General':['General']}};await saveHierarchy();showHierarchyManager();toast('Added!','success')}
+    window.deleteSubject = async function(main){if(!confirm('Delete '+main+'?'))return;delete SSC_HIERARCHY[main];await saveHierarchy();showHierarchyManager();toast('Deleted!','success')}
+    window.addNewSubSubject = async function(main){var safe=main.replace(/[^a-zA-Z0-9]/g,'');var el=document.getElementById('hm-new-ss-'+safe);if(!el)return;var val=el.value.trim();if(!val){toast('Enter name','error');return}if(!SSC_HIERARCHY[main])SSC_HIERARCHY[main]={};if(SSC_HIERARCHY[main][val]){toast('Exists!','error');return}SSC_HIERARCHY[main][val]={'General':['General']};await saveHierarchy();showHierarchyManager();toast('Added!','success')}
+    window.deleteSubSubject = async function(main,sub){if(!confirm('Delete '+sub+'?'))return;delete SSC_HIERARCHY[main][sub];await saveHierarchy();showHierarchyManager();toast('Deleted!','success')}
+    window.addNewTopic = async function(main,sub){var safeM=main.replace(/[^a-zA-Z0-9]/g,''),safeS=sub.replace(/[^a-zA-Z0-9]/g,'');var el=document.getElementById('hm-new-topic-'+safeM+'_'+safeS);if(!el)return;var val=el.value.trim();if(!val){toast('Enter name','error');return}if(!SSC_HIERARCHY[main])SSC_HIERARCHY[main]={};if(!SSC_HIERARCHY[main][sub])SSC_HIERARCHY[main][sub]={};if(SSC_HIERARCHY[main][sub][val]){toast('Exists!','error');return}SSC_HIERARCHY[main][sub][val]=['General'];await saveHierarchy();showHierarchyManager();toast('Added!','success')}
+    window.deleteTopic = async function(main,sub,topic){if(!confirm('Delete '+topic+'?'))return;delete SSC_HIERARCHY[main][sub][topic];await saveHierarchy();showHierarchyManager();toast('Deleted!','success')}
+    window.addNewSubTopic = async function(main,sub,topic){var safeM=main.replace(/[^a-zA-Z0-9]/g,''),safeS=sub.replace(/[^a-zA-Z0-9]/g,''),safeT=topic.replace(/[^a-zA-Z0-9]/g,'');var el=document.getElementById('hm-new-st-'+safeM+'_'+safeS+'_'+safeT);if(!el)return;var val=el.value.trim();if(!val){toast('Enter name','error');return}if(!SSC_HIERARCHY[main])SSC_HIERARCHY[main]={};if(!SSC_HIERARCHY[main][sub])SSC_HIERARCHY[main][sub]={};if(!SSC_HIERARCHY[main][sub][topic])SSC_HIERARCHY[main][sub][topic]=['General'];if(SSC_HIERARCHY[main][sub][topic].indexOf(val)!==-1){toast('Exists!','error');return}SSC_HIERARCHY[main][sub][topic].push(val);await saveHierarchy();showHierarchyManager();toast('Added!','success')}
+    window.deleteSubTopic = async function(main,sub,topic,st){if(!confirm('Delete '+st+'?'))return;var arr=SSC_HIERARCHY[main][sub][topic];var idx=arr.indexOf(st);if(idx!==-1)arr.splice(idx,1);if(arr.length===0)arr.push('General');await saveHierarchy();showHierarchyManager();toast('Deleted!','success')}
+
+    // ============ COLLAPSIBLE 4-LEVEL GROUPED LIST ============
+    window.togAdm = function(id){var el=document.getElementById(id);if(el)el.classList.toggle('collapsed')}
+    function admItemRow(k,i,item,isQuiz){var selClass=selectedItems[k]?'selected':'',isChecked=selectedItems[k]?true:false;
+      var h='<div class="list-item '+selClass+'" data-key="'+escapeAttr(k)+'" data-index="'+i+'" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">';
+      h+='<div class="drag-handle notranslate">☰</div><div class="item-toggle"><label class="toggle-switch"><input type="checkbox" '+(isChecked?'checked':'')+' onchange="toggleSelect(\''+escapeAttr(k)+'\',this.checked)"><span class="toggle-slider"></span></label></div><div class="item-info">';
+      if(isQuiz){var cnt=Array.isArray(item)?item.length:0,fq=(Array.isArray(item)&&item.length>0)?item[0]:{};
+        h+='<strong>'+sanitizeHTML(k.replace(/_/g,' '))+'</strong><span class="tag tag-teal">'+cnt+' Qs</span>';
+        if(fq.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(fq.subject)+'</span>';
+        var ss=getSavedSubSubject(fq);if(ss)h+='<span class="tag tag-orange">'+sanitizeHTML(ss)+'</span>';
+        var tp=getSavedTopic(fq);if(tp)h+='<span class="tag tag-purple">'+sanitizeHTML(tp)+'</span>';
+        var st=getSavedSubTopic(fq);if(st)h+='<span class="tag tag-pink">'+sanitizeHTML(st)+'</span>';
+        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="event.stopPropagation();viewQuizGroup(\''+escapeAttr(k)+'\')">👁 View</button><button class="btn btn-orange btn-xs notranslate" onclick="event.stopPropagation();editQuizGroup(\''+escapeAttr(k)+'\')">✏️ Edit</button>';
+      }else{h+='<strong>'+(item.title?sanitizeHTML(item.title.replace(/<[^>]*>/g,'')):'Untitled')+'</strong>';
+        if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
+        if(item.subSubject)h+='<span class="tag tag-orange">'+sanitizeHTML(item.subSubject)+'</span>';
+        if(item.topic)h+='<span class="tag tag-purple">'+sanitizeHTML(item.topic)+'</span>';
+        if(item.subTopic)h+='<span class="tag tag-pink">'+sanitizeHTML(item.subTopic)+'</span>';
+        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="event.stopPropagation();editSyllabusItem(\''+escapeAttr(k)+'\')">✏️ Edit</button>';}
+      h+='<button class="btn btn-red btn-xs notranslate" onclick="event.stopPropagation();deleteSingle(\''+escapeAttr(k)+'\')">🗑</button></div></div>';
+      return h}
+    function admPathOf(k,item,isQuiz){var p={};if(isQuiz){var fq=(Array.isArray(item)&&item.length>0)?item[0]:{};p.subject=fq.subject||'General';p.sub=getSavedSubSubject(fq)||'General';p.topic=getSavedTopic(fq)||'General';p.st=getSavedSubTopic(fq)||'General';}else{p.subject=item.subject||'General';p.sub=item.subSubject||'General';p.topic=item.topic||'General';p.st=item.subTopic||'General';}return p}
+    function renderItemsList(dk,fk,data,isQuiz){
+      var tree={};
+      fk.forEach(function(k,idx){var item=data[k],p=admPathOf(k,item,isQuiz);
+        if(!tree[p.subject])tree[p.subject]={};
+        if(!tree[p.subject][p.sub])tree[p.subject][p.sub]={};
+        if(!tree[p.subject][p.sub][p.topic])tree[p.subject][p.sub][p.topic]={};
+        if(!tree[p.subject][p.sub][p.topic][p.st])tree[p.subject][p.sub][p.topic][p.st]=[];
+        tree[p.subject][p.sub][p.topic][p.st].push(k);});
+      var h='',tick=0;
+      var subjColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)','linear-gradient(135deg,#06b6d4,#0891b2)','linear-gradient(135deg,#ec4899,#db2777)','linear-gradient(135deg,#14b8a6,#0d9488)'];
+      function san(s){return s.replace(/[^a-zA-Z0-9]/g,'_')}
+      Object.keys(tree).sort().forEach(function(subject){
+        var sBodyId='ad_subj_'+tick+'_'+san(subject);var sTot=0;
+        Object.keys(tree[subject]).forEach(function(sub){var subObj=tree[subject][sub];Object.keys(subObj).forEach(function(tp){Object.keys(subObj[tp]).forEach(function(st){sTot+=subObj[tp][st].length})})});
+        h+='<div class="ad-h" style="background:'+subjColors[tick%subjColors.length]+';" onclick="togAdm(\''+sBodyId+'\')"><span>📚 '+sanitizeHTML(subject)+'</span><span class="item-count-badge">'+sTot+' group(s)</span><span>▼</span></div>';
+        h+='<div class="ad-body" id="'+sBodyId+'">';
+        Object.keys(tree[subject]).sort().forEach(function(sub){
+          var ssBodyId=sBodyId+'_ss_'+san(sub);var subObj=tree[subject][sub];var ssT=0;
+          Object.keys(subObj).forEach(function(tp){Object.keys(subObj[tp]).forEach(function(st){ssT+=subObj[tp][st].length})});
+          h+='<div class="ad-h ad-h-sub" style="background:rgba(59,130,246,.25);" onclick="togAdm(\''+ssBodyId+'\')"><span>📂 '+sanitizeHTML(sub)+' ('+ssT+')</span><span>▼</span></div>';
+          h+='<div class="ad-body" id="'+ssBodyId+'">';
+          Object.keys(subObj).sort().forEach(function(tp){
+            var tpBodyId=ssBodyId+'_tp_'+san(tp);var tpT=0;
+            Object.keys(subObj[tp]).forEach(function(st){tpT+=subObj[tp][st].length});
+            h+='<div class="ad-h ad-h-topic" style="background:rgba(245,158,11,.22);" onclick="togAdm(\''+tpBodyId+'\')"><span>📌 '+sanitizeHTML(tp)+' ('+tpT+')</span><span>▼</span></div>';
+            h+='<div class="ad-body" id="'+tpBodyId+'">';
+            Object.keys(subObj[tp]).sort().forEach(function(st){
+              var stBodyId=tpBodyId+'_st_'+san(st);
+              h+='<div class="ad-h ad-h-st" style="background:rgba(236,72,153,.2);" onclick="togAdm(\''+stBodyId+'\')"><span>🔹 '+sanitizeHTML(st)+' ('+subObj[tp][st].length+')</span><span>▼</span></div>';
+              h+='<div class="ad-body" id="'+stBodyId+'">';
+              subObj[tp][st].forEach(function(k){h+=admItemRow(k,fk.indexOf(k),data[k],isQuiz)});
+              h+='</div>';
+            });
+            h+='</div>';
+          });
+          h+='</div>';
+        });
+        h+='</div>';
+        tick++;
+      });
+      return h;
+    }
+
+    function renderContent(dk){
+      var ac=document.getElementById('admin-content'),data=allData[dk]||{},keys=Object.keys(data),isQuiz=(dk==='quiz'),h='';
+      if(isQuiz)h+='<div class="info-banner">📝 Quiz: <strong>Subject → Sub-Subject → Topic → Sub-Topic</strong> | 🖼 HTML/SVG supported. <button class="btn btn-yellow btn-xs notranslate" onclick="showHierarchyManager()" style="margin-left:10px;">🏗️ Manage Hierarchy</button></div>';
+      else h+='<div class="info-banner">📖 Syllabus: <strong>Subject → Sub-Subject → Topic → Sub-Topic</strong>. <button class="btn btn-yellow btn-xs notranslate" onclick="showHierarchyManager()" style="margin-left:10px;">🏗️ Manage Hierarchy</button></div>';
+      if(isQuiz){
+        h+='<div class="csv-box"><h3>📥 Bulk Upload Quiz (CSV/TSV/TXT/JSON/HTML)</h3><div class="csv-fmt"><strong>10 Columns:</strong> SNO | Subject | Sub-Subject | Topic | Sub-Topic | Question | Option A | Option B | Correct | Explanation<br>🖼 Supports 2 or 4 options (A/B/C/D). Option C &amp; D columns optional — questions with only A/B work automatically on the Student app.<br>🖼 HTML/SVG with double‑quotes fully supported. Drag & drop .tsv file directly.</div>';
+        h+='<div class="file-upload-area" id="fileDropZone" onclick="document.getElementById(\'csvFileInput\').click()"><div class="file-upload-icon">📁</div><div style="font-weight:700;color:#38bdf8;">Click or Drag & Drop Files</div><div class="file-types-info">.csv .tsv .txt .json .html .htm</div></div>';
+        h+='<input type="file" id="csvFileInput" style="display:none;" accept=".csv,.tsv,.txt,.json,.html,.htm,text/*" onchange="handleFileEvent(event)">';
+        h+='<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste CSV/TSV/JSON/HTML here..." style="min-height:90px;"></textarea><button class="btn btn-teal btn-sm notranslate" onclick="parsePastedEvent()">🔍 Parse</button></div>';
+        h+='<div id="csvPreviewArea"></div></div>';
+      }
+      h+='<div class="toolbar">';
+      var mainSubs=getMainSubjects();
+      h+='<select class="form-inp" id="filterSubject" onchange="updateFilter(\'subject\',this.value);updateSubFilter()" style="max-width:150px;"><option value="ALL">📚 All Subjects</option>';
+      for(var si=0;si<mainSubs.length;si++)h+='<option value="'+escapeAttr(mainSubs[si])+'" '+(currentFilters.subject===mainSubs[si]?'selected':'')+'>'+sanitizeHTML(mainSubs[si])+'</option>';
+      h+='</select><select class="form-inp" id="filterSubSubject" onchange="updateFilter(\'subSubject\',this.value);updateTopicFilter()" style="max-width:150px;"><option value="ALL">📝 All Sub-Subjects</option>';
+      if(currentFilters.subject!=='ALL'){var subs=getSubSubjects(currentFilters.subject);for(var ssi=0;ssi<subs.length;ssi++)h+='<option value="'+escapeAttr(subs[ssi])+'" '+(currentFilters.subSubject===subs[ssi]?'selected':'')+'>'+sanitizeHTML(subs[ssi])+'</option>'}
+      h+='</select><select class="form-inp" id="filterTopic" onchange="updateFilter(\'topic\',this.value);updateSubTopicFilter()" style="max-width:150px;"><option value="ALL">📌 All Topics</option>';
+      if(currentFilters.subject!=='ALL'&&currentFilters.subSubject!=='ALL'){var topics=getTopics(currentFilters.subject,currentFilters.subSubject);for(var ti=0;ti<topics.length;ti++)h+='<option value="'+escapeAttr(topics[ti])+'" '+(currentFilters.topic===topics[ti]?'selected':'')+'>'+sanitizeHTML(topics[ti])+'</option>'}
+      h+='</select><select class="form-inp" id="filterSubTopic" onchange="updateFilter(\'subTopic\',this.value)" style="max-width:150px;"><option value="ALL">🔹 All Sub-Topics</option>';
+      if(currentFilters.subject!=='ALL'&&currentFilters.subSubject!=='ALL'&&currentFilters.topic!=='ALL'){var sts=getSubTopics(currentFilters.subject,currentFilters.subSubject,currentFilters.topic);for(var sti=0;sti<sts.length;sti++)h+='<option value="'+escapeAttr(sts[sti])+'" '+(currentFilters.subTopic===sts[sti]?'selected':'')+'>'+sanitizeHTML(sts[sti])+'</option>'}
+      h+='</select><select class="form-inp notranslate" id="sortOrder" onchange="updateFilter(\'sort\',this.value)" style="max-width:110px;"><option value="manual" '+(currentFilters.sort==='manual'?'selected':'')+'>Manual</option><option value="newest" '+(currentFilters.sort==='newest'?'selected':'')+'>Newest</option><option value="az" '+(currentFilters.sort==='az'?'selected':'')+'>A-Z</option></select>';
+      h+='<button class="btn btn-blue btn-sm notranslate" onclick="selectAllItems()">☑ All</button><button class="btn btn-dark btn-sm notranslate" onclick="deselectAllItems()">☐ None</button><button class="btn btn-red btn-sm notranslate" onclick="deleteSelected()">🗑 Del (<span id="selCount">0</span>)</button>';
+      h+='<button class="btn btn-purple btn-sm notranslate" onclick="downloadData(\''+dk+'\')">📥 JSON</button><button class="btn btn-teal btn-sm notranslate" onclick="downloadCSV(\''+dk+'\')">📊 CSV</button>';
+      if(!isQuiz)h+='<button class="btn btn-green btn-sm notranslate" onclick="showAddSyllabusForm()">➕ Add</button>';
+      if(isQuiz)h+='<button class="btn btn-pink btn-sm notranslate" id="btnToggleAnswers" onclick="toggleAllAnswers()">👁 Show Answers</button>';
+      h+='<span style="color:var(--mut);margin-left:auto;font-size:.72rem;">Total: <strong>'+keys.length+'</strong></span></div>';
+      h+='<div id="itemsList">';
+      if(keys.length===0)h+='<div style="padding:25px;text-align:center;color:var(--mut);">No data yet.</div>';
+      else{var fk=getFilteredAndSortedKeys(keys,data,isQuiz);
+        h+=renderItemsList(dk,fk,data,isQuiz)}
+      h+='</div><div id="editForm" style="display:none;margin-top:15px;"></div><div id="groupView" style="display:none;margin-top:15px;"></div>';
+      ac.innerHTML=h;setupFileDropZone();updateSelCount();
+    }
+
+    function setupFileDropZone(){var dropZone=document.getElementById('fileDropZone');if(!dropZone)return;['dragenter','dragover','dragleave','drop'].forEach(function(e){dropZone.addEventListener(e,function(ev){ev.preventDefault();ev.stopPropagation();});});['dragenter','dragover'].forEach(function(e){dropZone.addEventListener(e,function(){dropZone.classList.add('drag-over');});});['dragleave','drop'].forEach(function(e){dropZone.addEventListener(e,function(){dropZone.classList.remove('drag-over');});});dropZone.addEventListener('drop',function(e){var files=e.dataTransfer.files;if(files.length>0){document.getElementById('csvFileInput').files=files;handleFileEvent({target:{files:files}});}});}
+    window.toggleAllAnswers = function(){window.answersVisible=!window.answersVisible;var all=document.querySelectorAll('.quiz-answers-hidden');var btn=document.getElementById('btnToggleAnswers');for(var i=0;i<all.length;i++)all[i].style.display=window.answersVisible?'block':'none';if(btn)btn.innerHTML=window.answersVisible?'🙈 Hide':'👁 Show'}
+    window.viewQuizGroup = function(key){var gv=document.getElementById('groupView'),qs=(allData.quiz&&allData.quiz[key])?allData.quiz[key]:null;if(!qs||!Array.isArray(qs)){gv.innerHTML='<p>No data</p>';gv.style.display='block';return}var h='<div class="card"><h3>📝 '+sanitizeHTML(key.replace(/_/g,' '))+' ('+qs.length+' Qs)</h3><button class="btn btn-dark btn-sm" onclick="document.getElementById(\'groupView\').style.display=\'none\'">← Back</button><br><br>';for(var i=0;i<qs.length;i++){var q=qs[i];h+='<div class="answer-display-box"><strong>Q'+(i+1)+':</strong> '+scrubHtml(q.question)+'<br><strong>✅ Answer:</strong> '+sanitizeHTML(q.correctAnswer)+') '+scrubHtml((q.options&&q.options[q.correctAnswer])||'');if(q.options)h+='<br><small style="color:var(--mut);">A: '+scrubHtml(q.options.A||'')+' | B: '+scrubHtml(q.options.B||'')+(q.options.C?' | C: '+scrubHtml(q.options.C||''):'')+(q.options.D?' | D: '+scrubHtml(q.options.D||''):'')+'</small>';if(q.explanation)h+='<br><small style="color:#fbbf24;">💡 '+scrubHtml(q.explanation)+'</small>';h+='</div>'}h+='</div>';gv.innerHTML=h;gv.style.display='block';gv.scrollIntoView({behavior:'smooth'})}
+    window.updateSubFilter = function(){var sel=document.getElementById('filterSubSubject');if(!sel)return;sel.innerHTML='<option value="ALL">📝 All Sub-Subjects</option>';if(currentFilters.subject!=='ALL'){var subs=getSubSubjects(currentFilters.subject);for(var i=0;i<subs.length;i++)sel.innerHTML+='<option value="'+escapeAttr(subs[i])+'">'+sanitizeHTML(subs[i])+'</option>'}currentFilters.subSubject='ALL';currentFilters.topic='ALL';currentFilters.subTopic='ALL';window.updateTopicFilter();}
+    window.updateTopicFilter = function(){var sel=document.getElementById('filterTopic');if(!sel)return;sel.innerHTML='<option value="ALL">📌 All Topics</option>';if(currentFilters.subject!=='ALL'&&currentFilters.subSubject!=='ALL'){var topics=getTopics(currentFilters.subject,currentFilters.subSubject);for(var i=0;i<topics.length;i++)sel.innerHTML+='<option value="'+escapeAttr(topics[i])+'">'+sanitizeHTML(topics[i])+'</option>'}currentFilters.topic='ALL';currentFilters.subTopic='ALL';window.updateSubTopicFilter();}
+    window.updateSubTopicFilter = function(){var sel=document.getElementById('filterSubTopic');if(!sel)return;sel.innerHTML='<option value="ALL">🔹 All Sub-Topics</option>';if(currentFilters.subject!=='ALL'&&currentFilters.subSubject!=='ALL'&&currentFilters.topic!=='ALL'){var sts=getSubTopics(currentFilters.subject,currentFilters.subSubject,currentFilters.topic);for(var i=0;i<sts.length;i++)sel.innerHTML+='<option value="'+escapeAttr(sts[i])+'">'+sanitizeHTML(sts[i])+'</option>'}currentFilters.subTopic='ALL';}
+    window.handleDragStart = function(e){draggedItem=e.target.closest('.list-item');if(!draggedItem)return;draggedKey=draggedItem.dataset.key;draggedIndex=parseInt(draggedItem.dataset.index);draggedItem.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
+    window.handleDragEnd = function(e){if(draggedItem)draggedItem.classList.remove('dragging');document.querySelectorAll('.list-item').forEach(function(el){el.classList.remove('drag-over')});draggedItem=null;draggedKey=null;draggedIndex=null;}
+    window.handleDragOver = function(e){e.preventDefault();e.dataTransfer.dropEffect='move';var target=e.target.closest('.list-item');if(target&&target!==draggedItem)target.classList.add('drag-over');}
+    window.handleDragLeave = function(e){var target=e.target.closest('.list-item');if(target)target.classList.remove('drag-over');}
+    window.handleDrop = function(e){e.preventDefault();e.stopPropagation();var target=e.target.closest('.list-item');if(!target||!draggedKey||target===draggedItem)return;target.classList.remove('drag-over');var targetKey=target.dataset.key;if(draggedIndex===parseInt(target.dataset.index))return;swapOrder(draggedKey,targetKey);}
+    
+    async function swapOrder(keyA,keyB){
+      var data=allData[currentTab],isQuiz=(currentTab==='quiz'),keys=Object.keys(data),idxA=keys.indexOf(keyA),idxB=keys.indexOf(keyB);
+      function getOrder(k,def){var it=data[k];if(isQuiz)return(it&&it.length&&it[0].order!==undefined)?it[0].order:def;return(it&&it.order!==undefined)?it.order:def}
+      var orderA=getOrder(keyA,idxA*10),orderB=getOrder(keyB,idxB*10);
+      if(orderA===orderB){orderA=idxA*10;orderB=idxB*10}
+      var rp=currentTab==='quiz'?'sscQuestionBank':'sscTheoryDatabase';
+      
+      if(isQuiz){
+        allData.quiz[keyA][0].order = orderB;
+        allData.quiz[keyB][0].order = orderA;
+        await saveDB('sscQuestionBank', allData.quiz);
+      }else{
+        allData.syllabus[keyA].order = orderB;
+        allData.syllabus[keyB].order = orderA;
+        await saveDB('sscTheoryDatabase', allData.syllabus);
+      }
+      refreshUI();
+    }
+    
+    window.updateFilter = function(type,value){currentFilters[type]=value;if(type==='subject'){currentFilters.subSubject='ALL';currentFilters.topic='ALL';currentFilters.subTopic='ALL'}if(type==='subSubject'){currentFilters.topic='ALL';currentFilters.subTopic='ALL'}if(type==='topic')currentFilters.subTopic='ALL';applyFilters()}
+    function getFilteredAndSortedKeys(keys,data,isQuiz){var filtered=[];for(var i=0;i<keys.length;i++){var k=keys[i],item=data[k];if(isQuiz){var fq=(Array.isArray(item)&&item.length>0)?item[0]:{};if(currentFilters.subject!=='ALL'&&fq.subject!==currentFilters.subject)continue;var ss=getSavedSubSubject(fq);if(currentFilters.subSubject!=='ALL'&&ss!==currentFilters.subSubject)continue;var tp=getSavedTopic(fq);if(currentFilters.topic!=='ALL'&&tp!==currentFilters.topic)continue;var st=getSavedSubTopic(fq);if(currentFilters.subTopic!=='ALL'&&st!==currentFilters.subTopic)continue}else{if(currentFilters.subject!=='ALL'&&item.subject!==currentFilters.subject)continue;if(currentFilters.subSubject!=='ALL'&&item.subSubject!==currentFilters.subSubject)continue;if(currentFilters.topic!=='ALL'&&item.topic!==currentFilters.topic)continue;if(currentFilters.subTopic!=='ALL'&&item.subTopic!==currentFilters.subTopic)continue}filtered.push(k);}if(currentFilters.sort==='manual'){filtered.sort(function(a,b){var oA=(isQuiz?(data[a]&&data[a].length?data[a][0].order:undefined):(data[a]?data[a].order:undefined));var oB=(isQuiz?(data[b]&&data[b].length?data[b][0].order:undefined):(data[b]?data[b].order:undefined));return(oA!==undefined?oA:999999)-(oB!==undefined?oB:999999)})}return filtered}
+    function applyFilters(){selectedItems={};refreshUI()}
+    window.toggleSelect = function(key,checked){if(checked)selectedItems[key]=true;else delete selectedItems[key];updateSelCount();}
+    window.selectAllItems = function(){var items=document.querySelectorAll('#itemsList .list-item');for(var i=0;i<items.length;i++){selectedItems[items[i].dataset.key]=true;}updateSelCount();refreshUI();}
+    window.deselectAllItems = function(){selectedItems={};updateSelCount();refreshUI();}
+    function updateSelCount(){var cnt=Object.keys(selectedItems).length,el=document.getElementById('selCount');if(el)el.innerText=cnt;}
+    
+    window.deleteSelected = async function(){
+      var sk=Object.keys(selectedItems);
+      if(sk.length===0){toast('No items selected!','error');return}
+      if(!confirm('Delete '+sk.length+' items?'))return;
+      var dk=currentTab==='quiz'?'quiz':'syllabus';
+      var dbKey=currentTab==='quiz'?'sscQuestionBank':'sscTheoryDatabase';
+      
+      for(var i=0; i<sk.length; i++) {
+        delete allData[dk][sk[i]];
+      }
+      
+      await saveDB(dbKey, allData[dk]);
+      toast('Deleted '+sk.length+' items!','success');
+      selectedItems={};
+      refreshUI();
+    }
+    
+    window.deleteSingle = async function(id){
+      if(!confirm('Delete permanently?'))return;
+      var dk=currentTab==='quiz'?'quiz':'syllabus';
+      var dbKey=currentTab==='quiz'?'sscQuestionBank':'sscTheoryDatabase';
+      
+      delete allData[dk][id];
+      await saveDB(dbKey, allData[dk]);
+      toast('Deleted!','success');
+      delete selectedItems[id];
+      refreshUI();
+    }
+    
+    window.downloadData = function(dk){var data=allData[dk]||{},ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data),ed={};for(var i=0;i<ks.length;i++)ed[ks[i]]=data[ks[i]];var blob=new Blob([JSON.stringify(ed,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=dk+'_data.json';a.click();URL.revokeObjectURL(url);toast('Downloaded!','success')}
+    window.downloadCSV = function(dk){var data=allData[dk]||{},ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data),isQuiz=(dk=='quiz'),csv='';if(isQuiz){csv='Subject,Sub-Subject,Topic,Sub-Topic,Question,Option A,Option B,Option C,Option D,Correct,Explanation\n';for(var i=0;i<ks.length;i++){var g=data[ks[i]];if(!Array.isArray(g))continue;for(var j=0;j<g.length;j++){var q=g[j];csv+='"'+escCSV(q.subject||'')+'","'+escCSV(getSavedSubSubject(q))+'","'+escCSV(getSavedTopic(q))+'","'+escCSV(getSavedSubTopic(q))+'","'+escCSV(q.question)+'","'+escCSV(q.options.A)+'","'+escCSV(q.options.B)+'","'+escCSV(q.options.C)+'","'+escCSV(q.options.D)+'","'+q.correctAnswer+'","'+escCSV(q.explanation||'')+'"\n'}}}else{csv='Title,Subject,Sub-Subject,Topic,Sub-Topic,Content\n';for(var m=0;m<ks.length;m++){var it=data[ks[m]];csv+='"'+escCSV(it.title||'')+'","'+escCSV(it.subject||'')+'","'+escCSV(it.subSubject||'')+'","'+escCSV(it.topic||'')+'","'+escCSV(it.subTopic||'')+'","'+escCSV((it.content||'').replace(/<[^>]*>/g,'').substring(0,300))+'"\n'}}var blob=new Blob([csv],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=dk+'_export.csv';a.click();URL.revokeObjectURL(url);toast('Downloaded!','success')}
+    window.handleFileEvent = function(event){var file=event.target.files[0];if(!file){toast('No file selected!','error');return}var reader=new FileReader();reader.onload=function(e){smartParse(e.target.result,file.name);};reader.readAsText(file);}
+    window.parsePastedEvent = function(){var txt=document.getElementById('csvPasteInput').value.trim();if(!txt){toast('Paste data first!','error');return}if(txt.startsWith('[')||txt.startsWith('{')){try{parseJSONData(JSON.parse(txt));return;}catch(e){}}smartParse(txt,'pasted');}
+    function smartParse(text,sourceName){if(!text||typeof text!=='string'){toast('Invalid data!','error');return}var rows=parseCSVRows(text);if(rows.length<2){toast('Need header + data rows. Found: '+rows.length,'error');return}var delimiter=detectDelimiter(rows);var headers=smartSplitLine(rows[0],delimiter);var colMap={subject:-1,subSubject:-1,topic:-1,subTopic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};for(var hi=0;hi<headers.length;hi++){var hdr=headers[hi].toLowerCase().replace(/[\s_-]/g,'');if(hdr==='subject'||hdr==='mainsubject')colMap.subject=hi;else if(hdr==='subsubject'||hdr==='sub-subject')colMap.subSubject=hi;else if(hdr==='topic')colMap.topic=hi;else if(hdr==='subtopic'||hdr==='sub-topic')colMap.subTopic=hi;else if(hdr==='question'||hdr==='ques'||hdr==='q')colMap.question=hi;else if(hdr==='optiona'||hdr==='opta'||hdr==='a')colMap.optA=hi;else if(hdr==='optionb'||hdr==='optb'||hdr==='b')colMap.optB=hi;else if(hdr==='optionc'||hdr==='optc'||hdr==='c')colMap.optC=hi;else if(hdr==='optiond'||hdr==='optd'||hdr==='d')colMap.optD=hi;else if(hdr==='correct'||hdr==='answer'||hdr==='ans')colMap.correct=hi;else if(hdr==='explanation'||hdr==='exp')colMap.explanation=hi;}if(colMap.subject===-1&&headers.length>1)colMap.subject=1;if(colMap.subSubject===-1&&headers.length>2)colMap.subSubject=2;if(colMap.topic===-1&&headers.length>3)colMap.topic=3;if(colMap.subTopic===-1&&headers.length>4)colMap.subTopic=4;if(colMap.question===-1&&headers.length>5)colMap.question=5;if(colMap.optA===-1&&headers.length>6)colMap.optA=6;if(colMap.optB===-1&&headers.length>7)colMap.optB=7;if(colMap.correct===-1&&headers.length>8)colMap.correct=8;if(colMap.explanation===-1&&headers.length>9)colMap.explanation=9;csvRows=[];var errors=[];for(var l=1;l<rows.length;l++){var cols=smartSplitLine(rows[l],delimiter);if(cols.length<7){errors.push('Row '+(l+1)+': too few columns');continue}var subject=getCol(cols,colMap.subject)||'General',subSubject=getCol(cols,colMap.subSubject)||'General',topic=getCol(cols,colMap.topic)||'General',subTopic=getCol(cols,colMap.subTopic)||'';var question=getCol(cols,colMap.question),optA=getCol(cols,colMap.optA),optB=getCol(cols,colMap.optB),optC=getCol(cols,colMap.optC),optD=getCol(cols,colMap.optD),ans=getCol(cols,colMap.correct).toUpperCase().trim().charAt(0),exp=getCol(cols,colMap.explanation)||'';if(!question||!optA||!optB||!ans){errors.push('Row '+(l+1)+': missing Q/A/B/Correct');continue}if(['A','B','C','D'].indexOf(ans)===-1){errors.push('Row '+(l+1)+': Correct must be A/B/C/D');continue}var key=(subject+'_'+subSubject+'_'+topic+(subTopic?'_'+subTopic:'')).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');csvRows.push({key:key,subject:subject,subSubject:subSubject,topic:topic,subTopic:subTopic||'',question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});}showCSVPreview(errors,sourceName+' ('+(delimiter==='\t'?'TSV':'CSV')+')');}
+    function parseCSVRows(text){var rows=[],current='',inQuotes=false;for(var i=0;i<text.length;i++){var ch=text[i];if(inQuotes&&ch==='"'&&i+1<text.length&&text[i+1]==='"'){current+='""';i++;continue;}if(ch==='"'){inQuotes=!inQuotes;current+=ch;continue;}if(ch==='\n'&&!inQuotes){if(current.trim())rows.push(current.trim());current='';continue;}if(ch==='\r'&&!inQuotes){if(current.trim())rows.push(current.trim());current='';if(i+1<text.length&&text[i+1]==='\n')i++;continue;}current+=ch;}if(current.trim())rows.push(current.trim());return rows;}
+    function detectDelimiter(rows){var tc=0,cc=0;for(var i=0;i<Math.min(5,rows.length);i++){var inQ=false;for(var j=0;j<rows[i].length;j++){var ch=rows[i][j];if(inQ&&ch==='"'&&rows[i][j+1]==='"'){j++;continue;}if(ch==='"'){inQ=!inQ;continue;}if(ch==='\t'&&!inQ)tc++;else if(ch===','&&!inQ)cc++;}}return tc>=cc?'\t':',';}
+    function smartSplitLine(line,delimiter){var result=[],current='',inQuotes=false;for(var i=0;i<line.length;i++){var ch=line[i];if(inQuotes&&ch==='"'&&line[i+1]==='"'){current+='"';i++;continue;}if(ch==='"'){inQuotes=!inQuotes;continue;}if(ch===delimiter&&!inQuotes){result.push(current.trim());current='';continue;}current+=ch;}result.push(current.trim());return result;}
+    function parseJSONData(jsonData){var rows=[];if(!Array.isArray(jsonData)){if(jsonData.question)rows=[jsonData];else if(jsonData.questions)rows=jsonData.questions;else{toast('Invalid JSON!','error');return}}else rows=jsonData;csvRows=[];var errors=[];for(var i=0;i<rows.length;i++){var r=rows[i];var subject=r.subject||r.Subject||'',subSubject=r.subSubject||r.subsubject||r['Sub-Subject']||'',topic=r.topic||r.Topic||'',subTopic=r.subTopic||r.subtopic||r['Sub-Topic']||'',question=r.question||r.Question||'',optA=r.optionA||r.optA||(r.options&&r.options.A)||r['Option A']||'',optB=r.optionB||r.optB||(r.options&&r.options.B)||r['Option B']||'',optC=r.optionC||r.optC||(r.options&&r.options.C)||r['Option C']||'',optD=r.optionD||r.optD||(r.options&&r.options.D)||r['Option D']||'',ans=(r.correctAnswer||r.answer||r.Answer||'').toString().toUpperCase().charAt(0),exp=r.explanation||r.Explanation||'';if(!subject||!question||!optA||!optB||!ans){errors.push('Row '+(i+1)+': missing');continue}if(['A','B','C','D'].indexOf(ans)===-1){errors.push('Row '+(i+1)+': A/B/C/D');continue}var key=(subject+'_'+subSubject+'_'+topic+(subTopic?'_'+subTopic:'')).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');csvRows.push({key:key,subject:subject,subSubject:subSubject,topic:topic,subTopic:subTopic||'',question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});}showCSVPreview(errors,'JSON');}
+    function showCSVPreview(errors,formatType){if(csvRows.length===0){toast('No valid rows! Errors: '+errors.length,'error');return}var groups={};for(var i=0;i<csvRows.length;i++)groups[csvRows[i].key]=(groups[csvRows[i].key]||0)+1;var pv=document.getElementById('csvPreviewArea');pv.style.display='block';var h='<div style="margin-top:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:6px;"><p><strong>✅ '+csvRows.length+' Questions</strong> in <strong>'+Object.keys(groups).length+' Groups</strong> ('+formatType+')</p>';if(errors.length>0)h+='<p style="color:#f59e0b;font-size:.7rem;">⚠️ '+errors.length+' skipped</p>';h+='<button class="btn btn-green btn-sm notranslate" onclick="uploadCSVToFB()">🚀 Upload '+csvRows.length+' Qs</button> <button class="btn btn-dark btn-sm notranslate" onclick="clearCSVData()">🗑 Clear</button><div id="csvUploadStatus" style="margin-top:6px;font-size:.75rem;"></div></div>';pv.innerHTML=h;pv.scrollIntoView({behavior:'smooth'});}
+    window.clearCSVData = function(){csvRows=[];var fi=document.getElementById('csvFileInput'),pi=document.getElementById('csvPasteInput'),pv=document.getElementById('csvPreviewArea');if(fi)fi.value='';if(pi)pi.value='';if(pv){pv.style.display='none';pv.innerHTML='';}}
+    
+    window.uploadCSVToFB = async function(){
+      if(!csvRows||csvRows.length===0)return;
+      var st=document.getElementById('csvUploadStatus');
+      st.innerHTML='<span class="spinner"></span> Uploading...';
+      
+      var groups={};
+      for(var i=0;i<csvRows.length;i++){
+        var r=csvRows[i];
+        if(!groups[r.key])groups[r.key]=[];
+        if(!SSC_HIERARCHY[r.subject])SSC_HIERARCHY[r.subject]={};
+        if(!SSC_HIERARCHY[r.subject][r.subSubject])SSC_HIERARCHY[r.subject][r.subSubject]={};
+        if(!SSC_HIERARCHY[r.subject][r.subSubject][r.topic])SSC_HIERARCHY[r.subject][r.subSubject][r.topic]=['General'];
+        if(r.subTopic&&SSC_HIERARCHY[r.subject][r.subSubject][r.topic].indexOf(r.subTopic)===-1)SSC_HIERARCHY[r.subject][r.subSubject][r.topic].push(r.subTopic);
+        
+        groups[r.key].push({
+          question:r.question,
+          options:{A:r.optionA,B:r.optionB,C:r.optionC||'',D:r.optionD||''},
+          correctAnswer:r.correctAnswer,
+          subject:r.subject,
+          subSubject:r.subSubject,
+          topic:r.topic,
+          subTopic:r.subTopic||'',
+          subSubSubject:r.subTopic||'',
+          explanation:r.explanation||'',
+          order:Date.now()
+        });
+      }
+      
+      await saveHierarchy();
+      
+      var qb = await fetchDB('sscQuestionBank') || {};
+      var gKeys = Object.keys(groups);
+      var done = 0;
+      
+      for(var j=0; j<gKeys.length; j++){
+        var k = gKeys[j];
+        var qs = groups[k];
+        if(!qb[k]) qb[k] = [];
+        
+        qs.forEach(function(q){
+           var sig = q.question+'|'+q.options.A+'|'+q.options.B+'|'+q.options.C+'|'+q.options.D;
+           if(!qb[k].some(function(x){
+              return (x.question||'')+'|'+((x.options&&x.options.A)||'')+'|'+((x.options&&x.options.B)||'')+'|'+((x.options&&x.options.C)||'')+'|'+((x.options&&x.options.D)||'') === sig
+           })){
+             qb[k].push(q);
+           }
+        });
+        done++;
+      }
+      
+      await saveDB('sscQuestionBank', qb);
+      allData.quiz = qb;
+      
+      st.innerHTML='<span style="color:#22c55e;">✅ Done! Uploaded to '+done+' groups.</span>';
+      toast('Upload Complete!','success');
+      setTimeout(function(){clearCSVData();refreshUI()}, 1500);
+    }
+    
+    window.editQuizGroup = function(key){var qs=allData.quiz[key];if(!qs||!Array.isArray(qs)){toast('No data!','error');return}var fq=(qs.length>0)?qs[0]:{};var savedSubject=fq.subject||'',savedSubSubject=getSavedSubSubject(fq),savedTopic=getSavedTopic(fq),savedSubTopic=getSavedSubTopic(fq);var gv=document.getElementById('groupView'),mainSubs=getMainSubjects();if(!savedSubject||mainSubs.indexOf(savedSubject)===-1)savedSubject=mainSubs[0];var availableSubs=getSubSubjects(savedSubject);if(availableSubs.length===0)availableSubs=['General'];if(!savedSubSubject||availableSubs.indexOf(savedSubSubject)===-1)savedSubSubject=availableSubs[0];var availableTopics=getTopics(savedSubject,savedSubSubject);if(availableTopics.length===0)availableTopics=['General'];if(!savedTopic||availableTopics.indexOf(savedTopic)===-1)savedTopic=availableTopics[0];var availableSubTopics=getSubTopics(savedSubject,savedSubSubject,savedTopic);if(availableSubTopics.length===0)availableSubTopics=['General'];if(!savedSubTopic||availableSubTopics.indexOf(savedSubTopic)===-1)savedSubTopic=availableSubTopics[0];var h='<div class="card"><h3>✏️ Edit Quiz Group</h3>';h+='<div class="form-group"><label>🔑 Group Key *</label><input type="text" id="qe-title" class="form-inp" value="'+escapeAttr(key)+'"></div>';h+='<div class="form-group"><label>📚 Subject *</label><select id="qe-subject" class="form-inp" onchange="qeUpdateSubSubject()">';for(var si=0;si<mainSubs.length;si++)h+='<option value="'+escapeAttr(mainSubs[si])+'" '+(savedSubject===mainSubs[si]?'selected':'')+'>'+sanitizeHTML(mainSubs[si])+'</option>';h+='</select></div><div class="form-group"><label>📂 Sub-Subject *</label><select id="qe-subsubject" class="form-inp" onchange="qeUpdateTopic()">';for(var qi=0;qi<availableSubs.length;qi++)h+='<option value="'+escapeAttr(availableSubs[qi])+'" '+(savedSubSubject===availableSubs[qi]?'selected':'')+'>'+sanitizeHTML(availableSubs[qi])+'</option>';h+='</select></div><div class="form-group"><label>📌 Topic *</label><select id="qe-topic" class="form-inp" onchange="qeUpdateSubTopic()">';for(var tj=0;tj<availableTopics.length;tj++)h+='<option value="'+escapeAttr(availableTopics[tj])+'" '+(savedTopic===availableTopics[tj]?'selected':'')+'>'+sanitizeHTML(availableTopics[tj])+'</option>';h+='</select></div><div class="form-group"><label>🔹 Sub-Topic <span class="optional-label">(optional)</span></label><select id="qe-subtopic" class="form-inp">';for(var tk=0;tk<availableSubTopics.length;tk++)h+='<option value="'+escapeAttr(availableSubTopics[tk])+'" '+(savedSubTopic===availableSubTopics[tk]?'selected':'')+'>'+sanitizeHTML(availableSubTopics[tk])+'</option>';h+='</select></div><p style="color:var(--mut);font-size:.78rem;">📝 '+qs.length+' Questions | 🖼 HTML supported</p>';h+='<button class="btn btn-dark btn-sm notranslate" onclick="document.getElementById(\'groupView\').style.display=\'none\'">← Back</button><button class="btn btn-green btn-sm notranslate" style="margin-left:8px;" onclick="saveQuizGroupEdits(\''+escapeAttr(key)+'\')">💾 Save All Changes</button><br><br>';for(var i=0;i<qs.length;i++){var q=qs[i];h+='<div class="edit-question-card"><strong style="color:#f59e0b;">📝 Q'+(i+1)+'</strong><div class="form-group"><label>Question</label><textarea class="form-inp qe-q" data-idx="'+i+'">'+escHTML(q.question||'')+'</textarea></div>';h+='<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option A</label><input class="form-inp qe-a" data-idx="'+i+'" value="'+escHTML((q.options&&q.options.A)||'')+'"></div><div class="form-group" style="flex:1;"><label>Option B</label><input class="form-inp qe-b" data-idx="'+i+'" value="'+escHTML((q.options&&q.options.B)||'')+'"></div></div>';h+='<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option C <span class="optional-label">(optional)</span></label><input class="form-inp qe-o" data-idx="'+i+'" placeholder="Optional" value="'+escHTML((q.options&&q.options.C)||'')+'"></div><div class="form-group" style="flex:1;"><label>Option D <span class="optional-label">(optional)</span></label><input class="form-inp qe-p" data-idx="'+i+'" placeholder="Optional" value="'+escHTML((q.options&&q.options.D)||'')+'"></div></div>';h+='<div class="form-group"><label>✅ Correct</label><select class="form-inp qe-c" data-idx="'+i+'"><option value="A" '+(q.correctAnswer==='A'?'selected':'')+'>A</option><option value="B" '+(q.correctAnswer==='B'?'selected':'')+'>B</option><option value="C" '+(q.correctAnswer==='C'?'selected':'')+'>C</option><option value="D" '+(q.correctAnswer==='D'?'selected':'')+'>D</option></select></div>';h+='<div class="form-group"><label>💡 Explanation</label><input class="form-inp qe-e" data-idx="'+i+'" value="'+escHTML(q.explanation||'')+'"></div></div>';}h+='<button class="btn btn-green btn-sm notranslate" onclick="saveQuizGroupEdits(\''+escapeAttr(key)+'\')">💾 Save All Changes</button></div>';gv.innerHTML=h;gv.style.display='block';gv.scrollIntoView({behavior:'smooth'});}
+    window.qeUpdateSubSubject = function(){var main=document.getElementById('qe-subject').value,sel=document.getElementById('qe-subsubject');if(!sel)return;var subs=getSubSubjects(main);if(subs.length===0)subs=['General'];sel.innerHTML='';for(var i=0;i<subs.length;i++)sel.innerHTML+='<option value="'+escapeAttr(subs[i])+'">'+sanitizeHTML(subs[i])+'</option>';window.qeUpdateTopic();}
+    window.qeUpdateTopic = function(){var main=document.getElementById('qe-subject').value,sub=document.getElementById('qe-subsubject').value,sel=document.getElementById('qe-topic');if(!sel)return;var topics=getTopics(main,sub);if(topics.length===0)topics=['General'];sel.innerHTML='';for(var i=0;i<topics.length;i++)sel.innerHTML+='<option value="'+escapeAttr(topics[i])+'">'+sanitizeHTML(topics[i])+'</option>';window.qeUpdateSubTopic();}
+    window.qeUpdateSubTopic = function(){var main=document.getElementById('qe-subject').value,sub=document.getElementById('qe-subsubject').value,topic=document.getElementById('qe-topic').value,sel=document.getElementById('qe-subtopic');if(!sel)return;var sts=getSubTopics(main,sub,topic);if(sts.length===0)sts=['General'];sel.innerHTML='';for(var i=0;i<sts.length;i++)sel.innerHTML+='<option value="'+escapeAttr(sts[i])+'">'+sanitizeHTML(sts[i])+'</option>';}
+    
+    window.saveQuizGroupEdits = async function(oldKey){
+      var newKey=document.getElementById('qe-title').value.trim().replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+      var subject=document.getElementById('qe-subject').value,subSubject=document.getElementById('qe-subsubject').value,topic=document.getElementById('qe-topic').value,subTopic=document.getElementById('qe-subtopic').value;
+      if(!newKey||!subject||!subSubject||!topic){toast('Group Key, Subject, Sub-Subject, and Topic required!','error');return}
+      var qs=allData.quiz[oldKey];if(!qs||!Array.isArray(qs)){toast('No data to save!','error');return}
+      var qEls=document.querySelectorAll('.qe-q'),aEls=document.querySelectorAll('.qe-a'),bEls=document.querySelectorAll('.qe-b'),oEls=document.querySelectorAll('.qe-o'),pEls=document.querySelectorAll('.qe-p'),cEls=document.querySelectorAll('.qe-c'),eEls=document.querySelectorAll('.qe-e');
+      for(var i=0;i<qEls.length;i++){
+        var idx=parseInt(qEls[i].dataset.idx);
+        if(idx>=0&&idx<qs.length){
+          qs[idx].question=qEls[i].value;
+          qs[idx].options={A:aEls[i].value,B:bEls[i].value,C:oEls[i].value,D:pEls[i].value};
+          qs[idx].correctAnswer=cEls[i].value;
+          qs[idx].explanation=eEls[i].value;
+          qs[idx].subject=subject;qs[idx].subSubject=subSubject;qs[idx].topic=topic;
+          qs[idx].subTopic=subTopic||'';qs[idx].subSubSubject=subTopic||'';
+        }
+      }
+      
+      if(newKey!==oldKey){
+        allData.quiz[newKey] = qs;
+        delete allData.quiz[oldKey];
+      } else {
+        allData.quiz[oldKey] = qs;
+      }
+      
+      await saveDB('sscQuestionBank', allData.quiz);
+      toast('✅ Updated!','success');
+      document.getElementById('groupView').style.display='none';
+      refreshUI();
+    }
+    
+    window.showAddSyllabusForm = function(){var ef=document.getElementById('editForm');ef.style.display='block';var mainSubs=getMainSubjects(),firstSub=getSubSubjects(mainSubs[0]),firstTopic=getTopics(mainSubs[0],firstSub[0]),firstSubTopic=getSubTopics(mainSubs[0],firstSub[0],firstTopic[0]);ef.innerHTML='<div class="card"><h3>➕ Add Syllabus (4 Levels)</h3><div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp"></div><div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp" onchange="updateEditSub()">'+mainSubs.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Subject *</label><select id="ef-subsubject" class="form-inp" onchange="updateEditTopic()">'+firstSub.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Topic *</label><select id="ef-topic" class="form-inp" onchange="updateEditSubTopic()">'+firstTopic.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Topic <span class="optional-label">(optional)</span></label><select id="ef-subtopic" class="form-inp">'+firstSubTopic.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:150px;"></textarea></div><button class="btn btn-green btn-sm notranslate" onclick="saveSyllabus(null)">💾 Save</button> <button class="btn btn-dark btn-sm notranslate" onclick="cancelEdit()">❌ Cancel</button></div>'}
+    window.editSyllabusItem = function(key){var item=allData.syllabus[key];if(!item)return;var ef=document.getElementById('editForm');ef.style.display='block';var mainSubs=getMainSubjects(),currentSubs=getSubSubjects(item.subject||mainSubs[0]),currentTopics=getTopics(item.subject||mainSubs[0],item.subSubject||currentSubs[0]),currentSubTopics=getSubTopics(item.subject||mainSubs[0],item.subSubject||currentSubs[0],item.topic||currentTopics[0]);ef.innerHTML='<div class="card"><h3>✏️ Edit Syllabus (4 Levels)</h3><div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp" value="'+escHTML(item.title||'')+'"></div><div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp" onchange="updateEditSub()">'+mainSubs.map(function(s){return'<option '+(item.subject===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Subject *</label><select id="ef-subsubject" class="form-inp" onchange="updateEditTopic()">'+currentSubs.map(function(s){return'<option '+(item.subSubject===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Topic *</label><select id="ef-topic" class="form-inp" onchange="updateEditSubTopic()">'+currentTopics.map(function(s){return'<option '+(item.topic===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Topic <span class="optional-label">(optional)</span></label><select id="ef-subtopic" class="form-inp">'+currentSubTopics.map(function(s){return'<option '+(item.subTopic===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:150px;">'+escHTML(item.content||'')+'</textarea></div><button class="btn btn-green btn-sm notranslate" onclick="saveSyllabus(\''+key+'\')">💾 Update</button> <button class="btn btn-dark btn-sm notranslate" onclick="cancelEdit()">❌ Cancel</button></div>'}
+    window.updateEditSub = function(){var main=document.getElementById('ef-subject').value,sel=document.getElementById('ef-subsubject');if(!sel)return;sel.innerHTML=getSubSubjects(main).map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('');window.updateEditTopic();}
+    window.updateEditTopic = function(){var main=document.getElementById('ef-subject').value,sub=document.getElementById('ef-subsubject').value,sel=document.getElementById('ef-topic');if(!sel)return;sel.innerHTML=getTopics(main,sub).map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('');window.updateEditSubTopic();}
+    window.updateEditSubTopic = function(){var main=document.getElementById('ef-subject').value,sub=document.getElementById('ef-subsubject').value,topic=document.getElementById('ef-topic').value,sel=document.getElementById('ef-subtopic');if(!sel)return;sel.innerHTML=getSubTopics(main,sub,topic).map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('');}
+    window.cancelEdit = function(){document.getElementById('editForm').style.display='none';document.getElementById('groupView').style.display='none'}
+    
+    window.saveSyllabus = async function(key){
+      var t=document.getElementById('ef-title').value,s=document.getElementById('ef-subject').value,ss=document.getElementById('ef-subsubject').value,tp=document.getElementById('ef-topic').value,st=document.getElementById('ef-subtopic').value,c=document.getElementById('ef-content').value;
+      if(!t||!s||!ss||!tp){toast('Title, Subject, Sub-Subject, Topic required!','error');return}
+      var item={title:t,subject:s,subSubject:ss,topic:tp,subTopic:st||'',subSubSubject:st||'',content:c,imageUrls:[],order:Date.now()};
+      
+      if(!key) key = "syl_" + Date.now();
+      allData.syllabus[key] = item;
+      await saveDB('sscTheoryDatabase', allData.syllabus);
+      toast(key ? 'Updated!' : 'Added!','success');
+      cancelEdit();
+      refreshUI();
+    }
+    
+    function renderUsers(){var ac=document.getElementById('admin-content'),users=settings.users||{},h='<button class="btn btn-green btn-sm notranslate" onclick="showAddUser()">➕ Add User</button><br><br>';var uks=Object.keys(users);if(uks.length===0)h+='<p style="color:var(--mut);">No users yet.</p>';else for(var i=0;i<uks.length;i++){var ph=uks[i],u=users[ph];h+='<div class="card"><strong>📱 '+sanitizeHTML(ph)+'</strong> | Pass: '+(u.pass?'••••':'N/A')+'<br>Subjects: '+(u.subjects||[]).join(', ')+'<br><button class="btn btn-blue btn-xs notranslate" onclick="editUser(\''+escapeAttr(ph)+'\')">✏️</button> <button class="btn btn-red btn-xs notranslate" onclick="deleteUser(\''+escapeAttr(ph)+'\')">🗑</button></div>'}h+='<div id="userEditForm" style="display:none;"></div>';ac.innerHTML=h}
+    window.showAddUser = function(){var ef=document.getElementById('userEditForm');ef.style.display='block';ef.innerHTML='<div class="card"><h3>➕ Add User</h3><div class="form-group"><label>Phone/ID *</label><input id="uf-phone" class="form-inp"></div><div class="form-group"><label>Password *</label><input id="uf-pass" class="form-inp"></div><label>Subjects:</label><div class="checkbox-group">'+getMainSubjects().map(function(s){return'<label class="toggle-checkbox-label"><input type="checkbox" value="'+escapeAttr(s)+'" class="uf-subs"> '+sanitizeHTML(s)+'</label>'}).join('')+'</div><button class="btn btn-green btn-sm notranslate" onclick="saveUser(null)">💾 Save</button> <button class="btn btn-dark btn-sm notranslate" onclick="document.getElementById(\'userEditForm\').style.display=\'none\'">❌ Cancel</button></div>'}
+    window.editUser = function(phone){var u=settings.users[phone];if(!u)return;var ef=document.getElementById('userEditForm');ef.style.display='block';ef.innerHTML='<div class="card"><h3>✏️ Edit '+sanitizeHTML(phone)+'</h3><div class="form-group"><label>Phone</label><input id="uf-phone" class="form-inp" value="'+escapeAttr(phone)+'" readonly></div><div class="form-group"><label>Password *</label><input id="uf-pass" class="form-inp" value="'+escapeAttr(u.pass||'')+'"></div><label>Subjects:</label><div class="checkbox-group">'+getMainSubjects().map(function(s){return'<label class="toggle-checkbox-label"><input type="checkbox" value="'+escapeAttr(s)+'" class="uf-subs" '+(u.subjects&&u.subjects.indexOf(s)!==-1?'checked':'')+'> '+sanitizeHTML(s)+'</label>'}).join('')+'</div><button class="btn btn-green btn-sm notranslate" onclick="saveUser(\''+phone+'\')">💾 Update</button> <button class="btn btn-dark btn-sm notranslate" onclick="document.getElementById(\'userEditForm\').style.display=\'none\'">❌ Cancel</button></div>'}
+    
+    window.saveUser = async function(orig){
+      var phone=document.getElementById('uf-phone').value,pass=document.getElementById('uf-pass').value,subs=[];
+      document.querySelectorAll('.uf-subs:checked').forEach(function(c){subs.push(c.value)});
+      if(!phone||!pass){toast('Fill all fields','error');return}
+      if(orig&&orig!==phone) delete settings.users[orig];
+      settings.users[phone]={pass:pass,modes:['ALL'],subjects:subs,classes:['ALL']};
+      await saveDB('appSettings', settings);
+      toast('Saved!','success');
+      document.getElementById('userEditForm').style.display='none';
+      renderUsers();
+    }
+    window.deleteUser = async function(phone){
+      if(!confirm('Delete '+phone+'?'))return;
+      delete settings.users[phone];
+      await saveDB('appSettings', settings);
+      toast('Deleted!','success');
+      renderUsers();
+    }
+    
+    function renderSettings(){var ac=document.getElementById('admin-content'),cp=settings.adminPass||DEFAULT_ADMIN_PASS,gid=settings.guestId||DEFAULT_GUEST_ID,gpass=settings.guestPass||DEFAULT_GUEST_PASS;ac.innerHTML='<div class="card"><h3>⚙️ Settings</h3><div class="toggle-setting-row"><span class="toggle-label">🔐 Enable Login</span><div class="toggle-right"><label class="toggle-switch"><input type="checkbox" id="set-login" '+(settings.loginEnabled?'checked':'')+' onchange="updateSettingToggle(\'login\')"><span class="toggle-slider"></span></label><span id="login-status">'+(settings.loginEnabled?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span></div></div><div class="toggle-setting-row"><span class="toggle-label">📋 Enable Copy</span><div class="toggle-right"><label class="toggle-switch"><input type="checkbox" id="set-copy" '+(settings.copyEnabled?'checked':'')+' onchange="updateSettingToggle(\'copy\')"><span class="toggle-slider"></span></label><span id="copy-status">'+(settings.copyEnabled?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span></div></div><div class="toggle-setting-row"><span class="toggle-label">👤 Guest Auto Login</span><div class="toggle-right"><label class="toggle-switch"><input type="checkbox" id="set-guest-auto" '+(settings.guestAutoLogin?'checked':'')+' onchange="updateSettingToggle(\'guestAuto\')"><span class="toggle-slider"></span></label><span id="guestAuto-status">'+(settings.guestAutoLogin?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span></div></div><div class="form-group"><label>Guest ID</label><input id="set-guest-id" class="form-inp" value="'+escapeAttr(gid)+'" style="max-width:250px;"></div><div class="form-group"><label>Guest Password</label><input id="set-guest-pass" class="form-inp" value="'+escapeAttr(gpass)+'" style="max-width:250px;"></div><div class="form-group"><label>Admin Password</label><input id="set-admin-pass" class="form-inp" value="'+escapeAttr(cp)+'" style="max-width:250px;"></div><button class="btn btn-green btn-sm notranslate" onclick="saveSettings()">💾 Save</button> <button class="btn btn-orange btn-sm notranslate" onclick="resetAdmin()">🔄 Reset Admin</button> <button class="btn btn-teal btn-sm notranslate" onclick="resetGuest()">🔄 Reset Guest</button></div>'}
+    window.updateSettingToggle = function(type){var cb,se;if(type==='login'){cb=document.getElementById('set-login');se=document.getElementById('login-status')}else if(type==='copy'){cb=document.getElementById('set-copy');se=document.getElementById('copy-status')}else{cb=document.getElementById('set-guest-auto');se=document.getElementById('guestAuto-status')}if(cb&&se)se.innerHTML=cb.checked?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>'}
+    
+    window.saveSettings = async function(){
+      var le=document.getElementById('set-login').checked,ce=document.getElementById('set-copy').checked,ga=document.getElementById('set-guest-auto').checked,ap=document.getElementById('set-admin-pass').value,gid=document.getElementById('set-guest-id').value,gpass=document.getElementById('set-guest-pass').value;
+      if(!ap||!gid||!gpass){toast('All fields required','error');return}
+      
+      settings.loginEnabled=le;settings.adminPass=ap;settings.copyEnabled=ce;
+      settings.guestAutoLogin=ga;settings.guestId=gid;settings.guestPass=gpass;
+      
+      await saveDB('appSettings', settings);
+      
+      if(ce)document.body.classList.remove('protected-mode');
+      else document.body.classList.add('protected-mode');
+      updateGuestDisplay();
+      checkAuth();
+      toast('Saved!','success');
+    }
+    
+    window.resetAdmin = async function(){
+      if(!confirm('Reset?'))return;
+      settings.adminPass=DEFAULT_ADMIN_PASS;
+      await saveDB('appSettings', settings);
+      toast('Reset!','success');
+      renderSettings();
+    }
+    
+    window.resetGuest = async function(){
+      if(!confirm('Reset?'))return;
+      settings.guestId=DEFAULT_GUEST_ID;
+      settings.guestPass=DEFAULT_GUEST_PASS;
+      await saveDB('appSettings', settings);
+      updateGuestDisplay();
+      toast('Reset!','success');
+      renderSettings();
+    }
+
+    // Initialize application workflow
+    async function initApp(){
+      const [hier, sets, sess] = await Promise.all([
+        fetchDB('sscHierarchy'),
+        fetchDB('appSettings'),
+        fetchDB('activeSessions')
+      ]);
+      
+      if(hier) SSC_HIERARCHY = hier;
+      
+      if(sets) {
+         settings.loginEnabled=sets.loginEnabled!==undefined?sets.loginEnabled:true;
+         settings.copyEnabled=sets.copyEnabled!==undefined?sets.copyEnabled:false;
+         settings.users=sets.users||{};
+         settings.adminPass=sets.adminPass||DEFAULT_ADMIN_PASS;
+         settings.guestAutoLogin=sets.guestAutoLogin!==undefined?sets.guestAutoLogin:false;
+         settings.guestId=sets.guestId||DEFAULT_GUEST_ID;
+         settings.guestPass=sets.guestPass||DEFAULT_GUEST_PASS;
+      }
+      
+      if(settings.copyEnabled) document.body.classList.remove('protected-mode');
+      else document.body.classList.add('protected-mode');
+      
+      if(sess) activeSessions = sess;
+      
+      checkAuth();
+    }
+    window.onload=initApp;
+  </script>
+</body>
+</html>
