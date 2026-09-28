@@ -17,8 +17,7 @@ const menuData = [
     title: "Practice & Games",
     links: [
       { 
-        name: "Brain Games", 
-        url: "https://www.cleverstudents.in/panels/PRO-Brain-Games.html",
+        name: "Brain Games", url: "https://www.cleverstudents.in/panels/PRO-Brain-Games.html",
         subLinks: [
           { name: "Math Puzzles", url: "#" },
           { name: "Memory Match", url: "#" }
