@@ -38,7 +38,7 @@ const menuData = [
   {
     title: "Development Skills",
     links: [
-      { name: "IQ Knowledge Development", url: "#" },
+      { name: "IQ Knowledge Development", url: "https://www.cleverstudents.in/panels/Idea-Lab-Student.html" },
       { name: "Logic Skills", url: "#" },
       { name: "General Skill Development", url: "#" }
     ]
