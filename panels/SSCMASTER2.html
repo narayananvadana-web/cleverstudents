@@ -198,16 +198,17 @@
       }
     }
 
-    // saveDB is used for small items (appSettings, activeSessions, sscHierarchy)
     async function saveDB(key, value) {
       try {
-        await fetch('/api/db', {
+        const res = await fetch('/api/db', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'set', path: key, data: value })
         });
+        if (!res.ok) throw new Error(`Status ${res.status}`);
       } catch (err) {
-        console.error("DB Save Error:", err);
+        console.error(`DB Save Error for ${key}:`, err);
+        throw err;
       }
     }
 
@@ -541,7 +542,6 @@
     window.handleDragLeave = function(e){var target=e.target.closest('.list-item');if(target)target.classList.remove('drag-over');}
     window.handleDrop = function(e){e.preventDefault();e.stopPropagation();var target=e.target.closest('.list-item');if(!target||!draggedKey||target===draggedItem)return;target.classList.remove('drag-over');var targetKey=target.dataset.key;if(draggedIndex===parseInt(target.dataset.index))return;swapOrder(draggedKey,targetKey);}
     
-    // GRANULAR SWAP
     async function swapOrder(keyA,keyB){
       var data=allData[currentTab],isQuiz=(currentTab==='quiz'),keys=Object.keys(data),idxA=keys.indexOf(keyA),idxB=keys.indexOf(keyB);
       function getOrder(k,def){var it=data[k];if(isQuiz)return(it&&it.length&&it[0].order!==undefined)?it[0].order:def;return(it&&it.order!==undefined)?it.order:def}
@@ -552,13 +552,13 @@
       if(isQuiz){
         allData.quiz[keyA][0].order = orderB;
         allData.quiz[keyB][0].order = orderA;
-        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: `${dbKey}/${keyA}`, data: allData.quiz[keyA] }) });
-        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: `${dbKey}/${keyB}`, data: allData.quiz[keyB] }) });
+        await saveDB(`${dbKey}/${keyA}`, allData.quiz[keyA]);
+        await saveDB(`${dbKey}/${keyB}`, allData.quiz[keyB]);
       }else{
         allData.syllabus[keyA].order = orderB;
         allData.syllabus[keyB].order = orderA;
-        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: `${dbKey}/${keyA}`, data: allData.syllabus[keyA] }) });
-        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: `${dbKey}/${keyB}`, data: allData.syllabus[keyB] }) });
+        await saveDB(`${dbKey}/${keyA}`, allData.syllabus[keyA]);
+        await saveDB(`${dbKey}/${keyB}`, allData.syllabus[keyB]);
       }
       refreshUI();
     }
@@ -593,7 +593,6 @@
       refreshUI();
     }
     
-    // GRANULAR DELETE (SAFE FOR LARGE DBS)
     window.deleteSingle = async function(id){
       if(!confirm('Delete permanently?'))return;
       var dk=currentTab==='quiz'?'quiz':'syllabus';
@@ -622,7 +621,7 @@
     function showCSVPreview(errors,formatType){if(csvRows.length===0){toast('No valid rows! Errors: '+errors.length,'error');return}var groups={};for(var i=0;i<csvRows.length;i++)groups[csvRows[i].key]=(groups[csvRows[i].key]||0)+1;var pv=document.getElementById('csvPreviewArea');pv.style.display='block';var h='<div style="margin-top:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:6px;"><p><strong>✅ '+csvRows.length+' Questions</strong> in <strong>'+Object.keys(groups).length+' Groups</strong> ('+formatType+')</p>';if(errors.length>0)h+='<p style="color:#f59e0b;font-size:.7rem;">⚠️ '+errors.length+' skipped</p>';h+='<button class="btn btn-green btn-sm notranslate" onclick="uploadCSVToFB()">🚀 Upload '+csvRows.length+' Qs</button> <button class="btn btn-dark btn-sm notranslate" onclick="clearCSVData()">🗑 Clear</button><div id="csvUploadStatus" style="margin-top:6px;font-size:.75rem;"></div></div>';pv.innerHTML=h;pv.scrollIntoView({behavior:'smooth'});}
     window.clearCSVData = function(){csvRows=[];var fi=document.getElementById('csvFileInput'),pi=document.getElementById('csvPasteInput'),pv=document.getElementById('csvPreviewArea');if(fi)fi.value='';if(pi)pi.value='';if(pv){pv.style.display='none';pv.innerHTML='';}}
     
-    // GRANULAR UPLOAD (SAFE FOR LARGE FILES)
+    // NEW: GRANULAR UPLOAD (SAFE FOR VERCEL LIMITS)
     window.uploadCSVToFB = async function(){
       if(!csvRows||csvRows.length===0)return;
       var st=document.getElementById('csvUploadStatus');
@@ -655,6 +654,7 @@
       
       var gKeys = Object.keys(groups);
       var done = 0;
+      var failed = 0;
       
       for(var j=0; j<gKeys.length; j++){
         var k = gKeys[j];
@@ -677,23 +677,24 @@
                }
             });
             
-            await fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'set', path: `sscQuestionBank/${k}`, data: existingQs })
-            });
+            await saveDB(`sscQuestionBank/${k}`, existingQs);
             
             if(!allData.quiz) allData.quiz = {};
             allData.quiz[k] = existingQs;
             done++;
         } catch (err) {
-            console.error("Upload failed for group:", k, err);
+            console.error("❌ Upload failed for group:", k, err);
+            failed++;
         }
       }
       
-      st.innerHTML=`<span style="color:#22c55e;">✅ Done! Uploaded to ${done} groups.</span>`;
-      toast('Upload Complete!','success');
-      setTimeout(function(){clearCSVData();refreshUI()}, 1500);
+      if(failed > 0){
+        st.innerHTML=`<span style="color:#ef4444;">⚠️ Uploaded ${done}, Failed ${failed} groups. Check F12 Console.</span>`;
+      } else {
+        st.innerHTML=`<span style="color:#22c55e;">✅ Done! Uploaded to ${done} groups.</span>`;
+        toast('Upload Complete!','success');
+        setTimeout(function(){clearCSVData();refreshUI()}, 1500);
+      }
     }
     
     window.editQuizGroup = function(key){var qs=allData.quiz[key];if(!qs||!Array.isArray(qs)){toast('No data!','error');return}var fq=(qs.length>0)?qs[0]:{};var savedSubject=fq.subject||'',savedSubSubject=getSavedSubSubject(fq),savedTopic=getSavedTopic(fq),savedSubTopic=getSavedSubTopic(fq);var gv=document.getElementById('groupView'),mainSubs=getMainSubjects();if(!savedSubject||mainSubs.indexOf(savedSubject)===-1)savedSubject=mainSubs[0];var availableSubs=getSubSubjects(savedSubject);if(availableSubs.length===0)availableSubs=['General'];if(!savedSubSubject||availableSubs.indexOf(savedSubSubject)===-1)savedSubSubject=availableSubs[0];var availableTopics=getTopics(savedSubject,savedSubSubject);if(availableTopics.length===0)availableTopics=['General'];if(!savedTopic||availableTopics.indexOf(savedTopic)===-1)savedTopic=availableTopics[0];var availableSubTopics=getSubTopics(savedSubject,savedSubSubject,savedTopic);if(availableSubTopics.length===0)availableSubTopics=['General'];if(!savedSubTopic||availableSubTopics.indexOf(savedSubTopic)===-1)savedSubTopic=availableSubTopics[0];var h='<div class="card"><h3>✏️ Edit Quiz Group</h3>';h+='<div class="form-group"><label>🔑 Group Key *</label><input type="text" id="qe-title" class="form-inp" value="'+escapeAttr(key)+'"></div>';h+='<div class="form-group"><label>📚 Subject *</label><select id="qe-subject" class="form-inp" onchange="qeUpdateSubSubject()">';for(var si=0;si<mainSubs.length;si++)h+='<option value="'+escapeAttr(mainSubs[si])+'" '+(savedSubject===mainSubs[si]?'selected':'')+'>'+sanitizeHTML(mainSubs[si])+'</option>';h+='</select></div><div class="form-group"><label>📂 Sub-Subject *</label><select id="qe-subsubject" class="form-inp" onchange="qeUpdateTopic()">';for(var qi=0;qi<availableSubs.length;qi++)h+='<option value="'+escapeAttr(availableSubs[qi])+'" '+(savedSubSubject===availableSubs[qi]?'selected':'')+'>'+sanitizeHTML(availableSubs[qi])+'</option>';h+='</select></div><div class="form-group"><label>📌 Topic *</label><select id="qe-topic" class="form-inp" onchange="qeUpdateSubTopic()">';for(var tj=0;tj<availableTopics.length;tj++)h+='<option value="'+escapeAttr(availableTopics[tj])+'" '+(savedTopic===availableTopics[tj]?'selected':'')+'>'+sanitizeHTML(availableTopics[tj])+'</option>';h+='</select></div><div class="form-group"><label>🔹 Sub-Topic <span class="optional-label">(optional)</span></label><select id="qe-subtopic" class="form-inp">';for(var tk=0;tk<availableSubTopics.length;tk++)h+='<option value="'+escapeAttr(availableSubTopics[tk])+'" '+(savedSubTopic===availableSubTopics[tk]?'selected':'')+'>'+sanitizeHTML(availableSubTopics[tk])+'</option>';h+='</select></div><p style="color:var(--mut);font-size:.78rem;">📝 '+qs.length+' Questions | 🖼 HTML supported</p>';h+='<button class="btn btn-dark btn-sm notranslate" onclick="document.getElementById(\'groupView\').style.display=\'none\'">← Back</button><button class="btn btn-green btn-sm notranslate" style="margin-left:8px;" onclick="saveQuizGroupEdits(\''+escapeAttr(key)+'\')">💾 Save All Changes</button><br><br>';for(var i=0;i<qs.length;i++){var q=qs[i];h+='<div class="edit-question-card"><strong style="color:#f59e0b;">📝 Q'+(i+1)+'</strong><div class="form-group"><label>Question</label><textarea class="form-inp qe-q" data-idx="'+i+'">'+escHTML(q.question||'')+'</textarea></div>';h+='<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option A</label><input class="form-inp qe-a" data-idx="'+i+'" value="'+escHTML((q.options&&q.options.A)||'')+'"></div><div class="form-group" style="flex:1;"><label>Option B</label><input class="form-inp qe-b" data-idx="'+i+'" value="'+escHTML((q.options&&q.options.B)||'')+'"></div></div>';h+='<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option C <span class="optional-label">(optional)</span></label><input class="form-inp qe-o" data-idx="'+i+'" placeholder="Optional" value="'+escHTML((q.options&&q.options.C)||'')+'"></div><div class="form-group" style="flex:1;"><label>Option D <span class="optional-label">(optional)</span></label><input class="form-inp qe-p" data-idx="'+i+'" placeholder="Optional" value="'+escHTML((q.options&&q.options.D)||'')+'"></div></div>';h+='<div class="form-group"><label>✅ Correct</label><select class="form-inp qe-c" data-idx="'+i+'"><option value="A" '+(q.correctAnswer==='A'?'selected':'')+'>A</option><option value="B" '+(q.correctAnswer==='B'?'selected':'')+'>B</option><option value="C" '+(q.correctAnswer==='C'?'selected':'')+'>C</option><option value="D" '+(q.correctAnswer==='D'?'selected':'')+'>D</option></select></div>';h+='<div class="form-group"><label>💡 Explanation</label><input class="form-inp qe-e" data-idx="'+i+'" value="'+escHTML(q.explanation||'')+'"></div></div>';}h+='<button class="btn btn-green btn-sm notranslate" onclick="saveQuizGroupEdits(\''+escapeAttr(key)+'\')">💾 Save All Changes</button></div>';gv.innerHTML=h;gv.style.display='block';gv.scrollIntoView({behavior:'smooth'});}
@@ -723,11 +724,11 @@
       if(newKey!==oldKey){
         allData.quiz[newKey] = qs;
         delete allData.quiz[oldKey];
-        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: `sscQuestionBank/${newKey}`, data: qs }) });
+        await saveDB(`sscQuestionBank/${newKey}`, qs);
         await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: `sscQuestionBank/${oldKey}` }) });
       } else {
         allData.quiz[oldKey] = qs;
-        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: `sscQuestionBank/${oldKey}`, data: qs }) });
+        await saveDB(`sscQuestionBank/${oldKey}`, qs);
       }
       
       toast('✅ Updated!','success');
@@ -750,11 +751,7 @@
       
       if(!key) key = "syl_" + Date.now();
       allData.syllabus[key] = item;
-      await fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'set', path: `sscTheoryDatabase/${key}`, data: item })
-      });
+      await saveDB(`sscTheoryDatabase/${key}`, item);
       toast(key ? 'Updated!' : 'Added!','success');
       cancelEdit();
       refreshUI();
