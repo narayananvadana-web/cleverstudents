@@ -1,4 +1,4 @@
-// ఫైల్ పేరు: api/db.js
+// api/db.js
 import { kv } from '@vercel/kv';
 
 function getNested(obj, pathArr) {
@@ -10,7 +10,9 @@ function setNested(obj, pathArr, value) {
   let current = obj || {};
   let root = current;
   for (let i = 0; i < pathArr.length - 1; i++) {
-    if (!current[pathArr[i]]) current[pathArr[i]] = {};
+    if (!current[pathArr[i]] || typeof current[pathArr[i]] !== 'object') {
+      current[pathArr[i]] = {};
+    }
     current = current[pathArr[i]];
   }
   current[pathArr[pathArr.length - 1]] = value;
@@ -39,11 +41,17 @@ export default async function handler(req, res) {
       if (parts.length > 1) {
         data = getNested(data, parts.slice(1));
       }
-      return res.status(200).json({ result: data });
+      return res.status(200).json({ result: data ?? null });
     }
     
     if (req.method === 'POST') {
-      const { action, path, data } = req.body;
+      // FIX 1: Default path to empty string to prevent crashes
+      const { action, path = '', data } = req.body || {};
+      
+      if (!['set', 'update', 'remove'].includes(action)) {
+        return res.status(400).json({ error: 'Invalid or missing action. Use set, update, or remove.' });
+      }
+
       const parts = path.split('/').filter(Boolean);
       const rootKey = parts[0] || 'default';
       
@@ -53,10 +61,17 @@ export default async function handler(req, res) {
         rootData = setNested(rootData, parts.slice(1), data);
       } else if (action === 'update') {
         let existing = parts.length > 1 ? getNested(rootData, parts.slice(1)) : rootData;
-        existing = { ...(existing || {}), ...data };
+        
+        // FIX 3: Safely merge Arrays vs Objects
+        if (Array.isArray(existing) && Array.isArray(data)) {
+            existing = [...existing, ...data]; 
+        } else {
+            existing = { ...(existing || {}), ...(data || {}) };
+        }
+        
         rootData = setNested(rootData, parts.slice(1), existing);
       } else if (action === 'remove') {
-        if (parts.length === 1) {
+        if (parts.length <= 1) {
           await kv.del(rootKey);
           return res.status(200).json({ success: true });
         } else {
@@ -67,7 +82,13 @@ export default async function handler(req, res) {
       await kv.set(rootKey, rootData);
       return res.status(200).json({ success: true });
     }
+
+    // FIX 2: Return proper error for unsupported HTTP methods (prevents hanging)
+    res.setHeader('Allow', ['GET', 'POST']);
+    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('[KV DB Error]:', error);
+    return res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 }
