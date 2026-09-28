@@ -186,45 +186,94 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
   <script>
-    // --- Vercel KV Database Connector ---
-    var db = {
+    // ==========================================
+    // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
+    // ==========================================
+    const db = {
       ref: function(path) {
+        let parts = path.split('/').filter(Boolean);
+        let rootKey = parts[0];
+
         return {
-          once: function(event) {
-            return fetch('/api/db?path=' + encodeURIComponent(path))
-              .then(function(res){ return res.json(); })
-              .then(function(data){ return { val: function(){ return data.result; } }; });
-          },
-          set: function(data) {
-            return fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'set', path: path, data: data })
-            }).then(function(res){ return res.json(); });
-          },
-          update: function(data) {
-            return fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'update', path: path, data: data })
-            }).then(function(res){ return res.json(); });
-          },
-          remove: function() {
-            return fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'remove', path: path })
-            }).then(function(res){ return res.json(); });
-          },
-          on: function(event, callback) {
-            function fetchIt() {
-              fetch('/api/db?path=' + encodeURIComponent(path))
-                .then(function(res){ return res.json(); })
-                .then(function(data){ callback({ val: function(){ return data.result; } }); })
-                .catch(function(err){ console.error("DB Error:", err); });
+          once: async function(event) {
+            try {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const data = await res.json();
+              let val = data.result;
+              if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) {} }
+              for (let i = 1; i < parts.length; i++) {
+                if (val && typeof val === 'object') { val = val[parts[i]]; }
+                else { val = null; break; }
+              }
+              return { val: () => val };
+            } catch (err) {
+              console.error("DB Fetch Error:", err);
+              return { val: () => null };
             }
-            fetchIt();
-            setInterval(fetchIt, 15000); 
+          },
+          set: async function(dataToSet) {
+            if (parts.length === 1) {
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: dataToSet }) }).then(res => res.json());
+            } else {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+              let current = rootObj;
+              for (let i = 1; i < parts.length - 1; i++) {
+                if (!current[parts[i]]) current[parts[i]] = {};
+                current = current[parts[i]];
+              }
+              current[parts[parts.length - 1]] = dataToSet;
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            }
+          },
+          update: async function(updatesObj) {
+            if (parts.length === 1) {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+
+              Object.keys(updatesObj).forEach(updPath => {
+                let updParts = updPath.split('/').filter(Boolean);
+                let current = rootObj;
+                for (let i = 0; i < updParts.length - 1; i++) {
+                  if (!current[updParts[i]]) current[updParts[i]] = {};
+                  current = current[updParts[i]];
+                }
+                current[updParts[updParts.length - 1]] = updatesObj[updPath];
+              });
+
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            }
+          },
+          remove: async function() {
+            if (parts.length === 1) {
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: rootKey }) }).then(res => res.json());
+            } else {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+              let current = rootObj;
+              for (let i = 1; i < parts.length - 1; i++) {
+                if (!current[parts[i]]) return;
+                current = current[parts[i]];
+              }
+              delete current[parts[parts.length - 1]];
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            }
+          },
+          push: function() {
+            const newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            const pushPath = path + (path.endsWith('/') ? '' : '/') + newKey;
+            return {
+              key: newKey,
+              set: function(data) {
+                 return db.ref(pushPath).set(data);
+              }
+            };
           }
         };
       }
@@ -510,17 +559,18 @@
 
     function loadAllData(cb){
       var p={theory:'theoryDatabase',quiz:'questionBank',mindmap:'mindMapDatabase',papers:'papersDatabase',games:'gamesDatabase',projects:'projectsDatabase',videos:'videosDatabase',skills:'skillsDatabase'};
-      var k=Object.keys(p),l=0,t=k.length;
-      k.forEach(function(kk){
-        db.ref(p[kk]).once('value').then(function(s){
-          DB[kk]=s.val()||{};
-          l++;
-          if(l>=t&&cb)cb();
-        }).catch(function(){
-          DB[kk]={};
-          l++;
-          if(l>=t&&cb)cb();
+      var k=Object.keys(p);
+      var promises = k.map(function(kk) {
+        return db.ref(p[kk]).once('value').then(function(s) {
+          let val = s.val();
+          if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) { val = {}; } }
+          DB[kk] = val || {};
+        }).catch(function() {
+          DB[kk] = {};
         });
+      });
+      Promise.all(promises).then(function() {
+        if (cb) cb();
       });
     }
 
@@ -745,7 +795,7 @@
       document.getElementById('shell').style.display='block';
     }
 
-function renderQuizHTML(d,g){
+    function renderQuizHTML(d,g){
       var p='Class'+cls+'_'+sub;
       var ch={};
       Object.keys(d).forEach(function(k){
@@ -764,7 +814,6 @@ function renderQuizHTML(d,g){
       ck.forEach(function(cn, cIndex){
         var cid='qc_'+cn.replace(/[^a-z0-9]/gi,'_');
         h+='<div class="ch-row" style="background:'+g+'" onclick="tog('+q(cid)+')"><span>Chapter '+sanitizeHTML(cn)+'</span><span>View [+]</span></div>';
-        // ఇక్కడ cIndex పాస్ చేస్తున్నాం ఐడీలు క్లాష్ అవ్వకుండా
         h+='<div id="'+cid+'" class="ch-content">'+renderChapterNested(d,ch[cn],g,cIndex)+'</div>';
       });
       return h;
@@ -804,7 +853,6 @@ function renderQuizHTML(d,g){
 
       var h='';
       topics.forEach(function(tp,ti){
-        // cIndex ఉపయోగించి ప్రతీ చాప్టర్ కు వేర్వేరు IDs ఇస్తున్నాం
         var tid='qt_'+cIndex+'_'+ti;
         h+='<div class="nested-row" style="background:linear-gradient(135deg,'+g+',#1e293b)" onclick="tog('+q(tid)+')"><span>📘 '+sanitizeHTML(tp.name)+'</span><span>['+(tp.subs.length)+'] View [+]</span></div>';
         h+='<div id="'+tid+'" class="nested-sub"><div class="nested-list">';
@@ -1111,27 +1159,41 @@ function renderQuizHTML(d,g){
     function setSkill(c){skillCat=c;refreshUI()}
 
     function initApp(){
-      db.ref('appSettings').on('value',function(s){
-        var v=s.val()||{};
-        settings.loginEnabled=v.loginEnabled!==undefined?v.loginEnabled:true;
-        settings.copyEnabled=v.copyEnabled!==undefined?v.copyEnabled:false;
-        settings.users=v.users||{};
-        settings.guestAutoLogin=v.guestAutoLogin!==undefined?v.guestAutoLogin:false;
-        settings.guestId=v.guestId||DEFAULT_GUEST_ID;
-        settings.guestPass=v.guestPass||DEFAULT_GUEST_PASS;
+      Promise.all([
+        db.ref('appSettings').once('value'),
+        db.ref('activeSessions').once('value')
+      ]).then(results => {
+        let v = results[0].val() || {};
+        if (typeof v === 'string') { try { v = JSON.parse(v); } catch(e) { v = {}; } }
+        settings.loginEnabled = v.loginEnabled !== undefined ? v.loginEnabled : true;
+        settings.copyEnabled = v.copyEnabled !== undefined ? v.copyEnabled : false;
+        settings.users = v.users || {};
+        settings.guestAutoLogin = v.guestAutoLogin !== undefined ? v.guestAutoLogin : false;
+        settings.guestId = v.guestId || DEFAULT_GUEST_ID;
+        settings.guestPass = v.guestPass || DEFAULT_GUEST_PASS;
+        
+        let sess = results[1].val() || {};
+        if (typeof sess === 'string') { try { sess = JSON.parse(sess); } catch(e) { sess = {}; } }
+        activeSessions = sess;
+
         checkAuth();
-      });
-      db.ref('activeSessions').on('value',function(s){
-        activeSessions=s.val()||{};
+        loadAllData(function(){
+          if(currentUser.phone||!settings.loginEnabled)refreshUI();
+        });
+      }).catch(err => {
+        console.error("Vercel KV Initial Load Error:", err);
         checkAuth();
-      });
-      loadAllData(function(){
-        if(currentUser.phone||!settings.loginEnabled)refreshUI();
+        loadAllData(function(){
+          if(currentUser.phone||!settings.loginEnabled)refreshUI();
+        });
       });
     }
-    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);
+
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initApp);
     else initApp();
   </script>
+
+  <!-- Global Navbar & Footer -->
   <script src="/footer.js"></script>
   <script src="/global-navbar.js"></script>
 </body>
