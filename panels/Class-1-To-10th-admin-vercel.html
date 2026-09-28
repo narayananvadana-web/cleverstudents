@@ -136,24 +136,40 @@
     </div>
   </div>
 
-  <div class="top-bar"><div class="top-inner"><div class="logo">⚙️ Admin Panel</div><div style="display:flex;align-items:center;gap:15px;flex-wrap:wrap;"><span id="admin-info" style="font-weight:700;font-size:.9rem;"></span><button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">Light Mode</button><button class="btn btn-red btn-sm" onclick="logout()">Logout</button></div></div></div>
-
-  <div class="main-wrap"><div id="shell" class="shell">
-    <div class="banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);"><h1>⚙️ Admin Control Panel</h1><p>Manage All Content & Users</p></div>
-    <div class="admin-tabs" id="admin-tabs">
-      <button class="admin-tab-btn active" onclick="switchTab('theory')">📖 Theory</button>
-      <button class="admin-tab-btn" onclick="switchTab('quiz')">📝 Quiz</button>
-      <button class="admin-tab-btn" onclick="switchTab('mindmap')">🧠 Mind Map</button>
-      <button class="admin-tab-btn" onclick="switchTab('papers')">📄 Papers</button>
-      <button class="admin-tab-btn" onclick="switchTab('games')">🎮 Games</button>
-      <button class="admin-tab-btn" onclick="switchTab('projects')">🔬 Projects</button>
-      <button class="admin-tab-btn" onclick="switchTab('videos')">🎥 Videos</button>
-      <button class="admin-tab-btn" onclick="switchTab('skills')">💡 Skills</button>
-      <button class="admin-tab-btn" onclick="switchTab('users')">👥 Users</button>
-      <button class="admin-tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
+  <div class="top-bar">
+    <div class="top-inner">
+      <div class="logo">⚙️ Admin Panel</div>
+      <div style="display:flex;align-items:center;gap:15px;flex-wrap:wrap;">
+        <span id="admin-info" style="font-weight:700;font-size:.9rem;"></span>
+        <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">Light Mode</button>
+        <button class="btn btn-red btn-sm" onclick="logout()">Logout</button>
+      </div>
     </div>
-    <div class="admin-content" id="admin-content"><div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div></div>
-  </div></div>
+  </div>
+
+  <div class="main-wrap">
+    <div id="shell" class="shell">
+      <div class="banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">
+        <h1>⚙️ Admin Control Panel</h1>
+        <p>Manage All Content & Users</p>
+      </div>
+      <div class="admin-tabs" id="admin-tabs">
+        <button class="admin-tab-btn active" onclick="switchTab('theory')">📖 Theory</button>
+        <button class="admin-tab-btn" onclick="switchTab('quiz')">📝 Quiz</button>
+        <button class="admin-tab-btn" onclick="switchTab('mindmap')">🧠 Mind Map</button>
+        <button class="admin-tab-btn" onclick="switchTab('papers')">📄 Papers</button>
+        <button class="admin-tab-btn" onclick="switchTab('games')">🎮 Games</button>
+        <button class="admin-tab-btn" onclick="switchTab('projects')">🔬 Projects</button>
+        <button class="admin-tab-btn" onclick="switchTab('videos')">🎥 Videos</button>
+        <button class="admin-tab-btn" onclick="switchTab('skills')">💡 Skills</button>
+        <button class="admin-tab-btn" onclick="switchTab('users')">👥 Users</button>
+        <button class="admin-tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
+      </div>
+      <div class="admin-content" id="admin-content">
+        <div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div>
+      </div>
+    </div>
+  </div>
 
   <script>
     function loadSheetJS(cb){
@@ -166,59 +182,94 @@
   </script>
 
   <script>
-    // --- Vercel KV Database Connector for Admin (Replaces Firebase) ---
-    var db = {
+    // ==========================================
+    // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
+    // ==========================================
+    const db = {
       ref: function(path) {
+        let parts = path.split('/').filter(Boolean);
+        let rootKey = parts[0];
+
         return {
-          once: function(event) {
-            return fetch('/api/db?path=' + encodeURIComponent(path))
-              .then(function(res){ return res.json(); })
-              .then(function(data){ return { val: function(){ return data.result; } }; });
+          once: async function(event) {
+            try {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const data = await res.json();
+              let val = data.result;
+              if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) {} }
+              for (let i = 1; i < parts.length; i++) {
+                if (val && typeof val === 'object') { val = val[parts[i]]; }
+                else { val = null; break; }
+              }
+              return { val: () => val };
+            } catch (err) {
+              console.error("DB Fetch Error:", err);
+              return { val: () => null };
+            }
           },
-          set: function(data) {
-            return fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'set', path: path, data: data })
-            }).then(function(res){ return res.json(); });
+          set: async function(dataToSet) {
+            if (parts.length === 1) {
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: dataToSet }) }).then(res => res.json());
+            } else {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+              let current = rootObj;
+              for (let i = 1; i < parts.length - 1; i++) {
+                if (!current[parts[i]]) current[parts[i]] = {};
+                current = current[parts[i]];
+              }
+              current[parts[parts.length - 1]] = dataToSet;
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            }
           },
-          update: function(data) {
-            return fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'update', path: path, data: data })
-            }).then(function(res){ return res.json(); });
+          update: async function(updatesObj) {
+            if (parts.length === 1) {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+
+              Object.keys(updatesObj).forEach(updPath => {
+                let updParts = updPath.split('/').filter(Boolean);
+                let current = rootObj;
+                for (let i = 0; i < updParts.length - 1; i++) {
+                  if (!current[updParts[i]]) current[updParts[i]] = {};
+                  current = current[updParts[i]];
+                }
+                current[updParts[updParts.length - 1]] = updatesObj[updPath];
+              });
+
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            }
           },
-          remove: function() {
-            return fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'remove', path: path })
-            }).then(function(res){ return res.json(); });
+          remove: async function() {
+            if (parts.length === 1) {
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: rootKey }) }).then(res => res.json());
+            } else {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+              let current = rootObj;
+              for (let i = 1; i < parts.length - 1; i++) {
+                if (!current[parts[i]]) return;
+                current = current[parts[i]];
+              }
+              delete current[parts[parts.length - 1]];
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            }
           },
           push: function() {
-            var newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-            var pushPath = path + '/' + newKey;
+            const newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            const pushPath = path + (path.endsWith('/') ? '' : '/') + newKey;
             return {
               key: newKey,
               set: function(data) {
-                return fetch('/api/db', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ action: 'set', path: pushPath, data: data })
-                }).then(function(res){ return res.json(); });
+                 return db.ref(pushPath).set(data);
               }
             };
-          },
-          on: function(event, callback) {
-            function fetchIt() {
-              fetch('/api/db?path=' + encodeURIComponent(path))
-                .then(function(res){ return res.json(); })
-                .then(function(data){ callback({ val: function(){ return data.result; } }); })
-                .catch(function(err){ console.error("DB Error:", err); });
-            }
-            fetchIt();
-            setInterval(fetchIt, 360000); 
           }
         };
       }
@@ -261,11 +312,28 @@
     function escapeAttr(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
     function escCSV(s){return s?s.replace(/"/g,'""'):''}
     window.tog=function(id){var el=document.getElementById(id);if(el)el.classList.toggle('show')}
-    function initTheme(){var t=localStorage.getItem('cs_ad_th')||'dark',b=document.getElementById('theme-toggle');t==='light'?(document.body.classList.add('light-mode'),b.innerText='Dark Mode'):(document.body.classList.remove('light-mode'),b.innerText='Light Mode')}
-    initTheme();
-    function toggleTheme(){var l=document.body.classList.toggle('light-mode');localStorage.setItem('cs_ad_th',l?'light':'dark');document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode'}
-    function toast(msg,type){type=type||'info';var t=document.createElement('div');t.className='toast '+type;t.innerText=msg;document.body.appendChild(t);setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.remove()},300)},3000)}
-    function updateGuestDisplay(){var g=document.getElementById('guest-id-display'),p=document.getElementById('guest-pass-display');if(g)g.innerText=settings.guestId||DEFAULT_GUEST_ID;if(p)p.innerText=settings.guestPass||DEFAULT_GUEST_PASS}
+    
+    function initTheme(){
+      var t=localStorage.getItem('cs_ad_th')||'dark',b=document.getElementById('theme-toggle');
+      t==='light'?(document.body.classList.add('light-mode'),b.innerText='Dark Mode'):(document.body.classList.remove('light-mode'),b.innerText='Light Mode');
+    }
+    function toggleTheme(){
+      var l=document.body.classList.toggle('light-mode');
+      localStorage.setItem('cs_ad_th',l?'light':'dark');
+      document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode';
+    }
+    
+    function toast(msg,type){
+      type=type||'info';var t=document.createElement('div');t.className='toast '+type;t.innerText=msg;
+      document.body.appendChild(t);
+      setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.remove()},300)},3000)
+    }
+    
+    function updateGuestDisplay(){
+      var g=document.getElementById('guest-id-display'),p=document.getElementById('guest-pass-display');
+      if(g)g.innerText=settings.guestId||DEFAULT_GUEST_ID;
+      if(p)p.innerText=settings.guestPass||DEFAULT_GUEST_PASS;
+    }
 
     function checkAuth(){
       var o=document.getElementById('login-overlay');
@@ -350,8 +418,11 @@
       var refMap={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var keyMap={'theory':'theory','quiz':'quiz','mindmap':'mindmap','papers':'papers','games':'games','projects':'projects','videos':'videos','skills':'skills'};
       ac.innerHTML='<div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div>';
+      
       db.ref(refMap[currentTab]).once('value').then(function(snap){
-        allData[keyMap[currentTab]]=snap.val()||{};
+        let fetchedData = snap.val();
+        if (typeof fetchedData === 'string') { try { fetchedData = JSON.parse(fetchedData); } catch(e) { fetchedData = {}; } }
+        allData[keyMap[currentTab]] = fetchedData || {};
         renderContent(keyMap[currentTab]);
       }).catch(function(err){
         ac.innerHTML='<div style="padding:40px;text-align:center;color:#ef4444;">Error loading data</div>';
@@ -1827,8 +1898,10 @@
     }
 
     function initApp(){
-      db.ref('appSettings').on('value',function(s){
-        var v=s.val()||{};
+      db.ref('appSettings').once('value').then(function(s){
+        var v = s.val() || {};
+        if (typeof v === 'string') { try { v = JSON.parse(v); } catch(e) { v = {}; } }
+        
         settings.loginEnabled=v.loginEnabled!==undefined?v.loginEnabled:true;
         settings.copyEnabled=v.copyEnabled!==undefined?v.copyEnabled:false;
         settings.users=v.users||{};
@@ -1840,15 +1913,20 @@
         else document.body.classList.add('protected-mode');
         checkAuth();
       });
-      db.ref('activeSessions').on('value',function(s){
-        activeSessions=s.val()||{};
+      db.ref('activeSessions').once('value').then(function(s){
+        var v = s.val() || {};
+        if (typeof v === 'string') { try { v = JSON.parse(v); } catch(e) { v = {}; } }
+        activeSessions = v;
         checkAuth();
       });
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);
     else initApp();
   </script>
+
+  <!-- Global Navbar & Footer -->
   <script src="/footer.js"></script>
   <script src="/global-navbar.js"></script>
+
 </body>
 </html>
