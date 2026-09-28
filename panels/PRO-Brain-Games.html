@@ -99,7 +99,6 @@
     <img id="modal-img" src="" alt="Preview">
   </div>
 
-  <!-- Note: Refreshes data from Vercel KV -->
   <button class="refresh-btn" onclick="refreshData()" title="Refresh Games">🔄</button>
 
   <script>
@@ -180,29 +179,55 @@
       location.reload();
     }
 
+    // UPDATED: Real-time Database Check for Login
     function attemptLogin() {
       var p = document.getElementById('login-phone').value.trim();
       var pa = document.getElementById('login-pass').value.trim();
       var e = document.getElementById('login-error');
-      
-      if (!p || !pa) { e.innerText = 'Enter ID and Password'; e.style.display = 'block'; return; }
-      
-      if (settings.users && settings.users[p] && settings.users[p].pass === pa) {
-        e.style.display = 'none';
-        var t = "sess_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
-        myPhone = p;
-        myToken = t;
-        localStorage.setItem('cs_ph', p);
-        localStorage.setItem('cs_tk', t);
-        
-        activeSessions[p] = t;
-        db.ref('activeSessions').set(activeSessions);
-        
-        document.getElementById('login-overlay').style.display = 'none';
-      } else {
-        e.innerText = 'Invalid credentials';
-        e.style.display = 'block';
+      var btn = document.querySelector('.login-box .btn-blue');
+
+      if (!p || !pa) { 
+        e.innerText = 'Enter ID and Password'; 
+        e.style.display = 'block'; 
+        return; 
       }
+
+      btn.innerText = 'Authenticating...';
+      btn.disabled = true;
+
+      db.ref('appSettings').once('value').then(res => {
+        var dbSettings = res.val() || {};
+        var dbUsers = dbSettings.users || {};
+
+        if (dbUsers[p] && dbUsers[p].pass === pa) {
+          e.style.display = 'none';
+          var t = "sess_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+          
+          myPhone = p;
+          myToken = t;
+          localStorage.setItem('cs_ph', p);
+          localStorage.setItem('cs_tk', t);
+          
+          activeSessions[p] = t;
+          
+          db.ref('activeSessions').set(activeSessions).then(() => {
+            document.getElementById('login-overlay').style.display = 'none';
+            btn.innerText = 'Login';
+            btn.disabled = false;
+          });
+        } else {
+          e.innerText = 'Invalid credentials';
+          e.style.display = 'block';
+          btn.innerText = 'Login';
+          btn.disabled = false;
+        }
+      }).catch(err => {
+        console.error("Login Error:", err);
+        e.innerText = 'Database connection error. Try again.';
+        e.style.display = 'block';
+        btn.innerText = 'Login';
+        btn.disabled = false;
+      });
     }
 
     function getArr(obj) {
@@ -294,7 +319,6 @@
       iframe.setAttribute('loading', 'lazy');
       iframe.setAttribute('title', gameData.title || 'Game');
 
-      // Uses htmlContent if provided, otherwise falls back to standard content
       var renderContent = gameData.htmlContent || gameData.content || '<p>No content available</p>';
 
       var gameHTML = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=yes">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:Arial,Helvetica,sans-serif;overflow-x:hidden;width:100%;min-height:100vh}\nimg{max-width:100%;height:auto}\n</style>\n</head>\n<body>\n' + renderContent + '\n</body>\n</html>';
@@ -325,16 +349,21 @@
       initApp();
     }
 
+    // UPDATED: Added safety defaults to prevent initialization crashes
     function initApp() {
       Promise.all([
         db.ref('appSettings').once('value'),
         db.ref('activeSessions').once('value'),
-        db.ref('proGames/gamesDatabase').once('value') // Assumed path based on admin panel
+        db.ref('proGames/gamesDatabase').once('value')
       ]).then(results => {
-        settings = results[0].val() || { loginEnabled: true, users: {}, copyEnabled: false };
+        settings = results[0].val() || {};
+        
+        if (typeof settings.loginEnabled === 'undefined') settings.loginEnabled = true;
+        if (!settings.users) settings.users = {};
+        if (typeof settings.copyEnabled === 'undefined') settings.copyEnabled = false;
+
         activeSessions = results[1].val() || {};
         
-        // Attempting to fetch from generic gamesDatabase if proGames is empty
         DB.games = results[2].val();
         if(!DB.games) {
           return db.ref('gamesDatabase').once('value').then(fallback => {
@@ -350,7 +379,6 @@
         refreshUI();
       }).catch(err => {
         console.error("Vercel KV Load Error:", err);
-        // Fallback execute
         applyCopyProtection();
         checkAuth();
         refreshUI();
