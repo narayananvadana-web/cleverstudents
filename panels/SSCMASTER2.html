@@ -161,14 +161,30 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <script>
     // ============ VERCEL KV API HELPERS ============
-    async function fetchDB(key) {
+async function fetchDB(key) {
       try {
         const res = await fetch(`/api/db?key=${encodeURIComponent(key)}`);
         if (!res.ok) return null;
-        const data = await res.json();
-        return data.value !== undefined ? data.value : data;
+        let data = await res.json();
+        
+        // 1. Unwrap Vercel's 'value' or 'result' wrapper if it exists
+        if (data.value !== undefined) data = data.value;
+        if (data.result !== undefined) data = data.result; 
+        
+        // 2. Fix Firebase Object-to-Array conversion issues
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+           // For Question Bank: Convert inner question objects to arrays
+           if (key === 'sscQuestionBank') {
+             Object.keys(data).forEach(groupKey => {
+               if (data[groupKey] && typeof data[groupKey] === 'object' && !Array.isArray(data[groupKey])) {
+                 data[groupKey] = Object.values(data[groupKey]); // Convert {0: {...}, 1: {...}} to [...]
+               }
+             });
+           }
+        }
+        return data;
       } catch (err) {
-        console.error("DB Fetch Error:", err);
+        console.error(`DB Fetch Error for ${key}:`, err);
         return null;
       }
     }
