@@ -102,13 +102,14 @@
   <button class="refresh-btn" onclick="refreshData()" title="Refresh Games">🔄</button>
 
   <script>
-// ==========================================
+<script>
+    // ==========================================
     // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
     // ==========================================
     const db = {
       ref: function(path) {
         let parts = path.split('/').filter(Boolean);
-        let rootKey = parts[0]; // e.g., "proGames" or "sscQuestionBank"
+        let rootKey = parts[0];
 
         return {
           once: async function(event) {
@@ -116,20 +117,10 @@
               const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
               const data = await res.json();
               let val = data.result;
-              
-              // 1. Fix for Games not opening (String to Object conversion)
-              if (typeof val === 'string') {
-                try { val = JSON.parse(val); } catch(e) {}
-              }
-
-              // 2. Fix for missing data (Tree traversal)
+              if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) {} }
               for (let i = 1; i < parts.length; i++) {
-                if (val && typeof val === 'object') {
-                  val = val[parts[i]];
-                } else {
-                  val = null;
-                  break;
-                }
+                if (val && typeof val === 'object') { val = val[parts[i]]; }
+                else { val = null; break; }
               }
               return { val: () => val };
             } catch (err) {
@@ -139,97 +130,255 @@
           },
           set: async function(dataToSet) {
             if (parts.length === 1) {
-              return fetch('/api/db', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'set', path: rootKey, data: dataToSet })
-              }).then(res => res.json());
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: dataToSet }) }).then(res => res.json());
             } else {
-              // 3. Fix for Saving issues (Fetch root, update branch, save root)
               const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
               const fetched = await res.json();
               let rootObj = fetched.result || {};
               if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-
               let current = rootObj;
               for (let i = 1; i < parts.length - 1; i++) {
                 if (!current[parts[i]]) current[parts[i]] = {};
                 current = current[parts[i]];
               }
               current[parts[parts.length - 1]] = dataToSet;
-
-              return fetch('/api/db', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj })
-              }).then(res => res.json());
-            }
-          },
-          update: async function(updatesObj) {
-            if (parts.length === 1) {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const fetched = await res.json();
-              let rootObj = fetched.result || {};
-              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-
-              Object.keys(updatesObj).forEach(updPath => {
-                let updParts = updPath.split('/').filter(Boolean);
-                let current = rootObj;
-                for (let i = 0; i < updParts.length - 1; i++) {
-                  if (!current[updParts[i]]) current[updParts[i]] = {};
-                  current = current[updParts[i]];
-                }
-                current[updParts[updParts.length - 1]] = updatesObj[updPath];
-              });
-
-              return fetch('/api/db', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj })
-              }).then(res => res.json());
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
             }
           },
           remove: async function() {
             if (parts.length === 1) {
-              return fetch('/api/db', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'remove', path: rootKey })
-              }).then(res => res.json());
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: rootKey }) }).then(res => res.json());
             } else {
               const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
               const fetched = await res.json();
               let rootObj = fetched.result || {};
               if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-
               let current = rootObj;
               for (let i = 1; i < parts.length - 1; i++) {
-                if (!current[parts[i]]) return; 
+                if (!current[parts[i]]) return;
                 current = current[parts[i]];
               }
               delete current[parts[parts.length - 1]];
-
-              return fetch('/api/db', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj })
-              }).then(res => res.json());
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
             }
-          },
-          push: function() {
-            const newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-            const pushPath = path + (path.endsWith('/') ? '' : '/') + newKey;
-            return {
-              key: newKey,
-              set: function(data) {
-                 return db.ref(pushPath).set(data);
-              }
-            };
           }
         };
       }
     };
-    // ==========================================
+
+    var DB = { games: {}, students: {} };
+    var settings = { loginEnabled: true, copyEnabled: false };
+    var activeSessions = {};
+    var myPhone = localStorage.getItem('cs_ph') || "";
+    var myToken = localStorage.getItem('cs_tk') || "";
+
+    var selectedCategory = 'ALL';
+    // Updated to match the Admin's 11 Categories
+    var GAME_CATEGORIES = ["1. Memory & Recall", "2. Attention & Focus", "3. Logic & Reasoning", "4. Problem Solving", "5. Processing Speed", "6. Cognitive Flexibility", "7. Verbal Intelligence", "8. Mathematical", "9. N-Back Training", "10. Advanced Technology", "11. Creativity"];
+
+    function initTheme() {
+      var t = localStorage.getItem('cs_th') || 'dark';
+      t === 'light' ? document.body.classList.add('light-mode') : document.body.classList.remove('light-mode');
+    }
+    initTheme();
+
+    function applyCopyProtection() {
+      if (settings.copyEnabled === true) {
+        document.body.classList.remove('protected-mode');
+        document.body.removeAttribute('oncontextmenu');
+        document.body.removeAttribute('oncopy');
+        document.body.removeAttribute('oncut');
+      } else {
+        document.body.classList.add('protected-mode');
+        document.body.setAttribute('oncontextmenu', 'return false;');
+        document.body.setAttribute('oncopy', 'return false;');
+        document.body.setAttribute('oncut', 'return false;');
+      }
+    }
+
+    function checkAuth() {
+      var o = document.getElementById('login-overlay');
+      if (!settings.loginEnabled) { o.style.display = 'none'; return; }
+      if (myPhone && myToken && activeSessions[myPhone] === myToken) {
+        o.style.display = 'none';
+      } else {
+        o.style.display = 'flex';
+      }
+    }
+
+    function logout() {
+      if(myPhone) {
+        db.ref('proGames/activeSessions/' + myPhone).remove().catch(() => {});
+      }
+      localStorage.removeItem('cs_ph');
+      localStorage.removeItem('cs_tk');
+      location.reload();
+    }
+
+    function attemptLogin() {
+      var p = document.getElementById('login-phone').value.trim();
+      var pa = document.getElementById('login-pass').value.trim();
+      var e = document.getElementById('login-error');
+      
+      if (!p || !pa) { e.innerText = 'Enter ID and Password'; e.style.display = 'block'; return; }
+      
+      // FIX: Now verifying against DB.students which is synced with the Admin Panel
+      if (DB.students && DB.students[p] && DB.students[p].password === pa) {
+        e.style.display = 'none';
+        var t = "sess_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+        myPhone = p;
+        myToken = t;
+        localStorage.setItem('cs_ph', p);
+        localStorage.setItem('cs_tk', t);
+        
+        activeSessions[p] = t;
+        db.ref('proGames/activeSessions').set(activeSessions);
+        
+        document.getElementById('login-overlay').style.display = 'none';
+      } else {
+        e.innerText = 'Invalid credentials';
+        e.style.display = 'block';
+      }
+    }
+
+    function getArr(obj) {
+      if (!obj) return [];
+      var r = [];
+      Object.keys(obj).forEach(function(k) { r.push(obj[k]); });
+      r.sort(function(a, b) {
+        var oA = a.order !== undefined ? a.order : 999999;
+        var oB = b.order !== undefined ? b.order : 999999;
+        return oA - oB;
+      });
+      return r;
+    }
+
+    window.tog = function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('show');
+    };
+
+    function refreshUI() {
+      var fb = document.getElementById('filter-bar');
+      var ca = document.getElementById('content-area');
+
+      var co = '<option value="ALL">🎮 All Categories</option>';
+      for (var ci = 0; ci < GAME_CATEGORIES.length; ci++) {
+        var sc = selectedCategory === GAME_CATEGORIES[ci] ? 'selected' : '';
+        co += '<option value="' + GAME_CATEGORIES[ci] + '" ' + sc + '>' + GAME_CATEGORIES[ci] + '</option>';
+      }
+      fb.innerHTML = '<select onchange="updateCategory(this.value)">' + co + '</select>';
+
+      var items = getArr(DB.games);
+      if (selectedCategory !== 'ALL') {
+        items = items.filter(function(g) { return g.category === selectedCategory; });
+      }
+
+      var h = '';
+      if (items.length) {
+        items.forEach(function(t, i) {
+          var sid = 'gm_' + i;
+          var categoryTag = t.category ? '<span class="game-meta meta-category">' + t.category + '</span>' : '';
+          var subcategoryTag = t.subcategory ? '<span class="game-meta meta-subcategory">' + t.subcategory + '</span>' : '';
+          h += '<div class="ch-row" style="background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="togGame(\'' + sid + '\',' + i + ')"><span>🎮 ' + (t.title || 'Game ' + (i + 1)) + categoryTag + subcategoryTag + '</span><span>▶ Play</span></div><div id="' + sid + '" class="ch-content"></div>';
+        });
+      } else {
+        h += '<div style="padding:40px;text-align:center;color:var(--mut);">No games found for this category.</div>';
+      }
+      ca.innerHTML = h;
+    }
+
+    function updateCategory(val) {
+      selectedCategory = val;
+      refreshUI();
+    }
+
+    function togGame(sid, index) {
+      var contentDiv = document.getElementById(sid);
+      if (!contentDiv) return;
+
+      if (contentDiv.classList.contains('show')) {
+        contentDiv.classList.remove('show');
+        contentDiv.innerHTML = '';
+        return;
+      }
+
+      var allGames = document.querySelectorAll('.ch-content.show');
+      allGames.forEach(function(g) { g.classList.remove('show'); g.innerHTML = ''; });
+
+      var items = getArr(DB.games);
+      if (selectedCategory !== 'ALL') items = items.filter(function(g) { return g.category === selectedCategory; });
+      var gameData = items[index];
+
+      if (!gameData) {
+        contentDiv.innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px;">⚠️ Game data not found!</p>';
+        contentDiv.classList.add('show');
+        return;
+      }
+
+      var iframe = document.createElement('iframe');
+      iframe.className = 'game-iframe';
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-pointer-lock allow-popups-to-escape-sandbox');
+      iframe.setAttribute('allow', 'geolocation; microphone; camera; midi; encrypted-media;');
+      iframe.setAttribute('loading', 'lazy');
+      iframe.setAttribute('title', gameData.title || 'Game');
+
+      var renderContent = gameData.htmlContent || gameData.content || '<p>No content available</p>';
+
+      var gameHTML = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=yes">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:Arial,Helvetica,sans-serif;overflow-x:hidden;width:100%;min-height:100vh}\nimg{max-width:100%;height:auto}\n</style>\n</head>\n<body>\n' + renderContent + '\n</body>\n</html>';
+
+      iframe.srcdoc = gameHTML;
+      contentDiv.innerHTML = '';
+      contentDiv.appendChild(iframe);
+      contentDiv.classList.add('show');
+
+      setTimeout(function() {
+        contentDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    }
+
+    function closeModal() {
+      var m = document.getElementById('img-modal');
+      if(m) m.classList.remove('show');
+    }
+
+    function refreshData() {
+      var ca = document.getElementById('content-area');
+      ca.innerHTML = '<div style="padding:40px;text-align:center;color:var(--mut);">Refreshing Games...</div>';
+      initApp();
+    }
+
+    function initApp() {
+      // FIX: Explicitly fetching all required data from the correct "proGames/" path
+      Promise.all([
+        db.ref('proGames/appSettings').once('value'),
+        db.ref('proGames/activeSessions').once('value'),
+        db.ref('proGames/gamesDatabase').once('value'),
+        db.ref('proGames/students').once('value') 
+      ]).then(results => {
+        settings = results[0].val() || { loginEnabled: true, copyEnabled: false };
+        activeSessions = results[1].val() || {};
+        DB.games = results[2].val() || {};
+        DB.students = results[3].val() || {}; 
+        
+        applyCopyProtection();
+        checkAuth();
+        refreshUI();
+      }).catch(err => {
+        console.error("Vercel KV Load Error:", err);
+        var errEl = document.getElementById('login-error');
+        if(errEl) {
+           errEl.innerText = "Database connection error. Try again.";
+           errEl.style.display = "block";
+        }
+        applyCopyProtection();
+        checkAuth();
+        refreshUI();
+      });
+    }
+
+    window.onload = initApp;
+  </script>
     initTheme();
 
     function applyCopyProtection() {
