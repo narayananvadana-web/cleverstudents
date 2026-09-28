@@ -23,8 +23,7 @@ const menuData = [
           { name: "Memory Match", url: "#" }
         ] 
       },
-      { name: "Self-Assessment Exam 1", url: "#" },
-      { name: "Self-Assessment Exam 2", url: "#" }
+      { name: "Comming Soon", url: "#" }
     ]
   },
   {
