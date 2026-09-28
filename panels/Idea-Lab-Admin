@@ -1,0 +1,5136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Idea Lab Admin | CleverStudents</title>
+
+<style>
+/* =========================================================
+   ROOT
+========================================================= */
+
+:root{
+    --bg:#020617;
+    --panel:#0f172a;
+    --panel2:#111827;
+    --panel3:#172033;
+    --border:#263449;
+
+    --text:#f8fafc;
+    --muted:#94a3b8;
+
+    --primary:#f59e0b;
+    --primary2:#fbbf24;
+
+    --green:#4ade80;
+    --red:#f87171;
+    --blue:#60a5fa;
+    --purple:#a78bfa;
+
+    --shadow:0 15px 40px rgba(0,0,0,.25);
+    --radius:16px;
+}
+
+body.light{
+    --bg:#f1f5f9;
+    --panel:#ffffff;
+    --panel2:#f8fafc;
+    --panel3:#eef2f7;
+    --border:#dbe3ec;
+
+    --text:#0f172a;
+    --muted:#64748b;
+
+    --shadow:0 12px 30px rgba(15,23,42,.10);
+}
+
+*{
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    min-height:100vh;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.topbar{
+    position:sticky;
+    top:0;
+    z-index:1000;
+
+    height:70px;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:0 24px;
+
+    background:rgba(2,6,23,.92);
+    border-bottom:1px solid var(--border);
+
+    backdrop-filter:blur(14px);
+}
+
+body.light .topbar{
+    background:rgba(255,255,255,.92);
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.brand-icon{
+    width:42px;
+    height:42px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:12px;
+
+    background:linear-gradient(
+        135deg,
+        var(--primary),
+        #f97316
+    );
+
+    color:#111827;
+    font-size:22px;
+
+    box-shadow:0 8px 20px rgba(245,158,11,.25);
+}
+
+.brand-text h1{
+    margin:0;
+    font-size:18px;
+    font-weight:900;
+    letter-spacing:.5px;
+}
+
+.brand-text span{
+    display:block;
+    color:var(--muted);
+    font-size:11px;
+    margin-top:2px;
+    letter-spacing:1px;
+}
+
+.top-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+button,
+.btn{
+    border:0;
+    cursor:pointer;
+
+    font-family:inherit;
+    font-weight:800;
+
+    transition:.18s ease;
+}
+
+.btn{
+    min-height:38px;
+    padding:0 13px;
+
+    border-radius:10px;
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+}
+
+.btn:hover{
+    transform:translateY(-1px);
+}
+
+.btn-primary{
+    background:var(--primary);
+    color:#111827;
+}
+
+.btn-secondary{
+    background:var(--panel3);
+    color:var(--text);
+    border:1px solid var(--border);
+}
+
+.btn-green{
+    background:rgba(74,222,128,.13);
+    color:var(--green);
+    border:1px solid rgba(74,222,128,.25);
+}
+
+.btn-blue{
+    background:rgba(96,165,250,.13);
+    color:var(--blue);
+    border:1px solid rgba(96,165,250,.25);
+}
+
+.btn-red{
+    background:rgba(248,113,113,.12);
+    color:var(--red);
+    border:1px solid rgba(248,113,113,.22);
+}
+
+.btn-purple{
+    background:rgba(167,139,250,.13);
+    color:var(--purple);
+    border:1px solid rgba(167,139,250,.22);
+}
+
+.btn-small{
+    min-height:32px;
+    padding:0 9px;
+    font-size:12px;
+}
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.container{
+    width:min(1250px, calc(100% - 30px));
+    margin:24px auto 60px;
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    gap:20px;
+
+    padding:25px;
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(245,158,11,.12),
+            transparent 35%
+        ),
+        var(--panel);
+
+    border:1px solid var(--border);
+    border-radius:20px;
+
+    box-shadow:var(--shadow);
+}
+
+.hero h2{
+    margin:0;
+    font-size:27px;
+}
+
+.hero p{
+    margin:7px 0 0;
+    color:var(--muted);
+}
+
+.mode-badge{
+    padding:8px 12px;
+    border-radius:999px;
+
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:1px;
+
+    background:rgba(245,158,11,.12);
+    color:var(--primary2);
+
+    border:1px solid rgba(245,158,11,.25);
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.connection{
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    padding:8px 11px;
+
+    border-radius:999px;
+
+    font-size:11px;
+    font-weight:800;
+
+    background:var(--panel2);
+    border:1px solid var(--border);
+}
+
+.connection-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--muted);
+}
+
+.connection.online .connection-dot{
+    background:var(--green);
+    box-shadow:0 0 10px rgba(74,222,128,.6);
+}
+
+.connection.error .connection-dot{
+    background:var(--red);
+}
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+
+    margin-top:18px;
+}
+
+.stat{
+    padding:18px;
+
+    background:var(--panel);
+
+    border:1px solid var(--border);
+    border-radius:15px;
+
+    box-shadow:var(--shadow);
+}
+
+.stat-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.stat-icon{
+    width:35px;
+    height:35px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:10px;
+
+    background:var(--panel3);
+}
+
+.stat-value{
+    margin-top:10px;
+    font-size:25px;
+    font-weight:950;
+}
+
+.stat-label{
+    margin-top:2px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.toolbar{
+    margin-top:18px;
+
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+
+    padding:14px;
+
+    background:var(--panel);
+
+    border:1px solid var(--border);
+    border-radius:15px;
+}
+
+.search-box{
+    flex:1;
+    min-width:230px;
+
+    position:relative;
+}
+
+.search-box span{
+    position:absolute;
+    left:12px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--muted);
+}
+
+.search-box input{
+    width:100%;
+    height:42px;
+
+    padding:0 14px 0 38px;
+
+    border-radius:10px;
+
+    border:1px solid var(--border);
+    background:var(--panel2);
+    color:var(--text);
+
+    outline:none;
+}
+
+.search-box input:focus{
+    border-color:var(--primary);
+}
+
+/* =========================================================
+   TREE
+========================================================= */
+
+.tree-wrapper{
+    margin-top:18px;
+
+    background:var(--panel);
+
+    border:1px solid var(--border);
+    border-radius:18px;
+
+    overflow:hidden;
+
+    box-shadow:var(--shadow);
+}
+
+.tree-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:15px 18px;
+
+    border-bottom:1px solid var(--border);
+}
+
+.tree-title{
+    font-weight:900;
+}
+
+.tree-hint{
+    color:var(--muted);
+    font-size:11px;
+}
+
+.tree{
+    padding:15px;
+}
+
+/* =========================================================
+   CATEGORY
+========================================================= */
+
+.category{
+    margin-bottom:13px;
+
+    border:1px solid var(--border);
+    border-radius:14px;
+
+    background:var(--panel2);
+
+    overflow:hidden;
+
+    transition:.18s ease;
+}
+
+.category.drag-over{
+    border-color:var(--primary);
+    box-shadow:0 0 0 2px rgba(245,158,11,.15);
+}
+
+.category-header{
+    min-height:66px;
+
+    display:flex;
+    align-items:center;
+
+    gap:10px;
+
+    padding:10px 12px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(245,158,11,.07),
+            transparent
+        );
+}
+
+.category-info{
+    flex:1;
+    min-width:0;
+}
+
+.category-title-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.category-icon{
+    font-size:20px;
+}
+
+.category-title{
+    font-size:16px;
+    font-weight:950;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.category-description{
+    margin-top:3px;
+    color:var(--muted);
+    font-size:12px;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.children{
+    padding:0 10px 10px 38px;
+}
+
+/* =========================================================
+   TOPIC
+========================================================= */
+
+.topic{
+    margin-top:9px;
+
+    border:1px solid var(--border);
+    border-radius:12px;
+
+    background:var(--panel);
+}
+
+.topic.drag-over{
+    border-color:var(--blue);
+    box-shadow:0 0 0 2px rgba(96,165,250,.12);
+}
+
+.topic-header{
+    min-height:53px;
+
+    display:flex;
+    align-items:center;
+
+    gap:8px;
+
+    padding:8px 10px;
+}
+
+.topic-info{
+    flex:1;
+    min-width:0;
+}
+
+.topic-title{
+    font-weight:900;
+    font-size:14px;
+}
+
+.topic-description{
+    margin-top:2px;
+    color:var(--muted);
+    font-size:11px;
+}
+
+/* =========================================================
+   SUBTOPIC
+========================================================= */
+
+.subtopics{
+    padding:0 10px 10px 32px;
+}
+
+.subtopic{
+    margin-top:7px;
+
+    border:1px solid var(--border);
+    border-radius:10px;
+
+    background:var(--panel2);
+}
+
+.subtopic.drag-over{
+    border-color:var(--purple);
+    box-shadow:0 0 0 2px rgba(167,139,250,.12);
+}
+
+.subtopic-header{
+    min-height:47px;
+
+    display:flex;
+    align-items:center;
+
+    gap:8px;
+
+    padding:7px 9px;
+}
+
+.subtopic-info{
+    flex:1;
+    min-width:0;
+}
+
+.subtopic-title{
+    font-weight:800;
+    font-size:13px;
+}
+
+.read-time{
+    color:var(--muted);
+    font-size:10px;
+    margin-top:2px;
+}
+
+/* =========================================================
+   DRAG HANDLE
+========================================================= */
+
+.drag-handle{
+    width:30px;
+    height:34px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    flex-shrink:0;
+
+    cursor:grab;
+
+    color:var(--muted);
+
+    border-radius:7px;
+}
+
+.drag-handle:hover{
+    color:var(--primary);
+    background:var(--panel3);
+}
+
+.drag-handle:active{
+    cursor:grabbing;
+}
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.actions{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    flex-wrap:wrap;
+}
+
+.icon-btn{
+    width:31px;
+    height:31px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:8px;
+
+    background:transparent;
+    color:var(--muted);
+
+    border:1px solid transparent;
+}
+
+.icon-btn:hover{
+    background:var(--panel3);
+    color:var(--text);
+    border-color:var(--border);
+}
+
+.icon-btn.add:hover{
+    color:var(--green);
+}
+
+.icon-btn.edit:hover{
+    color:var(--blue);
+}
+
+.icon-btn.delete:hover{
+    color:var(--red);
+}
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.content-area{
+    padding:10px;
+
+    border-top:1px dashed var(--border);
+
+    background:rgba(0,0,0,.06);
+}
+
+.content-empty{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    gap:10px;
+
+    padding:10px;
+
+    color:var(--muted);
+
+    font-size:11px;
+}
+
+.content-preview-mini{
+    max-height:100px;
+    overflow:hidden;
+
+    padding:10px;
+
+    border-radius:9px;
+
+    background:var(--panel);
+
+    color:var(--muted);
+
+    font-size:11px;
+}
+
+.content-preview-mini img{
+    max-width:100%;
+}
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty{
+    padding:60px 20px;
+
+    text-align:center;
+
+    color:var(--muted);
+}
+
+.empty-icon{
+    font-size:50px;
+    margin-bottom:10px;
+}
+
+.empty h3{
+    color:var(--text);
+    margin:5px 0;
+}
+
+.empty p{
+    margin:0 0 18px;
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.modal{
+    position:fixed;
+    inset:0;
+
+    z-index:5000;
+
+    display:none;
+    align-items:center;
+    justify-content:center;
+
+    padding:20px;
+
+    background:rgba(0,0,0,.68);
+
+    backdrop-filter:blur(5px);
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-card{
+    width:min(700px,100%);
+    max-height:90vh;
+
+    display:flex;
+    flex-direction:column;
+
+    background:var(--panel);
+
+    border:1px solid var(--border);
+    border-radius:18px;
+
+    box-shadow:0 30px 80px rgba(0,0,0,.45);
+
+    overflow:hidden;
+}
+
+.modal-card.large{
+    width:min(1000px,100%);
+}
+
+.modal-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:17px 20px;
+
+    border-bottom:1px solid var(--border);
+}
+
+.modal-title{
+    font-size:17px;
+    font-weight:950;
+}
+
+.modal-close{
+    width:34px;
+    height:34px;
+
+    border-radius:9px;
+
+    background:var(--panel3);
+    color:var(--muted);
+}
+
+.modal-body{
+    overflow:auto;
+    padding:20px;
+}
+
+.modal-footer{
+    display:flex;
+    justify-content:flex-end;
+    gap:9px;
+
+    padding:15px 20px;
+
+    border-top:1px solid var(--border);
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.form-group{
+    margin-bottom:15px;
+}
+
+.form-label{
+    display:block;
+
+    margin-bottom:6px;
+
+    font-size:12px;
+    font-weight:900;
+
+    color:var(--muted);
+}
+
+.form-input,
+.form-textarea,
+.form-select{
+    width:100%;
+
+    border:1px solid var(--border);
+
+    background:var(--panel2);
+    color:var(--text);
+
+    border-radius:10px;
+
+    outline:none;
+
+    font-family:inherit;
+}
+
+.form-input,
+.form-select{
+    height:42px;
+    padding:0 12px;
+}
+
+.form-textarea{
+    min-height:100px;
+    padding:11px 12px;
+
+    resize:vertical;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus{
+    border-color:var(--primary);
+}
+
+.form-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+/* =========================================================
+   CONTENT EDITOR
+========================================================= */
+
+.editor-tabs{
+    display:flex;
+    gap:6px;
+
+    margin-bottom:10px;
+}
+
+.editor-tab{
+    padding:8px 12px;
+
+    border-radius:8px;
+
+    background:var(--panel3);
+    color:var(--muted);
+
+    font-size:12px;
+    font-weight:900;
+}
+
+.editor-tab.active{
+    background:var(--primary);
+    color:#111827;
+}
+
+.editor-panel{
+    display:none;
+}
+
+.editor-panel.active{
+    display:block;
+}
+
+#contentEditor{
+    min-height:350px;
+
+    font-family:
+        "Consolas",
+        "Courier New",
+        monospace;
+
+    line-height:1.5;
+}
+
+.live-preview{
+    min-height:350px;
+
+    padding:20px;
+
+    border:1px solid var(--border);
+    border-radius:10px;
+
+    background:var(--panel2);
+
+    overflow:auto;
+}
+
+/* =========================================================
+   PREVIEW
+========================================================= */
+
+.full-preview{
+    min-height:400px;
+
+    padding:25px;
+
+    border:1px solid var(--border);
+    border-radius:12px;
+
+    background:var(--panel2);
+
+    line-height:1.7;
+}
+
+.full-preview img{
+    max-width:100%;
+    height:auto;
+}
+
+.full-preview table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.full-preview th,
+.full-preview td{
+    border:1px solid var(--border);
+    padding:8px;
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast-container{
+    position:fixed;
+
+    right:20px;
+    bottom:20px;
+
+    z-index:9000;
+
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+}
+
+.toast{
+    min-width:260px;
+    max-width:380px;
+
+    padding:13px 15px;
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    background:var(--panel);
+
+    border:1px solid var(--border);
+    border-radius:12px;
+
+    box-shadow:var(--shadow);
+
+    animation:
+        toastIn .25s ease;
+}
+
+@keyframes toastIn{
+    from{
+        opacity:0;
+        transform:translateY(15px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.toast.success{
+    border-color:rgba(74,222,128,.35);
+}
+
+.toast.error{
+    border-color:rgba(248,113,113,.35);
+}
+
+.toast-icon{
+    font-size:18px;
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.loading{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    gap:10px;
+
+    padding:50px;
+
+    color:var(--muted);
+}
+
+.spinner{
+    width:20px;
+    height:20px;
+
+    border:3px solid var(--border);
+    border-top-color:var(--primary);
+
+    border-radius:50%;
+
+    animation:spin .7s linear infinite;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:850px){
+
+    .topbar{
+        height:auto;
+        min-height:65px;
+
+        padding:10px 15px;
+
+        gap:10px;
+    }
+
+    .brand-text span{
+        display:none;
+    }
+
+    .top-actions .btn span{
+        display:none;
+    }
+
+    .stats{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .hero{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .category-header{
+        align-items:flex-start;
+    }
+
+    .actions{
+        justify-content:flex-end;
+    }
+
+    .children{
+        padding-left:14px;
+    }
+
+    .subtopics{
+        padding-left:14px;
+    }
+
+}
+
+@media(max-width:600px){
+
+    .container{
+        width:min(100% - 18px,1250px);
+        margin-top:12px;
+    }
+
+    .stats{
+        grid-template-columns:1fr 1fr;
+        gap:8px;
+    }
+
+    .stat{
+        padding:13px;
+    }
+
+    .stat-value{
+        font-size:20px;
+    }
+
+    .form-row{
+        grid-template-columns:1fr;
+    }
+
+    .tree{
+        padding:8px;
+    }
+
+    .category-title{
+        font-size:14px;
+    }
+
+    .category-description{
+        display:none;
+    }
+
+    .tree-hint{
+        display:none;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================================================
+     TOP BAR
+========================================================= -->
+
+<header class="topbar">
+
+    <div class="brand">
+
+        <div class="brand-icon">
+            💡
+        </div>
+
+        <div class="brand-text">
+            <h1>THE IDEA LAB ADMIN</h1>
+            <span>CLEVERSTUDENTS • CONTENT MANAGEMENT</span>
+        </div>
+
+    </div>
+
+    <div class="top-actions">
+
+        <div id="connectionStatus" class="connection">
+            <span class="connection-dot"></span>
+            <span id="connectionText">Connecting...</span>
+        </div>
+
+        <button
+            class="btn btn-secondary"
+            onclick="toggleTheme()"
+            title="Toggle Theme"
+        >
+            <span id="themeIcon">☀️</span>
+            <span>Theme</span>
+        </button>
+
+        <a
+            href="idealab-student.html"
+            class="btn btn-primary"
+            target="_blank"
+        >
+            👨‍🎓 <span>Student View</span>
+        </a>
+
+    </div>
+
+</header>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+
+<main class="container">
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <div>
+
+            <div class="mode-badge">
+                ADMIN MODE
+            </div>
+
+            <h2 style="margin-top:10px;">
+                💡 The Idea Lab
+            </h2>
+
+            <p>
+                Manage Categories, Topics, Sub-Topics and Learning Content
+            </p>
+
+        </div>
+
+        <button
+            class="btn btn-primary"
+            onclick="openCategoryModal()"
+        >
+            ＋ Add Category
+        </button>
+
+    </section>
+
+
+    <!-- =====================================================
+         STATS
+    ====================================================== -->
+
+    <section class="stats">
+
+        <div class="stat">
+
+            <div class="stat-top">
+                <span class="stat-icon">📂</span>
+            </div>
+
+            <div
+                id="categoryCount"
+                class="stat-value"
+            >
+                0
+            </div>
+
+            <div class="stat-label">
+                Categories
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-top">
+                <span class="stat-icon">📄</span>
+            </div>
+
+            <div
+                id="topicCount"
+                class="stat-value"
+            >
+                0
+            </div>
+
+            <div class="stat-label">
+                Topics
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-top">
+                <span class="stat-icon">📝</span>
+            </div>
+
+            <div
+                id="subtopicCount"
+                class="stat-value"
+            >
+                0
+            </div>
+
+            <div class="stat-label">
+                Sub-Topics
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-top">
+                <span class="stat-icon">📚</span>
+            </div>
+
+            <div
+                id="contentCount"
+                class="stat-value"
+            >
+                0
+            </div>
+
+            <div class="stat-label">
+                Content Items
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TOOLBAR
+    ====================================================== -->
+
+    <section class="toolbar">
+
+        <div class="search-box">
+
+            <span>🔎</span>
+
+            <input
+                id="searchInput"
+                type="text"
+                placeholder="Search category, topic, sub-topic or content..."
+                oninput="renderTree()"
+            >
+
+        </div>
+
+        <select
+            id="categoryFilter"
+            class="form-select"
+            style="width:auto;min-width:170px;"
+            onchange="renderTree()"
+        >
+            <option value="">All Categories</option>
+        </select>
+
+        <button
+            class="btn btn-secondary"
+            onclick="expandAll()"
+        >
+            ⬇ Expand All
+        </button>
+
+        <button
+            class="btn btn-secondary"
+            onclick="collapseAll()"
+        >
+            ⬆ Collapse All
+        </button>
+
+    </section>
+
+
+    <!-- =====================================================
+         TREE
+    ====================================================== -->
+
+    <section class="tree-wrapper">
+
+        <div class="tree-header">
+
+            <div>
+
+                <div class="tree-title">
+                    📚 Learning Structure
+                </div>
+
+                <div class="tree-hint">
+                    Drag using ⋮⋮ handle to reorder
+                </div>
+
+            </div>
+
+            <button
+                class="btn btn-green btn-small"
+                onclick="openCategoryModal()"
+            >
+                ＋ Category
+            </button>
+
+        </div>
+
+        <div
+            id="tree"
+            class="tree"
+        >
+            <div class="loading">
+                <div class="spinner"></div>
+                Loading KV Database...
+            </div>
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =========================================================
+     CATEGORY MODAL
+========================================================= -->
+
+<div
+    id="categoryModal"
+    class="modal"
+>
+
+    <div class="modal-card">
+
+        <div class="modal-header">
+
+            <div
+                id="categoryModalTitle"
+                class="modal-title"
+            >
+                Add Category
+            </div>
+
+            <button
+                class="modal-close"
+                onclick="closeModal('categoryModal')"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <input
+                type="hidden"
+                id="categoryId"
+            >
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Category Icon
+                    </label>
+
+                    <input
+                        id="categoryIcon"
+                        class="form-input"
+                        value="📂"
+                        placeholder="📂"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Category Title *
+                    </label>
+
+                    <input
+                        id="categoryTitle"
+                        class="form-input"
+                        placeholder="Example: Digital Skills"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Description
+                </label>
+
+                <textarea
+                    id="categoryDescription"
+                    class="form-textarea"
+                    placeholder="Short description..."
+                ></textarea>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                class="btn btn-secondary"
+                onclick="closeModal('categoryModal')"
+            >
+                Cancel
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="saveCategory()"
+            >
+                Save Category
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     TOPIC MODAL
+========================================================= -->
+
+<div
+    id="topicModal"
+    class="modal"
+>
+
+    <div class="modal-card">
+
+        <div class="modal-header">
+
+            <div
+                id="topicModalTitle"
+                class="modal-title"
+            >
+                Add Topic
+            </div>
+
+            <button
+                class="modal-close"
+                onclick="closeModal('topicModal')"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <input
+                type="hidden"
+                id="topicId"
+            >
+
+            <input
+                type="hidden"
+                id="topicCategoryId"
+            >
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Topic Title *
+                </label>
+
+                <input
+                    id="topicTitle"
+                    class="form-input"
+                    placeholder="Example: Internet Basics"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Description
+                </label>
+
+                <textarea
+                    id="topicDescription"
+                    class="form-textarea"
+                    placeholder="Short topic description..."
+                ></textarea>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                class="btn btn-secondary"
+                onclick="closeModal('topicModal')"
+            >
+                Cancel
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="saveTopic()"
+            >
+                Save Topic
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     SUBTOPIC MODAL
+========================================================= -->
+
+<div
+    id="subtopicModal"
+    class="modal"
+>
+
+    <div class="modal-card">
+
+        <div class="modal-header">
+
+            <div
+                id="subtopicModalTitle"
+                class="modal-title"
+            >
+                Add Sub-Topic
+            </div>
+
+            <button
+                class="modal-close"
+                onclick="closeModal('subtopicModal')"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <input
+                type="hidden"
+                id="subtopicId"
+            >
+
+            <input
+                type="hidden"
+                id="subtopicCategoryId"
+            >
+
+            <input
+                type="hidden"
+                id="subtopicTopicId"
+            >
+
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Sub-Topic Title *
+                </label>
+
+                <input
+                    id="subtopicTitle"
+                    class="form-input"
+                    placeholder="Example: What is a Browser?"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Read Time
+                </label>
+
+                <input
+                    id="subtopicReadTime"
+                    class="form-input"
+                    placeholder="5 min read"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                class="btn btn-secondary"
+                onclick="closeModal('subtopicModal')"
+            >
+                Cancel
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="saveSubtopic()"
+            >
+                Save Sub-Topic
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     CONTENT EDITOR MODAL
+========================================================= -->
+
+<div
+    id="contentModal"
+    class="modal"
+>
+
+    <div class="modal-card large">
+
+        <div class="modal-header">
+
+            <div class="modal-title">
+                📝 Content Editor
+            </div>
+
+            <button
+                class="modal-close"
+                onclick="closeModal('contentModal')"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <input
+                type="hidden"
+                id="contentCategoryId"
+            >
+
+            <input
+                type="hidden"
+                id="contentTopicId"
+            >
+
+            <input
+                type="hidden"
+                id="contentSubtopicId"
+            >
+
+
+            <div class="editor-tabs">
+
+                <button
+                    id="editorTabBtn"
+                    class="editor-tab active"
+                    onclick="showEditorTab('editor')"
+                >
+                    ✏️ Editor
+                </button>
+
+                <button
+                    id="previewTabBtn"
+                    class="editor-tab"
+                    onclick="showEditorTab('preview')"
+                >
+                    👁 Preview
+                </button>
+
+            </div>
+
+
+            <div
+                id="editorPanel"
+                class="editor-panel active"
+            >
+
+                <textarea
+                    id="contentEditor"
+                    class="form-textarea"
+                    placeholder="<h2>Learning Content</h2>
+
+<p>Write your learning content here...</p>
+
+<ul>
+    <li>Point one</li>
+    <li>Point two</li>
+</ul>"
+                    oninput="updateLivePreview()"
+                ></textarea>
+
+                <div
+                    style="
+                        margin-top:8px;
+                        color:var(--muted);
+                        font-size:11px;
+                    "
+                >
+                    HTML content is supported.
+                </div>
+
+            </div>
+
+
+            <div
+                id="previewPanel"
+                class="editor-panel"
+            >
+
+                <div
+                    id="livePreview"
+                    class="live-preview"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                class="btn btn-secondary"
+                onclick="closeModal('contentModal')"
+            >
+                Cancel
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="saveContent()"
+            >
+                💾 Save Content
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     CONTENT PREVIEW MODAL
+========================================================= -->
+
+<div
+    id="previewModal"
+    class="modal"
+>
+
+    <div class="modal-card large">
+
+        <div class="modal-header">
+
+            <div
+                id="previewTitle"
+                class="modal-title"
+            >
+                Content Preview
+            </div>
+
+            <button
+                class="modal-close"
+                onclick="closeModal('previewModal')"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <div
+                id="fullPreview"
+                class="full-preview"
+            ></div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                class="btn btn-secondary"
+                onclick="closeModal('previewModal')"
+            >
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+
+<div
+    id="toastContainer"
+    class="toast-container"
+></div>
+
+
+<script>
+/* =========================================================
+   DATABASE NODE & GLOBAL STATE
+========================================================= */
+
+const DB_NODE = "ideaLabDatabase";
+let DATA = {};
+let expandedCategories = new Set();
+let expandedTopics = new Set();
+let expandedSubtopics = new Set();
+let draggedType = null;
+let draggedCategoryId = null;
+let draggedTopicId = null;
+let draggedSubtopicId = null;
+
+
+/* =========================================================
+   VERCEL KV DATABASE WRAPPER
+========================================================= */
+
+async function fetchDatabase() {
+    setConnectionStatus("online", "Connecting to Vercel KV...");
+    try {
+        const response = await fetch('/api/db?path=' + encodeURIComponent(DB_NODE));
+        if (!response.ok) throw new Error('Database read failed');
+        const data = await response.json();
+        
+        DATA = data.result || {};
+        setConnectionStatus("online", "Vercel KV Connected");
+        renderAll();
+    } catch (error) {
+        console.error("Vercel KV read error:", error);
+        setConnectionStatus("error", "Database Read Error");
+        showToast("Unable to read Vercel KV database.", "error");
+    }
+}
+
+async function saveDatabase() {
+    try {
+        const response = await fetch('/api/db', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'set', path: DB_NODE, data: DATA })
+        });
+        if (!response.ok) throw new Error('Database write failed');
+        return true;
+    } catch (error) {
+        console.error("Vercel KV write error:", error);
+        showToast("Database save failed.", "error");
+        return false;
+    }
+}
+
+/* =========================================================
+   CONNECTION STATUS
+========================================================= */
+
+function setConnectionStatus(type,text){
+
+    const box =
+        document.getElementById(
+            "connectionStatus"
+        );
+
+    const label =
+        document.getElementById(
+            "connectionText"
+        );
+
+    box.classList.remove(
+        "online",
+        "error"
+    );
+
+    if(type){
+
+        box.classList.add(type);
+
+    }
+
+    label.textContent = text;
+}
+
+
+/* =========================================================
+   ID GENERATOR
+========================================================= */
+
+function generateId(prefix){
+
+    return (
+        prefix +
+        "_" +
+        Date.now().toString(36) +
+        "_" +
+        Math.random()
+            .toString(36)
+            .substring(2,8)
+    );
+}
+
+
+/* =========================================================
+   SORT
+========================================================= */
+
+function sortByOrder(object){
+
+    return Object.entries(object || {})
+        .sort(
+            (a,b) =>
+                (Number(a[1].order) || 0) -
+                (Number(b[1].order) || 0)
+        );
+}
+
+
+/* =========================================================
+   NORMALIZE ORDERS
+========================================================= */
+
+function normalizeCategoryOrders(){
+
+    const categories =
+        sortByOrder(DATA);
+
+    categories.forEach(
+        ([id,category],index) => {
+
+            category.order = index;
+
+        }
+    );
+}
+
+
+function normalizeTopicOrders(category){
+
+    const topics =
+        sortByOrder(category.topics);
+
+    topics.forEach(
+        ([id,topic],index) => {
+
+            topic.order = index;
+
+        }
+    );
+}
+
+
+function normalizeSubtopicOrders(topic){
+
+    const subtopics =
+        sortByOrder(topic.subtopics);
+
+    subtopics.forEach(
+        ([id,subtopic],index) => {
+
+            subtopic.order = index;
+
+        }
+    );
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+function calculateStats(){
+
+    let categories = 0;
+
+    let topics = 0;
+
+    let subtopics = 0;
+
+    let contents = 0;
+
+
+    Object.values(DATA || {})
+        .forEach(category => {
+
+            categories++;
+
+            Object.values(
+                category.topics || {}
+            ).forEach(topic => {
+
+                topics++;
+
+                Object.values(
+                    topic.subtopics || {}
+                ).forEach(subtopic => {
+
+                    subtopics++;
+
+                    if(
+                        subtopic.content &&
+                        subtopic.content.trim()
+                    ){
+
+                        contents++;
+
+                    }
+
+                });
+
+            });
+
+        });
+
+
+    document.getElementById(
+        "categoryCount"
+    ).textContent = categories;
+
+    document.getElementById(
+        "topicCount"
+    ).textContent = topics;
+
+    document.getElementById(
+        "subtopicCount"
+    ).textContent = subtopics;
+
+    document.getElementById(
+        "contentCount"
+    ).textContent = contents;
+}
+
+
+/* =========================================================
+   CATEGORY FILTER
+========================================================= */
+
+function updateCategoryFilter(){
+
+    const select =
+        document.getElementById(
+            "categoryFilter"
+        );
+
+    const current =
+        select.value;
+
+    select.innerHTML =
+        `<option value="">All Categories</option>`;
+
+
+    sortByOrder(DATA)
+        .forEach(
+            ([id,category]) => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value = id;
+
+                option.textContent =
+                    `${category.icon || "📂"} ${category.title || "Untitled"}`;
+
+                select.appendChild(
+                    option
+                );
+
+            }
+        );
+
+
+    if(
+        DATA[current]
+    ){
+
+        select.value = current;
+
+    }
+}
+
+
+/* =========================================================
+   RENDER ALL
+========================================================= */
+
+function renderAll(){
+
+    calculateStats();
+
+    updateCategoryFilter();
+
+    renderTree();
+}
+
+
+/* =========================================================
+   SEARCH MATCH
+========================================================= */
+
+function matchesSearch(
+    text,
+    search
+){
+
+    if(!search){
+
+        return true;
+
+    }
+
+    return String(text || "")
+        .toLowerCase()
+        .includes(
+            search.toLowerCase()
+        );
+}
+
+
+/* =========================================================
+   RENDER TREE
+========================================================= */
+
+function renderTree(){
+
+    const tree =
+        document.getElementById(
+            "tree"
+        );
+
+    const search =
+        document.getElementById(
+            "searchInput"
+        ).value
+        .trim()
+        .toLowerCase();
+
+    const filter =
+        document.getElementById(
+            "categoryFilter"
+        ).value;
+
+
+    tree.innerHTML = "";
+
+
+    let visibleCategories = 0;
+
+
+    sortByOrder(DATA)
+        .forEach(
+            ([categoryId,category]) => {
+
+                if(
+                    filter &&
+                    filter !== categoryId
+                ){
+
+                    return;
+
+                }
+
+
+                const categoryMatches =
+                    matchesSearch(
+                        category.title,
+                        search
+                    ) ||
+                    matchesSearch(
+                        category.desc,
+                        search
+                    );
+
+
+                const topicEntries =
+                    sortByOrder(
+                        category.topics
+                    );
+
+
+                const visibleTopics =
+                    topicEntries.filter(
+                        ([topicId,topic]) => {
+
+                            if(!search){
+
+                                return true;
+
+                            }
+
+                            if(
+                                categoryMatches
+                            ){
+
+                                return true;
+
+                            }
+
+                            if(
+                                matchesSearch(
+                                    topic.title,
+                                    search
+                                ) ||
+                                matchesSearch(
+                                    topic.desc,
+                                    search
+                                )
+                            ){
+
+                                return true;
+
+                            }
+
+
+                            return sortByOrder(
+                                topic.subtopics
+                            ).some(
+                                ([subId,sub]) =>
+                                    matchesSearch(
+                                        sub.title,
+                                        search
+                                    ) ||
+                                    matchesSearch(
+                                        sub.content,
+                                        search
+                                    )
+                            );
+
+                        }
+                    );
+
+
+                if(
+                    search &&
+                    !categoryMatches &&
+                    visibleTopics.length === 0
+                ){
+
+                    return;
+
+                }
+
+
+                visibleCategories++;
+
+
+                const categoryEl =
+                    createCategoryElement(
+                        categoryId,
+                        category,
+                        search
+                    );
+
+
+                tree.appendChild(
+                    categoryEl
+                );
+
+            }
+        );
+
+
+    if(
+        visibleCategories === 0
+    ){
+
+        tree.innerHTML = `
+
+            <div class="empty">
+
+                <div class="empty-icon">
+                    📭
+                </div>
+
+                <h3>
+                    No Learning Content Found
+                </h3>
+
+                <p>
+                    Add your first category to start building the Idea Lab.
+                </p>
+
+                <button
+                    class="btn btn-primary"
+                    onclick="openCategoryModal()"
+                >
+                    ＋ Add Category
+                </button>
+
+            </div>
+
+        `;
+
+    }
+}
+
+
+/* =========================================================
+   CATEGORY ELEMENT
+========================================================= */
+
+function createCategoryElement(
+    categoryId,
+    category,
+    search
+){
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "category";
+
+    wrapper.dataset.id =
+        categoryId;
+
+    wrapper.dataset.type =
+        "category";
+
+
+    wrapper.addEventListener(
+        "dragover",
+        e => {
+
+            if(
+                draggedType === "category" &&
+                draggedCategoryId !== categoryId
+            ){
+
+                e.preventDefault();
+
+                wrapper.classList.add(
+                    "drag-over"
+                );
+
+            }
+
+        }
+    );
+
+
+    wrapper.addEventListener(
+        "dragleave",
+        () => {
+
+            wrapper.classList.remove(
+                "drag-over"
+            );
+
+        }
+    );
+
+
+    wrapper.addEventListener(
+        "drop",
+        async e => {
+
+            e.preventDefault();
+
+            wrapper.classList.remove(
+                "drag-over"
+            );
+
+
+            if(
+                draggedType === "category" &&
+                draggedCategoryId !== categoryId
+            ){
+
+                await moveCategory(
+                    draggedCategoryId,
+                    categoryId
+                );
+
+            }
+
+        }
+    );
+
+
+    const isOpen =
+        expandedCategories.has(
+            categoryId
+        ) ||
+        Boolean(search);
+
+
+    wrapper.innerHTML = `
+
+        <div class="category-header">
+
+            <div
+                class="drag-handle"
+                draggable="true"
+                title="Drag to reorder category"
+            >
+                ⋮⋮
+            </div>
+
+            <button
+                class="icon-btn"
+                title="${isOpen ? "Collapse" : "Expand"}"
+                onclick="toggleCategory('${categoryId}')"
+            >
+                ${isOpen ? "⌄" : "›"}
+            </button>
+
+            <div class="category-icon">
+                ${escapeHtml(category.icon || "📂")}
+            </div>
+
+            <div class="category-info">
+
+                <div class="category-title-row">
+
+                    <div class="category-title">
+                        ${escapeHtml(category.title || "Untitled Category")}
+                    </div>
+
+                </div>
+
+                <div class="category-description">
+                    ${escapeHtml(category.desc || "No description")}
+                </div>
+
+            </div>
+
+            <div class="actions">
+
+                <button
+                    class="icon-btn add"
+                    title="Add Topic"
+                    onclick="openTopicModal('${categoryId}')"
+                >
+                    ＋
+                </button>
+
+                <button
+                    class="icon-btn edit"
+                    title="Edit Category"
+                    onclick="openCategoryModal('${categoryId}')"
+                >
+                    ✏️
+                </button>
+
+                <button
+                    class="icon-btn delete"
+                    title="Delete Category"
+                    onclick="deleteCategory('${categoryId}')"
+                >
+                    🗑️
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    const handle =
+        wrapper.querySelector(
+            ".drag-handle"
+        );
+
+
+    handle.addEventListener(
+        "dragstart",
+        e => {
+
+            draggedType = "category";
+
+            draggedCategoryId =
+                categoryId;
+
+            e.dataTransfer.effectAllowed =
+                "move";
+
+            e.dataTransfer.setData(
+                "text/plain",
+                categoryId
+            );
+
+        }
+    );
+
+
+    handle.addEventListener(
+        "dragend",
+        () => {
+
+            clearDragState();
+
+        }
+    );
+
+
+    if(isOpen){
+
+        const children =
+            document.createElement(
+                "div"
+            );
+
+        children.className =
+            "children";
+
+
+        sortByOrder(
+            category.topics
+        ).forEach(
+            ([topicId,topic]) => {
+
+                children.appendChild(
+                    createTopicElement(
+                        categoryId,
+                        topicId,
+                        topic,
+                        search
+                    )
+                );
+
+            }
+        );
+
+
+        wrapper.appendChild(
+            children
+        );
+
+    }
+
+
+    return wrapper;
+}
+
+
+/* =========================================================
+   TOPIC ELEMENT
+========================================================= */
+
+function createTopicElement(
+    categoryId,
+    topicId,
+    topic,
+    search
+){
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "topic";
+
+    wrapper.dataset.id =
+        topicId;
+
+
+    wrapper.addEventListener(
+        "dragover",
+        e => {
+
+            if(
+                draggedType === "topic" &&
+                draggedTopicId !== topicId
+            ){
+
+                e.preventDefault();
+
+                wrapper.classList.add(
+                    "drag-over"
+                );
+
+            }
+
+        }
+    );
+
+
+    wrapper.addEventListener(
+        "dragleave",
+        () => {
+
+            wrapper.classList.remove(
+                "drag-over"
+            );
+
+        }
+    );
+
+
+    wrapper.addEventListener(
+        "drop",
+        async e => {
+
+            e.preventDefault();
+
+            wrapper.classList.remove(
+                "drag-over"
+            );
+
+
+            if(
+                draggedType === "topic" &&
+                draggedTopicId !== topicId
+            ){
+
+                await moveTopic(
+                    categoryId,
+                    draggedTopicId,
+                    topicId
+                );
+
+            }
+
+        }
+    );
+
+
+    const isOpen =
+        expandedTopics.has(topicId) ||
+        Boolean(search);
+
+
+    wrapper.innerHTML = `
+
+        <div class="topic-header">
+
+            <div
+                class="drag-handle"
+                draggable="true"
+                title="Drag to reorder topic"
+            >
+                ⋮⋮
+            </div>
+
+            <button
+                class="icon-btn"
+                title="${isOpen ? "Collapse" : "Expand"}"
+                onclick="toggleTopic('${topicId}')"
+            >
+                ${isOpen ? "⌄" : "›"}
+            </button>
+
+            <div style="font-size:17px;">
+                📄
+            </div>
+
+            <div class="topic-info">
+
+                <div class="topic-title">
+                    ${escapeHtml(topic.title || "Untitled Topic")}
+                </div>
+
+                <div class="topic-description">
+                    ${escapeHtml(topic.desc || "No description")}
+                </div>
+
+            </div>
+
+            <div class="actions">
+
+                <button
+                    class="icon-btn add"
+                    title="Add Sub-Topic"
+                    onclick="openSubtopicModal('${categoryId}','${topicId}')"
+                >
+                    ＋
+                </button>
+
+                <button
+                    class="icon-btn edit"
+                    title="Edit Topic"
+                    onclick="openTopicModal('${categoryId}','${topicId}')"
+                >
+                    ✏️
+                </button>
+
+                <button
+                    class="icon-btn delete"
+                    title="Delete Topic"
+                    onclick="deleteTopic('${categoryId}','${topicId}')"
+                >
+                    🗑️
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    const handle =
+        wrapper.querySelector(
+            ".drag-handle"
+        );
+
+
+    handle.addEventListener(
+        "dragstart",
+        e => {
+
+            draggedType = "topic";
+
+            draggedTopicId =
+                topicId;
+
+            draggedCategoryId =
+                categoryId;
+
+            e.dataTransfer.effectAllowed =
+                "move";
+
+            e.dataTransfer.setData(
+                "text/plain",
+                topicId
+            );
+
+        }
+    );
+
+
+    handle.addEventListener(
+        "dragend",
+        clearDragState
+    );
+
+
+    if(isOpen){
+
+        const subContainer =
+            document.createElement(
+                "div"
+            );
+
+        subContainer.className =
+            "subtopics";
+
+
+        sortByOrder(
+            topic.subtopics
+        ).forEach(
+            ([subtopicId,subtopic]) => {
+
+                subContainer.appendChild(
+                    createSubtopicElement(
+                        categoryId,
+                        topicId,
+                        subtopicId,
+                        subtopic,
+                        search
+                    )
+                );
+
+            }
+        );
+
+
+        wrapper.appendChild(
+            subContainer
+        );
+
+    }
+
+
+    return wrapper;
+}
+
+
+/* =========================================================
+   SUBTOPIC ELEMENT
+========================================================= */
+
+function createSubtopicElement(
+    categoryId,
+    topicId,
+    subtopicId,
+    subtopic,
+    search
+){
+
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+    wrapper.className =
+        "subtopic";
+
+    wrapper.dataset.id =
+        subtopicId;
+
+
+    wrapper.addEventListener(
+        "dragover",
+        e => {
+
+            if(
+                draggedType === "subtopic" &&
+                draggedSubtopicId !== subtopicId
+            ){
+
+                e.preventDefault();
+
+                wrapper.classList.add(
+                    "drag-over"
+                );
+
+            }
+
+        }
+    );
+
+
+    wrapper.addEventListener(
+        "dragleave",
+        () => {
+
+            wrapper.classList.remove(
+                "drag-over"
+            );
+
+        }
+    );
+
+
+    wrapper.addEventListener(
+        "drop",
+        async e => {
+
+            e.preventDefault();
+
+            wrapper.classList.remove(
+                "drag-over"
+            );
+
+
+            if(
+                draggedType === "subtopic" &&
+                draggedSubtopicId !== subtopicId
+            ){
+
+                await moveSubtopic(
+                    categoryId,
+                    topicId,
+                    draggedSubtopicId,
+                    subtopicId
+                );
+
+            }
+
+        }
+    );
+
+
+    const hasContent =
+        Boolean(
+            subtopic.content &&
+            subtopic.content.trim()
+        );
+
+
+    wrapper.innerHTML = `
+
+        <div class="subtopic-header">
+
+            <div
+                class="drag-handle"
+                draggable="true"
+                title="Drag to reorder sub-topic"
+            >
+                ⋮⋮
+            </div>
+
+            <div style="font-size:16px;">
+                📝
+            </div>
+
+            <div class="subtopic-info">
+
+                <div class="subtopic-title">
+                    ${escapeHtml(subtopic.title || "Untitled Sub-Topic")}
+                </div>
+
+                <div class="read-time">
+                    ⏱ ${escapeHtml(subtopic.readTime || "No read time")}
+                    ${hasContent ? " • ✓ Content" : " • ⚠ No Content"}
+                </div>
+
+            </div>
+
+            <div class="actions">
+
+                ${
+                    hasContent
+
+                    ?
+
+                    `
+                    <button
+                        class="icon-btn"
+                        title="Preview Content"
+                        onclick="previewContent(
+                            '${categoryId}',
+                            '${topicId}',
+                            '${subtopicId}'
+                        )"
+                    >
+                        👁
+                    </button>
+                    `
+
+                    :
+
+                    ""
+                }
+
+                <button
+                    class="icon-btn add"
+                    title="${hasContent ? "Edit Content" : "Add Content"}"
+                    onclick="openContentEditor(
+                        '${categoryId}',
+                        '${topicId}',
+                        '${subtopicId}'
+                    )"
+                >
+                    ${hasContent ? "✏️" : "＋"}
+                </button>
+
+                ${
+                    hasContent
+
+                    ?
+
+                    `
+                    <button
+                        class="icon-btn delete"
+                        title="Delete Content"
+                        onclick="deleteContent(
+                            '${categoryId}',
+                            '${topicId}',
+                            '${subtopicId}'
+                        )"
+                    >
+                        🗑
+                    </button>
+                    `
+
+                    :
+
+                    ""
+                }
+
+                <button
+                    class="icon-btn edit"
+                    title="Edit Sub-Topic"
+                    onclick="openSubtopicModal(
+                        '${categoryId}',
+                        '${topicId}',
+                        '${subtopicId}'
+                    )"
+                >
+                    ✏️
+                </button>
+
+                <button
+                    class="icon-btn delete"
+                    title="Delete Sub-Topic"
+                    onclick="deleteSubtopic(
+                        '${categoryId}',
+                        '${topicId}',
+                        '${subtopicId}'
+                    )"
+                >
+                    🗑️
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    const handle =
+        wrapper.querySelector(
+            ".drag-handle"
+        );
+
+
+    handle.addEventListener(
+        "dragstart",
+        e => {
+
+            draggedType =
+                "subtopic";
+
+            draggedSubtopicId =
+                subtopicId;
+
+            draggedTopicId =
+                topicId;
+
+            draggedCategoryId =
+                categoryId;
+
+            e.dataTransfer.effectAllowed =
+                "move";
+
+            e.dataTransfer.setData(
+                "text/plain",
+                subtopicId
+            );
+
+        }
+    );
+
+
+    handle.addEventListener(
+        "dragend",
+        clearDragState
+    );
+
+
+    return wrapper;
+}
+
+
+/* =========================================================
+   CLEAR DRAG
+========================================================= */
+
+function clearDragState(){
+
+    draggedType = null;
+
+    draggedCategoryId = null;
+
+    draggedTopicId = null;
+
+    draggedSubtopicId = null;
+
+    document
+        .querySelectorAll(
+            ".drag-over"
+        )
+        .forEach(
+            el =>
+                el.classList.remove(
+                    "drag-over"
+                )
+        );
+}
+
+
+/* =========================================================
+   MOVE CATEGORY
+========================================================= */
+
+async function moveCategory(
+    sourceId,
+    targetId
+){
+
+    const entries =
+        sortByOrder(DATA);
+
+    const sourceIndex =
+        entries.findIndex(
+            ([id]) => id === sourceId
+        );
+
+    const targetIndex =
+        entries.findIndex(
+            ([id]) => id === targetId
+        );
+
+
+    if(
+        sourceIndex < 0 ||
+        targetIndex < 0
+    ){
+
+        return;
+
+    }
+
+
+    const [moved] =
+        entries.splice(
+            sourceIndex,
+            1
+        );
+
+
+    entries.splice(
+        targetIndex,
+        0,
+        moved
+    );
+
+
+    entries.forEach(
+        ([id,category],index) => {
+
+            category.order = index;
+
+        }
+    );
+
+
+    const success =
+        await saveDatabase();
+
+
+    if(success){
+
+        showToast(
+            "Category order saved.",
+            "success"
+        );
+
+    }
+}
+
+
+/* =========================================================
+   MOVE TOPIC
+========================================================= */
+
+async function moveTopic(
+    categoryId,
+    sourceId,
+    targetId
+){
+
+    const category =
+        DATA[categoryId];
+
+    if(
+        !category ||
+        !category.topics
+    ){
+
+        return;
+
+    }
+
+
+    const entries =
+        sortByOrder(
+            category.topics
+        );
+
+
+    const sourceIndex =
+        entries.findIndex(
+            ([id]) => id === sourceId
+        );
+
+    const targetIndex =
+        entries.findIndex(
+            ([id]) => id === targetId
+        );
+
+
+    if(
+        sourceIndex < 0 ||
+        targetIndex < 0
+    ){
+
+        return;
+
+    }
+
+
+    const [moved] =
+        entries.splice(
+            sourceIndex,
+            1
+        );
+
+
+    entries.splice(
+        targetIndex,
+        0,
+        moved
+    );
+
+
+    entries.forEach(
+        ([id,topic],index) => {
+
+            topic.order = index;
+
+        }
+    );
+
+
+    const success =
+        await saveDatabase();
+
+
+    if(success){
+
+        showToast(
+            "Topic order saved.",
+            "success"
+        );
+
+    }
+}
+
+
+/* =========================================================
+   MOVE SUBTOPIC
+========================================================= */
+
+async function moveSubtopic(
+    categoryId,
+    topicId,
+    sourceId,
+    targetId
+){
+
+    const topic =
+        DATA?.[categoryId]
+            ?.topics?.[topicId];
+
+
+    if(
+        !topic ||
+        !topic.subtopics
+    ){
+
+        return;
+
+    }
+
+
+    const entries =
+        sortByOrder(
+            topic.subtopics
+        );
+
+
+    const sourceIndex =
+        entries.findIndex(
+            ([id]) => id === sourceId
+        );
+
+    const targetIndex =
+        entries.findIndex(
+            ([id]) => id === targetId
+        );
+
+
+    if(
+        sourceIndex < 0 ||
+        targetIndex < 0
+    ){
+
+        return;
+
+    }
+
+
+    const [moved] =
+        entries.splice(
+            sourceIndex,
+            1
+        );
+
+
+    entries.splice(
+        targetIndex,
+        0,
+        moved
+    );
+
+
+    entries.forEach(
+        ([id,subtopic],index) => {
+
+            subtopic.order = index;
+
+        }
+    );
+
+
+    const success =
+        await saveDatabase();
+
+
+    if(success){
+
+        showToast(
+            "Sub-topic order saved.",
+            "success"
+        );
+
+    }
+}
+
+
+/* =========================================================
+   TOGGLE CATEGORY
+========================================================= */
+
+function toggleCategory(id){
+
+    if(
+        expandedCategories.has(id)
+    ){
+
+        expandedCategories.delete(id);
+
+    }else{
+
+        expandedCategories.add(id);
+
+    }
+
+    renderTree();
+}
+
+
+/* =========================================================
+   TOGGLE TOPIC
+========================================================= */
+
+function toggleTopic(id){
+
+    if(
+        expandedTopics.has(id)
+    ){
+
+        expandedTopics.delete(id);
+
+    }else{
+
+        expandedTopics.add(id);
+
+    }
+
+    renderTree();
+}
+
+
+/* =========================================================
+   EXPAND ALL
+========================================================= */
+
+function expandAll(){
+
+    Object.entries(DATA)
+        .forEach(
+            ([categoryId,category]) => {
+
+                expandedCategories.add(
+                    categoryId
+                );
+
+
+                Object.keys(
+                    category.topics || {}
+                ).forEach(
+                    topicId => {
+
+                        expandedTopics.add(
+                            topicId
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    renderTree();
+}
+
+
+/* =========================================================
+   COLLAPSE ALL
+========================================================= */
+
+function collapseAll(){
+
+    expandedCategories.clear();
+
+    expandedTopics.clear();
+
+    expandedSubtopics.clear();
+
+    renderTree();
+}
+
+
+/* =========================================================
+   CATEGORY MODAL
+========================================================= */
+
+function openCategoryModal(id = null){
+
+    document.getElementById(
+        "categoryId"
+    ).value = id || "";
+
+
+    if(id && DATA[id]){
+
+        const category =
+            DATA[id];
+
+        document.getElementById(
+            "categoryModalTitle"
+        ).textContent =
+            "Edit Category";
+
+        document.getElementById(
+            "categoryIcon"
+        ).value =
+            category.icon || "📂";
+
+        document.getElementById(
+            "categoryTitle"
+        ).value =
+            category.title || "";
+
+        document.getElementById(
+            "categoryDescription"
+        ).value =
+            category.desc || "";
+
+    }else{
+
+        document.getElementById(
+            "categoryModalTitle"
+        ).textContent =
+            "Add Category";
+
+        document.getElementById(
+            "categoryIcon"
+        ).value =
+            "📂";
+
+        document.getElementById(
+            "categoryTitle"
+        ).value =
+            "";
+
+        document.getElementById(
+            "categoryDescription"
+        ).value =
+            "";
+
+    }
+
+
+    openModal(
+        "categoryModal"
+    );
+
+    setTimeout(
+        () =>
+            document.getElementById(
+                "categoryTitle"
+            ).focus(),
+        100
+    );
+}
+
+
+/* =========================================================
+   SAVE CATEGORY
+========================================================= */
+
+async function saveCategory(){
+
+    const id =
+        document.getElementById(
+            "categoryId"
+        ).value.trim();
+
+    const title =
+        document.getElementById(
+            "categoryTitle"
+        ).value.trim();
+
+    const icon =
+        document.getElementById(
+            "categoryIcon"
+        ).value.trim() || "📂";
+
+    const desc =
+        document.getElementById(
+            "categoryDescription"
+        ).value.trim();
+
+
+    if(!title){
+
+        showToast(
+            "Category title is required.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(id){
+
+        if(!DATA[id]){
+
+            return;
+
+        }
+
+
+        DATA[id].title =
+            title;
+
+        DATA[id].icon =
+            icon;
+
+        DATA[id].desc =
+            desc;
+
+        DATA[id].updatedAt =
+            Date.now();
+
+
+        if(
+            await saveDatabase()
+        ){
+
+            closeModal(
+                "categoryModal"
+            );
+
+            showToast(
+                "Category updated successfully.",
+                "success"
+            );
+
+        }
+
+    }else{
+
+        const newId =
+            generateId(
+                "category"
+            );
+
+
+        DATA[newId] = {
+
+            icon,
+
+            title,
+
+            desc,
+
+            order:
+                Object.keys(DATA)
+                    .length,
+
+            createdAt:
+                Date.now(),
+
+            updatedAt:
+                Date.now(),
+
+            topics:{}
+
+        };
+
+
+        if(
+            await saveDatabase()
+        ){
+
+            expandedCategories.add(
+                newId
+            );
+
+            closeModal(
+                "categoryModal"
+            );
+
+            showToast(
+                "Category created successfully.",
+                "success"
+            );
+
+        }
+
+    }
+}
+
+
+/* =========================================================
+   DELETE CATEGORY
+========================================================= */
+
+async function deleteCategory(id){
+
+    const category =
+        DATA[id];
+
+
+    if(!category){
+
+        return;
+
+    }
+
+
+    const topicCount =
+        Object.keys(
+            category.topics || {}
+        ).length;
+
+
+    const message =
+        topicCount > 0
+
+        ?
+
+        `Delete category "${category.title}"?\n\nThis category contains ${topicCount} topic(s) and all their sub-topics/content. This action cannot be undone.`
+
+        :
+
+        `Delete category "${category.title}"?`;
+
+
+    if(
+        !confirm(message)
+    ){
+
+        return;
+
+    }
+
+
+    delete DATA[id];
+
+    normalizeCategoryOrders();
+
+
+    if(
+        await saveDatabase()
+    ){
+
+        showToast(
+            "Category deleted.",
+            "success"
+        );
+
+    }
+}
+
+
+/* =========================================================
+   TOPIC MODAL
+========================================================= */
+
+function openTopicModal(
+    categoryId,
+    topicId = null
+){
+
+    const category =
+        DATA[categoryId];
+
+
+    if(!category){
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "topicId"
+    ).value =
+        topicId || "";
+
+
+    document.getElementById(
+        "topicCategoryId"
+    ).value =
+        categoryId;
+
+
+    if(
+        topicId &&
+        category.topics?.[topicId]
+    ){
+
+        const topic =
+            category.topics[topicId];
+
+
+        document.getElementById(
+            "topicModalTitle"
+        ).textContent =
+            "Edit Topic";
+
+        document.getElementById(
+            "topicTitle"
+        ).value =
+            topic.title || "";
+
+        document.getElementById(
+            "topicDescription"
+        ).value =
+            topic.desc || "";
+
+    }else{
+
+        document.getElementById(
+            "topicModalTitle"
+        ).textContent =
+            "Add Topic";
+
+        document.getElementById(
+            "topicTitle"
+        ).value =
+            "";
+
+        document.getElementById(
+            "topicDescription"
+        ).value =
+            "";
+
+    }
+
+
+    openModal(
+        "topicModal"
+    );
+}
+
+
+/* =========================================================
+   SAVE TOPIC
+========================================================= */
+
+async function saveTopic(){
+
+    const id =
+        document.getElementById(
+            "topicId"
+        ).value.trim();
+
+    const categoryId =
+        document.getElementById(
+            "topicCategoryId"
+        ).value.trim();
+
+    const title =
+        document.getElementById(
+            "topicTitle"
+        ).value.trim();
+
+    const desc =
+        document.getElementById(
+            "topicDescription"
+        ).value.trim();
+
+
+    const category =
+        DATA[categoryId];
+
+
+    if(!category){
+
+        showToast(
+            "Category not found.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(!title){
+
+        showToast(
+            "Topic title is required.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(!category.topics){
+
+        category.topics = {};
+
+    }
+
+
+    if(id){
+
+        const topic =
+            category.topics[id];
+
+
+        if(!topic){
+
+            return;
+
+        }
+
+
+        topic.title =
+            title;
+
+        topic.desc =
+            desc;
+
+        topic.updatedAt =
+            Date.now();
+
+
+        if(
+            await saveDatabase()
+        ){
+
+            closeModal(
+                "topicModal"
+            );
+
+            showToast(
+                "Topic updated successfully.",
+                "success"
+            );
+
+        }
+
+    }else{
+
+        const newId =
+            generateId(
+                "topic"
+            );
+
+
+        category.topics[newId] = {
+
+            title,
+
+            desc,
+
+            order:
+                Object.keys(
+                    category.topics
+                ).length,
+
+            createdAt:
+                Date.now(),
+
+            updatedAt:
+                Date.now(),
+
+            subtopics:{}
+
+        };
+
+
+        expandedCategories.add(
+            categoryId
+        );
+
+
+        if(
+            await saveDatabase()
+        ){
+
+            closeModal(
+                "topicModal"
+            );
+
+            showToast(
+                "Topic created successfully.",
+                "success"
+            );
+
+        }
+
+    }
+}
+
+
+/* =========================================================
+   DELETE TOPIC
+========================================================= */
+
+async function deleteTopic(
+    categoryId,
+    topicId
+){
+
+    const category =
+        DATA[categoryId];
+
+    const topic =
+        category?.topics?.[topicId];
+
+
+    if(!topic){
+
+        return;
+
+    }
+
+
+    const subCount =
+        Object.keys(
+            topic.subtopics || {}
+        ).length;
+
+
+    const message =
+        subCount > 0
+
+        ?
+
+        `Delete topic "${topic.title}"?\n\nThis topic contains ${subCount} sub-topic(s) and their content. This action cannot be undone.`
+
+        :
+
+        `Delete topic "${topic.title}"?`;
+
+
+    if(
+        !confirm(message)
+    ){
+
+        return;
+
+    }
+
+
+    delete category.topics[
+        topicId
+    ];
+
+
+    normalizeTopicOrders(
+        category
+    );
+
+
+    if(
+        await saveDatabase()
+    ){
+
+        showToast(
+            "Topic deleted.",
+            "success"
+        );
+
+    }
+}
+
+
+/* =========================================================
+   SUBTOPIC MODAL
+========================================================= */
+
+function openSubtopicModal(
+    categoryId,
+    topicId,
+    subtopicId = null
+){
+
+    const topic =
+        DATA?.[categoryId]
+            ?.topics?.[topicId];
+
+
+    if(!topic){
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "subtopicId"
+    ).value =
+        subtopicId || "";
+
+
+    document.getElementById(
+        "subtopicCategoryId"
+    ).value =
+        categoryId;
+
+
+    document.getElementById(
+        "subtopicTopicId"
+    ).value =
+        topicId;
+
+
+    if(
+        subtopicId &&
+        topic.subtopics?.[subtopicId]
+    ){
+
+        const subtopic =
+            topic.subtopics[
+                subtopicId
+            ];
+
+
+        document.getElementById(
+            "subtopicModalTitle"
+        ).textContent =
+            "Edit Sub-Topic";
+
+        document.getElementById(
+            "subtopicTitle"
+        ).value =
+            subtopic.title || "";
+
+        document.getElementById(
+            "subtopicReadTime"
+        ).value =
+            subtopic.readTime || "";
+
+    }else{
+
+        document.getElementById(
+            "subtopicModalTitle"
+        ).textContent =
+            "Add Sub-Topic";
+
+        document.getElementById(
+            "subtopicTitle"
+        ).value =
+            "";
+
+        document.getElementById(
+            "subtopicReadTime"
+        ).value =
+            "5 min read";
+
+    }
+
+
+    openModal(
+        "subtopicModal"
+    );
+}
+
+
+/* =========================================================
+   SAVE SUBTOPIC
+========================================================= */
+
+async function saveSubtopic(){
+
+    const id =
+        document.getElementById(
+            "subtopicId"
+        ).value.trim();
+
+    const categoryId =
+        document.getElementById(
+            "subtopicCategoryId"
+        ).value.trim();
+
+    const topicId =
+        document.getElementById(
+            "subtopicTopicId"
+        ).value.trim();
+
+    const title =
+        document.getElementById(
+            "subtopicTitle"
+        ).value.trim();
+
+    const readTime =
+        document.getElementById(
+            "subtopicReadTime"
+        ).value.trim();
+
+
+    const topic =
+        DATA?.[categoryId]
+            ?.topics?.[topicId];
+
+
+    if(!topic){
+
+        showToast(
+            "Topic not found.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(!title){
+
+        showToast(
+            "Sub-topic title is required.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(!topic.subtopics){
+
+        topic.subtopics = {};
+
+    }
+
+
+    if(id){
+
+        const subtopic =
+            topic.subtopics[id];
+
+
+        if(!subtopic){
+
+            return;
+
+        }
+
+
+        subtopic.title =
+            title;
+
+        subtopic.readTime =
+            readTime;
+
+        subtopic.updatedAt =
+            Date.now();
+
+
+        if(
+            await saveDatabase()
+        ){
+
+            closeModal(
+                "subtopicModal"
+            );
+
+            showToast(
+                "Sub-topic updated successfully.",
+                "success"
+            );
+
+        }
+
+    }else{
+
+        const newId =
+            generateId(
+                "subtopic"
+            );
+
+
+        topic.subtopics[newId] = {
+
+            title,
+
+            readTime,
+
+            content:"",
+
+            order:
+                Object.keys(
+                    topic.subtopics
+                ).length,
+
+            createdAt:
+                Date.now(),
+
+            updatedAt:
+                Date.now()
+
+        };
+
+
+        expandedCategories.add(
+            categoryId
+        );
+
+        expandedTopics.add(
+            topicId
+        );
+
+
+        if(
+            await saveDatabase()
+        ){
+
+            closeModal(
+                "subtopicModal"
+            );
+
+            showToast(
+                "Sub-topic created successfully.",
+                "success"
+            );
+
+        }
+
+    }
+}
+
+
+/* =========================================================
+   DELETE SUBTOPIC
+========================================================= */
+
+async function deleteSubtopic(
+    categoryId,
+    topicId,
+    subtopicId
+){
+
+    const topic =
+        DATA?.[categoryId]
+            ?.topics?.[topicId];
+
+    const subtopic =
+        topic?.subtopics?.[subtopicId];
+
+
+    if(!subtopic){
+
+        return;
+
+    }
+
+
+    const hasContent =
+        Boolean(
+            subtopic.content &&
+            subtopic.content.trim()
+        );
+
+
+    const message =
+        hasContent
+
+        ?
+
+        `Delete sub-topic "${subtopic.title}"?\n\nIts content will also be permanently deleted.`
+
+        :
+
+        `Delete sub-topic "${subtopic.title}"?`;
+
+
+    if(
+        !confirm(message)
+    ){
+
+        return;
+
+    }
+
+
+    delete topic.subtopics[
+        subtopicId
+    ];
+
+
+    normalizeSubtopicOrders(
+        topic
+    );
+
+
+    if(
+        await saveDatabase()
+    ){
+
+        showToast(
+            "Sub-topic deleted.",
+            "success"
+        );
+
+    }
+}
+
+
+/* =========================================================
+   CONTENT EDITOR
+========================================================= */
+
+function openContentEditor(
+    categoryId,
+    topicId,
+    subtopicId
+){
+
+    const subtopic =
+        DATA?.[categoryId]
+            ?.topics?.[topicId]
+            ?.subtopics?.[subtopicId];
+
+
+    if(!subtopic){
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "contentCategoryId"
+    ).value =
+        categoryId;
+
+
+    document.getElementById(
+        "contentTopicId"
+    ).value =
+        topicId;
+
+
+    document.getElementById(
+        "contentSubtopicId"
+    ).value =
+        subtopicId;
+
+
+    document.getElementById(
+        "contentEditor"
+    ).value =
+        subtopic.content || "";
+
+
+    showEditorTab(
+        "editor"
+    );
+
+
+    updateLivePreview();
+
+
+    openModal(
+        "contentModal"
+    );
+}
+
+
+/* =========================================================
+   SAVE CONTENT
+========================================================= */
+
+async function saveContent(){
+
+    const categoryId =
+        document.getElementById(
+            "contentCategoryId"
+        ).value;
+
+    const topicId =
+        document.getElementById(
+            "contentTopicId"
+        ).value;
+
+    const subtopicId =
+        document.getElementById(
+            "contentSubtopicId"
+        ).value;
+
+    const content =
+        document.getElementById(
+            "contentEditor"
+        ).value;
+
+
+    const subtopic =
+        DATA?.[categoryId]
+            ?.topics?.[topicId]
+            ?.subtopics?.[subtopicId];
+
+
+    if(!subtopic){
+
+        showToast(
+            "Sub-topic not found.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    subtopic.content =
+        content;
+
+    subtopic.updatedAt =
+        Date.now();
+
+
+    if(
+        await saveDatabase()
+    ){
+
+        closeModal(
+            "contentModal"
+        );
+
+        showToast(
+            "Content saved successfully.",
+            "success"
+        );
+
+    }
+}
+
+
+/* =========================================================
+   DELETE CONTENT
+========================================================= */
+
+async function deleteContent(
+    categoryId,
+    topicId,
+    subtopicId
+){
+
+    const subtopic =
+        DATA?.[categoryId]
+            ?.topics?.[topicId]
+            ?.subtopics?.[subtopicId];
+
+
+    if(!subtopic){
+
+        return;
+
+    }
+
+
+    if(
+        !confirm(
+            `Delete content from "${subtopic.title}"?`
+        )
+    ){
+
+        return;
+
+    }
+
+
+    subtopic.content =
+        "";
+
+    subtopic.updatedAt =
+        Date.now();
+
+
+    if(
+        await saveDatabase()
+    ){
+
+        showToast(
+            "Content deleted.",
+            "success"
+        );
+
+    }
+}
+
+
+/* =========================================================
+   PREVIEW CONTENT
+========================================================= */
+
+function previewContent(
+    categoryId,
+    topicId,
+    subtopicId
+){
+
+    const subtopic =
+        DATA?.[categoryId]
+            ?.topics?.[topicId]
+            ?.subtopics?.[subtopicId];
+
+
+    if(!subtopic){
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "previewTitle"
+    ).textContent =
+        "👁 " +
+        (
+            subtopic.title ||
+            "Content Preview"
+        );
+
+
+    document.getElementById(
+        "fullPreview"
+    ).innerHTML =
+        sanitizeHTML(
+            subtopic.content || ""
+        );
+
+
+    openModal(
+        "previewModal"
+    );
+}
+
+
+/* =========================================================
+   EDITOR TAB
+========================================================= */
+
+function showEditorTab(tab){
+
+    const editorPanel =
+        document.getElementById(
+            "editorPanel"
+        );
+
+    const previewPanel =
+        document.getElementById(
+            "previewPanel"
+        );
+
+    const editorButton =
+        document.getElementById(
+            "editorTabBtn"
+        );
+
+    const previewButton =
+        document.getElementById(
+            "previewTabBtn"
+        );
+
+
+    editorPanel.classList.remove(
+        "active"
+    );
+
+    previewPanel.classList.remove(
+        "active"
+    );
+
+    editorButton.classList.remove(
+        "active"
+    );
+
+    previewButton.classList.remove(
+        "active"
+    );
+
+
+    if(tab === "editor"){
+
+        editorPanel.classList.add(
+            "active"
+        );
+
+        editorButton.classList.add(
+            "active"
+        );
+
+    }else{
+
+        previewPanel.classList.add(
+            "active"
+        );
+
+        previewButton.classList.add(
+            "active"
+        );
+
+        updateLivePreview();
+
+    }
+}
+
+
+/* =========================================================
+   LIVE PREVIEW
+========================================================= */
+
+function updateLivePreview(){
+
+    const content =
+        document.getElementById(
+            "contentEditor"
+        ).value;
+
+
+    document.getElementById(
+        "livePreview"
+    ).innerHTML =
+        sanitizeHTML(
+            content ||
+            "<p style='color:var(--muted)'>Nothing to preview yet.</p>"
+        );
+}
+
+
+/* =========================================================
+   BASIC HTML SANITIZATION
+========================================================= */
+
+function sanitizeHTML(html){
+
+    const template =
+        document.createElement(
+            "template"
+        );
+
+
+    template.innerHTML =
+        html;
+
+
+    template.content
+        .querySelectorAll(
+            "script,iframe,object,embed,form"
+        )
+        .forEach(
+            el => el.remove()
+        );
+
+
+    template.content
+        .querySelectorAll("*")
+        .forEach(
+            el => {
+
+                [...el.attributes]
+                    .forEach(
+                        attr => {
+
+                            if(
+                                attr.name
+                                    .toLowerCase()
+                                    .startsWith("on")
+                            ){
+
+                                el.removeAttribute(
+                                    attr.name
+                                );
+
+                            }
+
+
+                            if(
+                                attr.name
+                                    .toLowerCase() ===
+                                "href" &&
+                                /^javascript:/i.test(
+                                    attr.value
+                                )
+                            ){
+
+                                el.removeAttribute(
+                                    attr.name
+                                );
+
+                            }
+
+                        }
+                    );
+
+            }
+        );
+
+
+    return template.innerHTML;
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value){
+
+    return String(value ?? "")
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+}
+
+
+/* =========================================================
+   MODAL FUNCTIONS
+========================================================= */
+
+function openModal(id){
+
+    document
+        .getElementById(id)
+        .classList.add("show");
+
+}
+
+
+function closeModal(id){
+
+    document
+        .getElementById(id)
+        .classList.remove("show");
+
+}
+
+
+/* =========================================================
+   CLICK OUTSIDE MODAL
+========================================================= */
+
+document
+    .querySelectorAll(".modal")
+    .forEach(
+        modal => {
+
+            modal.addEventListener(
+                "click",
+                e => {
+
+                    if(
+                        e.target === modal
+                    ){
+
+                        modal.classList.remove(
+                            "show"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   ESC KEY
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    e => {
+
+        if(
+            e.key === "Escape"
+        ){
+
+            document
+                .querySelectorAll(
+                    ".modal.show"
+                )
+                .forEach(
+                    modal =>
+                        modal.classList.remove(
+                            "show"
+                        )
+                );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+function toggleTheme(){
+
+    document.body.classList.toggle(
+        "light"
+    );
+
+
+    const light =
+        document.body.classList.contains(
+            "light"
+        );
+
+
+    localStorage.setItem(
+        "ideaLabTheme",
+        light
+            ? "light"
+            : "dark"
+    );
+
+
+    document.getElementById(
+        "themeIcon"
+    ).textContent =
+        light
+            ? "🌙"
+            : "☀️";
+}
+
+
+function loadTheme(){
+
+    const theme =
+        localStorage.getItem(
+            "ideaLabTheme"
+        );
+
+
+    if(theme === "light"){
+
+        document.body.classList.add(
+            "light"
+        );
+
+        document.getElementById(
+            "themeIcon"
+        ).textContent =
+            "🌙";
+
+    }
+
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function showToast(
+    message,
+    type = "success"
+){
+
+    const container =
+        document.getElementById(
+            "toastContainer"
+        );
+
+
+    const toast =
+        document.createElement(
+            "div"
+        );
+
+
+    toast.className =
+        "toast " + type;
+
+
+    toast.innerHTML = `
+
+        <div class="toast-icon">
+            ${
+                type === "success"
+                    ? "✅"
+                    : "⚠️"
+            }
+        </div>
+
+        <div>
+            ${escapeHtml(message)}
+        </div>
+
+    `;
+
+
+    container.appendChild(
+        toast
+    );
+
+
+    setTimeout(
+        () => {
+
+            toast.remove();
+
+        },
+        3500
+    );
+}
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        loadTheme();
+        fetchDatabase();
+
+    }
+);
+</script>
+
+</body>
+</html>
