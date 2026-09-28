@@ -167,24 +167,30 @@ async function fetchDB(key) {
         if (!res.ok) return null;
         let data = await res.json();
         
-        // 1. Unwrap Vercel's 'value' or 'result' wrapper if it exists
+        // 1. Unwrap Vercel REST API wrappers ('value' or 'result')
         if (data && typeof data === 'object') {
           if ('result' in data) data = data.result;
           else if ('value' in data) data = data.value;
         }
         
-        // 2. IMPORTANT: Vercel KV often returns stringified JSON. Parse it if it's a string.
+        // 2. Parse stringified JSON if Vercel returned it as a text string
         if (typeof data === 'string') {
-          try {
-            data = JSON.parse(data);
-          } catch (e) {
-            console.warn(`Data for ${key} is a string but not valid JSON.`, e);
+          try { 
+            data = JSON.parse(data); 
+          } catch (e) { 
+            console.warn(`Data for ${key} is a string but not valid JSON.`); 
           }
         }
         
-        // 3. Fix Firebase Object-to-Array conversion issues
+        // 3. 🚨 THE NEW FIX: Auto-Unwrap Firebase Double-Nesting 🚨
+        // If the imported JSON kept the root folder name, we unwrap it automatically.
+        if (data && typeof data === 'object' && data[key]) {
+            console.log(`⚠️ Auto-unwrapped double-nested Firebase data for: ${key}`);
+            data = data[key]; 
+        }
+
+        // 4. Fix Firebase Object-to-Array conversion (numbered keys to arrays)
         if (data && typeof data === 'object' && !Array.isArray(data)) {
-           // For Question Bank: Convert inner question objects to arrays
            if (key === 'sscQuestionBank') {
              Object.keys(data).forEach(groupKey => {
                if (data[groupKey] && typeof data[groupKey] === 'object' && !Array.isArray(data[groupKey])) {
@@ -194,13 +200,13 @@ async function fetchDB(key) {
            }
         }
         
+        console.log(`✅ Final processed data for ${key}:`, data);
         return data;
       } catch (err) {
-        console.error(`DB Fetch Error for ${key}:`, err);
+        console.error(`❌ DB Fetch Error for ${key}:`, err);
         return null;
       }
     }
-
     async function saveDB(key, value) {
       try {
         await fetch('/api/db', {
