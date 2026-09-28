@@ -71,82 +71,6 @@ body{
 }
 
 /* =========================================================
-   HEADER
-========================================================= */
-
-.topbar{
-    position:sticky;
-    top:0;
-    z-index:1000;
-
-    height:70px;
-
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-
-    padding:0 24px;
-
-    background:rgba(2,6,23,.92);
-    border-bottom:1px solid var(--border);
-
-    backdrop-filter:blur(14px);
-}
-
-body.light .topbar{
-    background:rgba(255,255,255,.92);
-}
-
-.brand{
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
-
-.brand-icon{
-    width:42px;
-    height:42px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    border-radius:12px;
-
-    background:linear-gradient(
-        135deg,
-        var(--primary),
-        #f97316
-    );
-
-    color:#111827;
-    font-size:22px;
-
-    box-shadow:0 8px 20px rgba(245,158,11,.25);
-}
-
-.brand-text h1{
-    margin:0;
-    font-size:18px;
-    font-weight:900;
-    letter-spacing:.5px;
-}
-
-.brand-text span{
-    display:block;
-    color:var(--muted);
-    font-size:11px;
-    margin-top:2px;
-    letter-spacing:1px;
-}
-
-.top-actions{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-/* =========================================================
    BUTTONS
 ========================================================= */
 
@@ -171,6 +95,7 @@ button,
     align-items:center;
     justify-content:center;
     gap:7px;
+    text-decoration:none;
 }
 
 .btn:hover{
@@ -265,6 +190,7 @@ button,
 }
 
 .mode-badge{
+    display:inline-block;
     padding:8px 12px;
     border-radius:999px;
 
@@ -276,6 +202,20 @@ button,
     color:var(--primary2);
 
     border:1px solid rgba(245,158,11,.25);
+}
+
+.hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.hero-top-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 /* =========================================================
@@ -1120,24 +1060,6 @@ button,
 ========================================================= */
 
 @media(max-width:850px){
-
-    .topbar{
-        height:auto;
-        min-height:65px;
-
-        padding:10px 15px;
-
-        gap:10px;
-    }
-
-    .brand-text span{
-        display:none;
-    }
-
-    .top-actions .btn span{
-        display:none;
-    }
-
     .stats{
         grid-template-columns:repeat(2,1fr);
     }
@@ -1145,6 +1067,12 @@ button,
     .hero{
         flex-direction:column;
         align-items:flex-start;
+    }
+    
+    .hero-actions {
+        width: 100%;
+        align-items: flex-start;
+        margin-top: 15px;
     }
 
     .category-header{
@@ -1162,7 +1090,6 @@ button,
     .subtopics{
         padding-left:14px;
     }
-
 }
 
 @media(max-width:600px){
@@ -1211,54 +1138,6 @@ button,
 <body>
 
 <!-- =========================================================
-     TOP BAR
-========================================================= -->
-
-<header class="topbar">
-
-    <div class="brand">
-
-        <div class="brand-icon">
-            💡
-        </div>
-
-        <div class="brand-text">
-            <h1>THE IDEA LAB ADMIN</h1>
-            <span>CLEVERSTUDENTS • CONTENT MANAGEMENT</span>
-        </div>
-
-    </div>
-
-    <div class="top-actions">
-
-        <div id="connectionStatus" class="connection">
-            <span class="connection-dot"></span>
-            <span id="connectionText">Connecting...</span>
-        </div>
-
-        <button
-            class="btn btn-secondary"
-            onclick="toggleTheme()"
-            title="Toggle Theme"
-        >
-            <span id="themeIcon">☀️</span>
-            <span>Theme</span>
-        </button>
-
-        <a
-            href="idealab-student.html"
-            class="btn btn-primary"
-            target="_blank"
-        >
-            👨‍🎓 <span>Student View</span>
-        </a>
-
-    </div>
-
-</header>
-
-
-<!-- =========================================================
      MAIN
 ========================================================= -->
 
@@ -1284,12 +1163,38 @@ button,
 
         </div>
 
-        <button
-            class="btn btn-primary"
-            onclick="openCategoryModal()"
-        >
-            ＋ Add Category
-        </button>
+        <div class="hero-actions">
+            <div class="hero-top-buttons">
+                <div id="connectionStatus" class="connection">
+                    <span class="connection-dot"></span>
+                    <span id="connectionText">Connecting...</span>
+                </div>
+
+                <button
+                    class="btn btn-secondary"
+                    onclick="toggleTheme()"
+                    title="Toggle Theme"
+                >
+                    <span id="themeIcon">☀️</span>
+                    <span>Theme</span>
+                </button>
+
+                <a
+                    href="idealab-student.html"
+                    class="btn btn-primary"
+                    target="_blank"
+                >
+                    👨‍🎓 <span>Student View</span>
+                </a>
+            </div>
+
+            <button
+                class="btn btn-green"
+                onclick="openCategoryModal()"
+            >
+                ＋ Add Category
+            </button>
+        </div>
 
     </section>
 
@@ -1987,6 +1892,70 @@ button,
 
 <script>
 /* =========================================================
+   SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
+========================================================= */
+const db = {
+  ref: function(path) {
+    let parts = path.split('/').filter(Boolean);
+    let rootKey = parts[0];
+
+    return {
+      once: async function(event) {
+        try {
+          const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+          const data = await res.json();
+          let val = data.result;
+          
+          if (typeof val === 'string') { 
+              try { val = JSON.parse(val); } catch(e) {} 
+          }
+          
+          for (let i = 1; i < parts.length; i++) {
+            if (val && typeof val === 'object') { val = val[parts[i]]; }
+            else { val = null; break; }
+          }
+          return { val: () => val };
+        } catch (err) {
+          console.error("DB Fetch Error:", err);
+          return { val: () => null };
+        }
+      },
+      set: async function(dataToSet) {
+        if (parts.length === 1) {
+          return fetch('/api/db', { 
+              method: 'POST', 
+              headers: { 'Content-Type': 'application/json' }, 
+              body: JSON.stringify({ action: 'set', path: rootKey, data: dataToSet }) 
+          }).then(res => res.json());
+        } else {
+          const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+          const fetched = await res.json();
+          let rootObj = fetched.result || {};
+          
+          if (typeof rootObj === 'string') { 
+              try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } 
+          }
+          
+          let current = rootObj;
+          for (let i = 1; i < parts.length - 1; i++) {
+            if (!current[parts[i]]) current[parts[i]] = {};
+            current = current[parts[i]];
+          }
+          current[parts[parts.length - 1]] = dataToSet;
+          
+          return fetch('/api/db', { 
+              method: 'POST', 
+              headers: { 'Content-Type': 'application/json' }, 
+              body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) 
+          }).then(res => res.json());
+        }
+      }
+    };
+  }
+};
+
+
+/* =========================================================
    DATABASE NODE & GLOBAL STATE
 ========================================================= */
 
@@ -2002,17 +1971,15 @@ let draggedSubtopicId = null;
 
 
 /* =========================================================
-   VERCEL KV DATABASE WRAPPER
+   VERCEL KV DATABASE DATA FETCH & SAVE FOR IDEA LAB
 ========================================================= */
 
 async function fetchDatabase() {
     setConnectionStatus("online", "Connecting to Vercel KV...");
     try {
-        const response = await fetch('/api/db?path=' + encodeURIComponent(DB_NODE));
-        if (!response.ok) throw new Error('Database read failed');
-        const data = await response.json();
+        const snap = await db.ref(DB_NODE).once('value');
+        DATA = snap.val() || {};
         
-        DATA = data.result || {};
         setConnectionStatus("online", "Vercel KV Connected");
         renderAll();
     } catch (error) {
@@ -2024,12 +1991,7 @@ async function fetchDatabase() {
 
 async function saveDatabase() {
     try {
-        const response = await fetch('/api/db', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'set', path: DB_NODE, data: DATA })
-        });
-        if (!response.ok) throw new Error('Database write failed');
+        await db.ref(DB_NODE).set(DATA);
         return true;
     } catch (error) {
         console.error("Vercel KV write error:", error);
