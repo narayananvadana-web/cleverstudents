@@ -42,6 +42,14 @@ const menuData = [
       { name: "Logic Skills", url: "#" },
       { name: "General Skill Development", url: "#" }
     ]
+  },
+     {
+    title: "All Competations",
+    links: [
+      { name: "APPSC", url: "#" },
+      { name: "SSC", url: "https://www.cleverstudents.in/panels/SSC-Mastery-Student.html" },
+      { name: "RRB", url: "#" }
+    ]
   }
 ];
 
