@@ -46,7 +46,7 @@ const menuData = [
     links: [
       { name: "APPSC", url: "https://www.cleverstudents.in/panels/APSPSC-Student.html" },
       { name: "SSC", url: "https://www.cleverstudents.in/panels/SSC-Mastery-Student.html" },
-      { name: "RRB", url: "#" }
+      { name: "RRB", url: "https://www.cleverstudents.in/panels/APSPSC-Student.html" }
     ]
   }
 ];
