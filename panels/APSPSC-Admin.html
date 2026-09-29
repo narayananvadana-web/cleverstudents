@@ -1,0 +1,263 @@
+<!-- admin.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Center | Education Platform</title>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --primary: #3b82f6; --success: #10b981;
+      --danger: #ef4444; --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+      --font: system-ui, -apple-system, sans-serif;
+    }
+    html[data-theme="light"] {
+      --bg: #f8fafc; --surface: #ffffff; --primary: #2563eb; --text: #0f172a;
+      --muted: #64748b; --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; }
+    
+    /* Layout */
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .card { background: var(--surface); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    
+    /* Typography & Elements */
+    h1, h2, h3 { font-weight: 600; margin-bottom: 1rem; }
+    button { background: var(--primary); color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
+    button:hover { opacity: 0.9; }
+    button.danger { background: var(--danger); }
+    input, select, textarea { width: 100%; padding: 0.75rem; margin-bottom: 1rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; }
+    
+    /* Utilities */
+    .hidden { display: none !important; }
+    .flex { display: flex; gap: 1rem; align-items: center; }
+    
+    /* Taxonomy Accordion */
+    .accordion-item { border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.5rem; background: var(--surface); }
+    .accordion-header { padding: 1rem; cursor: pointer; display: flex; justify-content: space-between; user-select: none; font-weight: bold; }
+    .accordion-content { padding: 1rem; border-top: 1px solid var(--border); background: var(--bg); display: none; }
+    .accordion-content.open { display: block; }
+    .draggable { cursor: grab; }
+    .draggable:active { cursor: grabbing; }
+
+    /* Toast & Spinner */
+    #toast { position: fixed; bottom: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 4px; color: #fff; transform: translateY(100px); transition: transform 0.3s; z-index: 9999; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--text); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Login Overlay */
+    #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+
+  <!-- Authentication -->
+  <div id="login-overlay">
+    <div class="card" style="width: 100%; max-width: 400px; text-align: center;">
+      <h2>Admin Login</h2>
+      <input type="password" id="admin-token" placeholder="Enter Access Token" onkeydown="if(event.key==='Enter') auth.login()">
+      <button onclick="auth.login()" style="width: 100%">Authenticate</button>
+    </div>
+  </div>
+
+  <div class="container hidden" id="app-content">
+    <header class="header">
+      <div class="flex">
+        <h1>Admin Control Center</h1>
+        <div id="google_translate_element"></div>
+      </div>
+      <div class="flex">
+        <button onclick="theme.toggle()">Toggle Theme</button>
+        <button onclick="app.toggleProtectedMode()" id="btn-protect">Protected Mode: ON</button>
+        <button class="danger" onclick="auth.logout()">Logout</button>
+      </div>
+    </header>
+
+    <div class="card" id="upload-section">
+      <h2>Smart Bulk Upload (CSV)</h2>
+      <p style="color: var(--muted); margin-bottom: 1rem;">Format: Subject, Sub-Subject, Topic, Sub-Topic, Question, OptA, OptB, OptC, OptD, Correct, Explanation</p>
+      <div class="flex" style="align-items: flex-start;">
+        <div style="flex: 1; border: 2px dashed var(--border); padding: 2rem; text-align: center; border-radius: 4px;" id="drop-zone">
+          <p>Drag & Drop CSV here or</p>
+          <input type="file" id="csv-file" accept=".csv" style="display: none;" onchange="csvParser.handleFile(event)">
+          <button onclick="document.getElementById('csv-file').click()" style="margin-top: 1rem;">Browse File</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Syllabus & Taxonomy Management</h2>
+      <button onclick="taxonomy.render()" style="margin-bottom: 1rem;">Refresh Structure</button>
+      <div id="taxonomy-container"></div>
+    </div>
+  </div>
+
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script>
+    function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element'); }
+    
+    // Core Utilities
+    const ui = {
+      toast: (msg, type = 'success') => {
+        const el = document.getElementById('toast') || Object.assign(document.createElement('div'), { id: 'toast' });
+        el.textContent = msg;
+        el.style.background = type === 'error' ? 'var(--danger)' : 'var(--success)';
+        document.body.appendChild(el);
+        setTimeout(() => el.style.transform = 'translateY(0)', 10);
+        setTimeout(() => el.style.transform = 'translateY(100px)', 3000);
+      },
+      sanitize: (str) => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+    };
+
+    const theme = {
+      init: () => document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark'),
+      toggle: () => {
+        const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', current);
+        localStorage.setItem('theme', current);
+      }
+    };
+    theme.init();
+
+    // KV Database Abstraction (Vercel KV / REST equivalent)
+    const db = {
+      url: 'https://your-kv-store-endpoint.example.com', // Replace with real KV endpoint
+      headers: () => ({ 'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`, 'Content-Type': 'application/json' }),
+      fetchDB: async (key) => {
+        try { 
+          // MOCK IMPLEMENTATION FOR DEMO - Replace with actual fetch
+          // const res = await fetch(`${db.url}/get/${key}`, { headers: db.headers() });
+          // return res.ok ? (await res.json()).result : null;
+          return JSON.parse(localStorage.getItem(`kv_${key}`)) || null;
+        } catch(e) { ui.toast('Fetch failed', 'error'); return null; }
+      },
+      saveDB: async (key, value) => {
+        try {
+          // MOCK IMPLEMENTATION FOR DEMO - Replace with actual fetch
+          // const res = await fetch(`${db.url}/set/${key}`, { method: 'POST', headers: db.headers(), body: JSON.stringify(value) });
+          // return res.ok;
+          localStorage.setItem(`kv_${key}`, JSON.stringify(value));
+          return true;
+        } catch(e) { ui.toast('Save failed', 'error'); return false; }
+      }
+    };
+
+    // Authentication
+    const auth = {
+      login: async () => {
+        const token = document.getElementById('admin-token').value;
+        if (!token) return ui.toast('Enter token', 'error');
+        sessionStorage.setItem('admin_token', token);
+        // Verify token via dummy fetch
+        // const isValid = await db.fetchDB('settings');
+        document.getElementById('login-overlay').classList.add('hidden');
+        document.getElementById('app-content').classList.remove('hidden');
+        app.init();
+      },
+      logout: () => { sessionStorage.removeItem('admin_token'); location.reload(); }
+    };
+
+    // Application State
+    const app = {
+      settings: { protectedMode: true },
+      init: async () => {
+        const settings = await db.fetchDB('sys_settings');
+        if (settings) app.settings = settings;
+        app.updateProtectBtn();
+        taxonomy.render();
+      },
+      toggleProtectedMode: async () => {
+        app.settings.protectedMode = !app.settings.protectedMode;
+        await db.saveDB('sys_settings', app.settings);
+        app.updateProtectBtn();
+        ui.toast(`Protected Mode: ${app.settings.protectedMode ? 'ON' : 'OFF'}`);
+      },
+      updateProtectBtn: () => {
+        const btn = document.getElementById('btn-protect');
+        btn.textContent = `Protected Mode: ${app.settings.protectedMode ? 'ON' : 'OFF'}`;
+        btn.style.background = app.settings.protectedMode ? 'var(--success)' : 'var(--danger)';
+      }
+    };
+
+    // Smart CSV Parser
+    const csvParser = {
+      handleFile: (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => csvParser.process(event.target.result);
+        reader.readAsText(file);
+      },
+      process: async (text) => {
+        const rows = text.split('\n').map(r => r.split(',').map(c => c.trim()));
+        let successCount = 0, failCount = 0;
+        let structure = await db.fetchDB('taxonomy') || {};
+
+        for (let i = 1; i < rows.length; i++) { // Skip header
+          if (rows[i].length < 11) { failCount++; continue; }
+          const [sub, subSub, topic, subTopic, q, oA, oB, oC, oD, ans, exp] = rows[i];
+          if (!sub || !q) { failCount++; continue; }
+
+          // Build Taxonomy
+          structure[sub] = structure[sub] || {};
+          structure[sub][subSub] = structure[sub][subSub] || {};
+          structure[sub][subSub][topic] = structure[sub][subSub][topic] || [];
+          if (!structure[sub][subSub][topic].includes(subTopic)) structure[sub][subSub][topic].push(subTopic);
+
+          // Save Question to Granular KV Key
+          const qKey = `q_${sub}_${subSub}_${topic}_${subTopic}`.replace(/\s+/g, '_').toLowerCase();
+          let qBank = await db.fetchDB(qKey) || [];
+          qBank.push({ question: ui.sanitize(q), options: {A:oA, B:oB, C:oC, D:oD}, correct: ans, explanation: ui.sanitize(exp) });
+          await db.saveDB(qKey, qBank);
+          successCount++;
+        }
+        await db.saveDB('taxonomy', structure);
+        ui.toast(`Upload Complete: ${successCount} saved, ${failCount} skipped.`);
+        taxonomy.render();
+      }
+    };
+
+    // Drag-and-Drop Taxonomy Rendering
+    const taxonomy = {
+      render: async () => {
+        const data = await db.fetchDB('taxonomy') || {};
+        const container = document.getElementById('taxonomy-container');
+        container.innerHTML = '';
+        
+        Object.keys(data).forEach(sub => {
+          const item = document.createElement('div');
+          item.className = 'accordion-item draggable';
+          item.draggable = true;
+          item.innerHTML = `
+            <div class="accordion-header" onclick="this.nextElementSibling.classList.toggle('open')">📚 ${sub}</div>
+            <div class="accordion-content">
+              ${Object.keys(data[sub]).map(subSub => `
+                <div style="margin-left:1rem; border-left:2px solid var(--border); padding-left:1rem;">
+                  <strong>📘 ${subSub}</strong>${Object.keys(data[sub][subSub]).map(topic => `
+                    <div style="margin-left:1rem; color:var(--muted)">📄 ${topic} 
+                      (${data[sub][subSub][topic].length} sub-topics)
+                    </div>
+                  `).join('')}
+                </div>
+              `).join('')}
+            </div>`;
+          container.appendChild(item);
+        });
+      }
+    };
+
+    // Drag and Drop Logic (Minimal setup for UX visualization)
+    document.getElementById('drop-zone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--primary)'; });
+    document.getElementById('drop-zone').addEventListener('dragleave', e => { e.currentTarget.style.borderColor = 'var(--border)'; });
+    document.getElementById('drop-zone').addEventListener('drop', e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--border)'; document.getElementById('csv-file').files = e.dataTransfer.files; csvParser.handleFile({target: {files: e.dataTransfer.files}}); });
+
+    if(sessionStorage.getItem('admin_token')) auth.login();
+  </script>
+</body>
+</html>
