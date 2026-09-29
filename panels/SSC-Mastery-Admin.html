@@ -904,23 +904,37 @@
         var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = 'skipped_questions_errors.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     }
     window.clearCSVData = function(){csvRows=[];var fi=document.getElementById('csvFileInput'),pi=document.getElementById('csvPasteInput'),pv=document.getElementById('csvPreviewArea');if(fi)fi.value='';if(pi)pi.value='';if(pv){pv.style.display='none';pv.innerHTML='';}}
-    
-    // ============ THE FIX: SHARDED UPLOAD TO VERCEL ============
+    // ============ THE FIX: AUTO-CHUNKING HEAVY TOPICS (SAFE FOR VERCEL 413 LIMITS) ============
     window.uploadCSVToFB = async function(){
       if(!csvRows||csvRows.length===0)return;
       var st=document.getElementById('csvUploadStatus');
       st.innerHTML='<span class="spinner"></span> Preparing Upload...';
       
       var groups={};
+      var MAX_QS_PER_PART = 60; // 413 ఎర్రర్ రాకుండా ఒక టాపిక్ కి 60 ప్రశ్నలు మాత్రమే ఉండేలా లిమిట్
+      
       for(var i=0;i<csvRows.length;i++){
         var r=csvRows[i];
-        if(!groups[r.key])groups[r.key]=[];
+        var originalKey = r.key;
+        var originalTopic = r.topic;
+        var currentKey = originalKey;
+        var partNum = 1;
+        
+        // ఒకవేళ గ్రూపులో 60 కి మించి ప్రశ్నలు ఉంటే, ఆటోమేటిక్ గా కొత్త పార్ట్ (Part 2, Part 3) క్రియేట్ అవుతుంది
+        while(groups[currentKey] && groups[currentKey].length >= MAX_QS_PER_PART) {
+            partNum++;
+            currentKey = originalKey + '_Part_' + partNum;
+            r.topic = originalTopic + ' (Part ' + partNum + ')'; // స్టూడెంట్ కి ప్యానెల్ లో Part 2 అని కనిపిస్తుంది
+        }
+        
+        if(!groups[currentKey]) groups[currentKey]=[];
+        
         if(!SSC_HIERARCHY[r.subject])SSC_HIERARCHY[r.subject]={};
         if(!SSC_HIERARCHY[r.subject][r.subSubject])SSC_HIERARCHY[r.subject][r.subSubject]={};
         if(!SSC_HIERARCHY[r.subject][r.subSubject][r.topic])SSC_HIERARCHY[r.subject][r.subSubject][r.topic]=['General'];
         if(r.subTopic&&SSC_HIERARCHY[r.subject][r.subSubject][r.topic].indexOf(r.subTopic)===-1)SSC_HIERARCHY[r.subject][r.subSubject][r.topic].push(r.subTopic);
         
-        groups[r.key].push({
+        groups[currentKey].push({
           question:r.question,
           options:{A:r.optionA,B:r.optionB,C:r.optionC||'',D:r.optionD||''},
           correctAnswer:r.correctAnswer,
@@ -944,10 +958,9 @@
         var k = gKeys[j];
         var newQs = groups[k];
         
-        st.innerHTML=`<span class="spinner"></span> Uploading Group ${j+1} of ${gKeys.length}...`;
+        st.innerHTML=`<span class="spinner"></span> Uploading Group ${j+1} of ${gKeys.length} <br><small>(${k})</small>...`;
         
         try {
-            // Fetch individual small group (e.g., qb_Ancient_History...)
             var existingQs = await fetchDB(`qb_${k}`) || [];
             if (!Array.isArray(existingQs)) {
                 existingQs = typeof existingQs === 'object' ? Object.values(existingQs) : [];
@@ -962,7 +975,6 @@
                }
             });
             
-            // Save the small group (avoids 1MB payload limit!)
             await saveDB(`qb_${k}`, existingQs);
             
             var fq = existingQs[0];
@@ -975,8 +987,7 @@
                 order: qIndex[k] ? qIndex[k].order : Date.now()
             };
 
-            // Save index periodically to prevent losing data
-            if (j % 10 === 0 || j === gKeys.length - 1) {
+            if (j % 5 === 0 || j === gKeys.length - 1) {
                 await saveDB('sscQuestionBank_index', qIndex);
             }
 
@@ -984,8 +995,7 @@
             allData.quiz[k] = qIndex[k];
             done++;
             
-            // Critical: Add a small delay so Vercel Upstash doesn't throw a Rate Limit 500 error
-            await new Promise(r => setTimeout(r, 200));
+            await new Promise(r => setTimeout(r, 300)); // బ్రేక్ టైం పెంచాను, ఎర్రర్స్ రావు
 
         } catch (err) {
             console.error("❌ Upload failed for group:", k, err);
@@ -994,14 +1004,13 @@
       }
       
       if(failed > 0){
-        st.innerHTML=`<span style="color:#ef4444;">⚠️ Uploaded ${done}, Failed ${failed} groups. Check F12 Console.</span>`;
+        st.innerHTML=`<span style="color:#ef4444;">⚠️️ Uploaded ${done}, Failed ${failed} groups. Check Internet Connection and Try Again!</span>`;
       } else {
         st.innerHTML=`<span style="color:#22c55e;">✅ Done! Uploaded to ${done} groups.</span>`;
         toast('Upload Complete!','success');
         setTimeout(function(){window.clearCSVData();window.refreshUI()}, 1500);
       }
-    }
-    
+    }    
     // ============ ADD / EDIT SYLLABUS ============
     window.showAddSyllabusForm = function(){var ef=document.getElementById('editForm');ef.style.display='block';var mainSubs=getMainSubjects(),firstSub=getSubSubjects(mainSubs[0]),firstTopic=getTopics(mainSubs[0],firstSub[0]),firstSubTopic=getSubTopics(mainSubs[0],firstSub[0],firstTopic[0]);ef.innerHTML='<div class="card"><h3>➕ Add Syllabus (4 Levels)</h3><div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp"></div><div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp" onchange="window.updateEditSub()">'+mainSubs.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Subject *</label><select id="ef-subsubject" class="form-inp" onchange="window.updateEditTopic()">'+firstSub.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Topic *</label><select id="ef-topic" class="form-inp" onchange="window.updateEditSubTopic()">'+firstTopic.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Topic <span class="optional-label">(optional)</span></label><select id="ef-subtopic" class="form-inp">'+firstSubTopic.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:150px;"></textarea></div><button class="btn btn-green btn-sm notranslate" onclick="window.saveSyllabus(null)">💾 Save</button> <button class="btn btn-dark btn-sm notranslate" onclick="window.cancelEdit()">❌ Cancel</button></div>'}
     window.editSyllabusItem = function(key){var item=allData.syllabus[key];if(!item)return;var ef=document.getElementById('editForm');ef.style.display='block';var mainSubs=getMainSubjects(),currentSubs=getSubSubjects(item.subject||mainSubs[0]),currentTopics=getTopics(item.subject||mainSubs[0],item.subSubject||currentSubs[0]),currentSubTopics=getSubTopics(item.subject||mainSubs[0],item.subSubject||currentSubs[0],item.topic||currentTopics[0]);ef.innerHTML='<div class="card"><h3>✏️ Edit Syllabus (4 Levels)</h3><div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp" value="'+escHTML(item.title||'')+'"></div><div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp" onchange="window.updateEditSub()">'+mainSubs.map(function(s){return'<option '+(item.subject===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Subject *</label><select id="ef-subsubject" class="form-inp" onchange="window.updateEditTopic()">'+currentSubs.map(function(s){return'<option '+(item.subSubject===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Topic *</label><select id="ef-topic" class="form-inp" onchange="window.updateEditSubTopic()">'+currentTopics.map(function(s){return'<option '+(item.topic===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Topic <span class="optional-label">(optional)</span></label><select id="ef-subtopic" class="form-inp">'+currentSubTopics.map(function(s){return'<option '+(item.subTopic===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:150px;">'+escHTML(item.content||'')+'</textarea></div><button class="btn btn-green btn-sm notranslate" onclick="window.saveSyllabus(\''+key+'\')">💾 Update</button> <button class="btn btn-dark btn-sm notranslate" onclick="window.cancelEdit()">❌ Cancel</button></div>'}
