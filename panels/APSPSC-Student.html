@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>APPSC Mastery | Student Learning Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px}
+    body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
+    *,::before,::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;min-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
+    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+    
+    .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important;-ms-user-select:none!important}
+    input,textarea,select{user-select:auto!important;-webkit-user-select:auto!important}
+
+    .top-info-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd);min-height:50px;flex-wrap:wrap}
+    .news-ticker-wrap{flex:1;min-width:200px;overflow:hidden;background:rgba(0,0,0,.3);border-radius:20px;padding:8px 15px;border:1px solid rgba(255,215,0,.3);display:flex;align-items:center;gap:10px}
+    .news-icon{flex-shrink:0;font-size:1.2rem;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.2)}}
+    .ticker-container{width:100%;overflow:hidden;white-space:nowrap;flex:1;min-width:0}
+    #newsTicker{display:inline-block;white-space:nowrap;animation:scrollTicker 40s linear infinite}
+    #newsTicker:hover{animation-play-state:paused}
+    @keyframes scrollTicker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    .news-link{color:#ffd700;font-weight:700;font-size:.9rem;cursor:pointer;margin:0 15px;text-decoration:none}
+    .news-link:hover{color:#fff;text-shadow:0 0 10px rgba(255,215,0,.8)}
+    .news-separator{color:rgba(255,255,255,.3);margin:0 5px}
+    
+    @keyframes redBlink{0%,100%{box-shadow:0 0 5px rgba(255,0,0,.4);border-color:rgba(255,0,0,.5)}50%{box-shadow:0 0 20px rgba(255,0,0,.9);border-color:rgba(255,0,0,.9)}}
+    .lang-select{padding:8px 12px;border-radius:20px;border:2px solid rgba(255,0,0,.5);background:var(--srf);color:var(--txt);font-weight:700;font-size:.85rem;cursor:pointer;animation:redBlink 1s ease-in-out infinite;flex-shrink:0;min-width:110px;font-family:var(--font)}
+    .lang-select option{background:var(--srf);color:var(--txt)}
+
+    .main-wrap{max-width:100%!important;width:100%!important;padding:20px 10px 80px!important;margin:0 auto}
+    .shell{background:var(--srf);border-radius:8px;overflow:hidden;border:1px solid var(--brd);max-width:1400px;margin:0 auto}
+    .sub-row{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd)}
+    .btn-sub{padding:10px 22px;border:2px solid transparent;border-radius:8px;color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;opacity:.7;transform:scale(.95);white-space:nowrap;font-family:var(--font);transition:.2s}
+    .btn-sub:hover{opacity:.9;transform:scale(1)}
+    .btn-sub.active{opacity:1;transform:scale(1.05);border-color:#fff;box-shadow:0 0 15px rgba(255,255,255,.3)}
+    
+    .sub-cat-row{display:flex;gap:8px;padding:12px 15px;background:rgba(0,0,0,.1);border-bottom:1px solid var(--brd);overflow-x:auto;justify-content:center;flex-wrap:wrap}
+    .btn-sub-cat{padding:8px 16px;border:2px solid rgba(255,255,255,.2);border-radius:20px;background:rgba(255,255,255,.05);color:var(--txt);font-weight:700;font-size:.8rem;cursor:pointer;white-space:nowrap;font-family:var(--font);transition:.2s}
+    .btn-sub-cat:hover{background:rgba(255,255,255,.15)}
+    .btn-sub-cat.active{background:#f59e0b;color:#000;border-color:#f59e0b}
+    
+    .study-tabs-row{display:flex;gap:6px;padding:10px 15px;background:rgba(0,0,0,.15);flex-wrap:wrap;justify-content:center}
+    .study-tab-btn{padding:8px 14px;border-radius:50px;border:1px solid var(--brd);background:0 0;color:var(--mut);font-weight:700;font-size:.75rem;cursor:pointer;font-family:var(--font);transition:.2s;white-space:nowrap}
+    .study-tab-btn.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+    .study-tab-btn.grand-test{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border-color:transparent;font-size:.85rem;animation:grandPulse 2s ease-in-out infinite}
+    @keyframes grandPulse{0%,100%{box-shadow:0 0 10px rgba(245,158,11,.5)}50%{box-shadow:0 0 25px rgba(239,68,68,.8),0 0 40px rgba(245,158,11,.4)}}
+    
+    .content{min-height:150px;background:var(--srf)}
+    .banner{padding:12px 20px!important;display:flex;align-items:center;justify-content:center;gap:15px;box-shadow:0 4px 10px rgba(0,0,0,.2);text-align:center;flex-wrap:wrap}
+    .banner h1{font-size:1.3rem!important;font-weight:900!important;color:#fff!important}
+    .banner p{font-size:.9rem!important;font-weight:700!important;color:#fff!important}
+    .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:12px 15px 0;color:#fff;font-weight:800;font-size:1rem;border-radius:8px;cursor:pointer;transition:.2s}
+    .ch-row:hover{filter:brightness(1.15);transform:translateY(-2px)}
+    .ch-content{display:none;background:rgba(0,0,0,.25);border:1px solid var(--brd);margin:0 15px 15px;padding:20px;border-radius:0 0 8px 8px;line-height:1.8;color:#f8fafc}
+    body.light-mode .ch-content{color:#334155;background:rgba(0,0,0,.02)}
+    .ch-content.show{display:block;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .img-th{max-width:200px;max-height:150px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid var(--brd);margin:5px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:15px}
+    .q-card{border:none;border-radius:10px;padding:20px 12px;text-align:center;cursor:pointer;color:#fff;transition:.2s}
+    .q-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+    .q-card h4{font-weight:900;font-size:1.1rem;margin-bottom:6px}
+
+    /* Grand Test Config */
+    .gt-subject-section{background:rgba(0,0,0,.2);border-radius:8px;padding:15px;margin-bottom:12px;border:1px solid var(--brd)}
+    .gt-subject-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:800;font-size:1rem;flex-wrap:wrap;gap:8px}
+    .gt-subject-header-left{display:flex;align-items:center;gap:8px}
+    .gt-topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--brd)}
+    .gt-checkbox{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(0,0,0,.15);border-radius:6px;cursor:pointer;font-size:.85rem;transition:.2s;border:1px solid transparent}
+    .gt-checkbox:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.2)}
+    .gt-checkbox input{accent-color:#f59e0b;width:16px;height:16px;cursor:pointer}
+    .gt-marks-input{width:80px;padding:6px 10px;border-radius:6px;border:1px solid var(--brd);background:rgba(0,0,0,.3);color:#fff;font-weight:700;text-align:center;font-family:var(--font)}
+    .gt-total-bar{background:linear-gradient(135deg,#f59e0b,#ef4444);padding:15px 20px;border-radius:8px;margin:15px 0;text-align:center;font-weight:900;font-size:1.1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+    .gt-warning{background:rgba(239,68,68,.1);border:1px solid #ef4444;border-radius:8px;padding:12px;margin:10px 0;color:#ef4444;font-size:.85rem;display:none}
+    .gt-select-all-btn{font-size:.7rem;padding:4px 10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--txt);border-radius:15px;cursor:pointer;font-family:var(--font)}
+    .gt-select-all-btn:hover{background:rgba(255,255,255,.2)}
+
+    /* Quiz Player */
+    .q-player{padding:20px;background:var(--srf);border:1px solid var(--brd);border-radius:8px;max-width:1400px;margin:0 auto}
+    .q-panel{border-radius:16px;padding:20px;background:rgba(0,0,0,.2)}
+    body.light-mode .q-panel{background:#f1f5f9;border:1px solid #e2e8f0}
+    .opt-btn{padding:14px 18px;background:rgba(255,255,255,.05);border:2px solid var(--brd);border-radius:8px;cursor:pointer;font-weight:700;font-size:.95rem;color:var(--txt);text-align:left;margin-bottom:8px;width:100%;transition:.2s;font-family:var(--font)}
+    .opt-btn:hover{border-color:#3b82f6}
+    .opt-btn.correct{background:#15803d!important;border-color:#22c55e!important;color:#fff!important}
+    .opt-btn.wrong{background:#b91c1c!important;border-color:#ef4444!important;color:#fff!important}
+    .opt-btn.reveal{background:rgba(34,197,94,.2)!important;border-color:#22c55e!important}
+    .feedback{display:none;padding:14px;border-radius:8px;font-weight:700;color:#fff!important;margin-bottom:20px}
+    .feedback.show{display:block}
+    .feedback.correct{background:#15803d;border-left:4px solid #22c55e}
+    .feedback.wrong{background:#b91c1c;border-left:4px solid #ef4444}
+
+    /* Results */
+    .results-container{padding:20px;max-height:75vh;overflow-y:auto}
+    .results-header{text-align:center;margin-bottom:20px;padding:20px;background:rgba(0,0,0,.2);border-radius:12px}
+    .results-score{font-size:4rem;font-weight:900}
+    .results-summary{display:flex;justify-content:center;gap:15px;flex-wrap:wrap;margin:15px 0}
+    .results-summary-item{text-align:center;padding:10px 20px;background:rgba(0,0,0,.3);border-radius:8px;min-width:80px}
+    .results-summary-item .val{font-size:1.8rem;font-weight:900}
+    .results-summary-item .lbl{font-size:.7rem;color:var(--mut)}
+    .analysis-card{background:rgba(255,255,255,.03);border:1px solid var(--brd);border-radius:8px;padding:15px;margin-bottom:12px}
+    .analysis-card h4{margin-bottom:8px}
+    .progress-bar-bg{background:rgba(0,0,0,.3);border-radius:20px;height:12px;overflow:hidden;margin:5px 0}
+    .progress-bar-fill{height:100%;border-radius:20px;transition:width .5s}
+    .result-item{background:rgba(255,255,255,.05);border:1px solid var(--brd);border-radius:8px;padding:15px;margin-bottom:10px}
+    .result-qno{display:inline-block;width:28px;height:28px;border-radius:50%;text-align:center;line-height:28px;font-weight:900;font-size:.8rem;margin-right:8px}
+    .result-qno.correct-q{background:#15803d;color:#fff}.result-qno.wrong-q{background:#b91c1c;color:#fff}.result-qno.skipped-q{background:#64748b;color:#fff}
+    .result-status{display:inline-block;padding:4px 10px;border-radius:20px;font-weight:700;font-size:.8rem}
+    .result-status.correct{background:#15803d;color:#fff}.result-status.wrong{background:#b91c1c;color:#fff}.result-status.skipped{background:#64748b;color:#fff}
+    .result-question{font-weight:800;font-size:1.05rem;margin:8px 0}
+    .result-option{padding:8px 12px;margin:4px 0;border-radius:6px;font-size:.9rem;border-left:3px solid transparent}
+    .result-option.correct-answer{background:rgba(34,197,94,.15);border-left-color:#22c55e;color:#22c55e;font-weight:700}
+    .result-option.user-wrong{background:rgba(239,68,68,.15);border-left-color:#ef4444;color:#ef4444;font-weight:700}
+    .result-option.user-correct{background:rgba(34,197,94,.25);border-left-color:#22c55e;color:#22c55e;font-weight:700}
+    .result-explanation{background:rgba(59,130,246,.1);border:1px solid #3b82f6;border-radius:6px;padding:8px 12px;margin-top:8px;color:#93c5fd;font-size:.85rem}
+    .result-source{font-size:.75rem;color:var(--mut);margin-bottom:4px}
+
+    .btn{padding:10px 20px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;font-family:var(--font);display:inline-flex;align-items:center;gap:6px;transition:.2s}
+    .btn:hover{filter:brightness(1.15)}.btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-orange{background:#f59e0b}
+    .btn-sm{padding:6px 14px;font-size:.8rem}.btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
+    
+    /* AI Chat */
+    .ai-btn{position:fixed;bottom:20px;right:20px;width:55px;height:55px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#7c3aed);font-size:1.5rem;z-index:999;box-shadow:0 4px 20px rgba(139,92,246,.5);border:none;cursor:pointer;color:#fff}
+    .chat-box{background:var(--srf);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5);overflow:hidden;border:1px solid var(--brd);display:none;max-width:400px;position:fixed;bottom:80px;right:20px;width:90%;z-index:998}
+    .chat-msgs{height:350px;overflow-y:auto;padding:20px;background:rgba(0,0,0,.2)}
+    .chat-msg{display:flex;margin-bottom:16px;align-items:flex-start}.chat-msg.user{flex-direction:row-reverse}
+    .msg-bub{max-width:85%;padding:12px 16px;border-radius:20px;font-size:.9rem;line-height:1.5}
+    .chat-msg.user .msg-bub{background:#3b82f6;color:#fff}
+    .chat-msg.bot .msg-bub{background:rgba(255,255,255,.05);border:1px solid var(--brd);color:var(--txt)}
+    .chat-inp-row{display:flex;gap:10px;padding:14px;background:var(--srf);border-top:1px solid var(--brd)}
+    .chat-inp{flex:1;padding:12px 16px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:50px;color:var(--txt);font-size:.9rem;outline:0;font-family:var(--font)}
+
+    .spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast{position:fixed;bottom:20px;right:20px;padding:14px 24px;border-radius:8px;font-weight:700;z-index:99999;animation:slideIn .3s ease;color:#fff;max-width:400px}
+    .toast.success{background:#15803d}.toast.error{background:#b91c1c}.toast.info{background:#1d4ed8}
+    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    
+    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
+    .login-box{background:var(--srf);padding:40px 30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:380px;border:1px solid var(--brd);text-align:center}
+    .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1rem;outline:0;font-family:var(--font)}
+    .logo-text{font-family:'Fredoka One',cursive;font-size:1.8rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;display:none;justify-content:center;align-items:center}
+    .modal.show{display:flex}.modal img{max-width:92%;max-height:92%;border-radius:8px}
+    .modal-close{position:absolute;top:18px;right:24px;color:#fff;font-size:2rem;cursor:pointer}
+    .back-btn-row{padding:10px 15px}
+    
+    /* ✅ FIX 1: Group & Stage filter for Student Panel */
+    .filter-row{display:flex;gap:10px;padding:10px 15px;flex-wrap:wrap;justify-content:center;align-items:center;background:rgba(0,0,0,.1);border-bottom:1px solid var(--brd)}
+    .filter-label{font-weight:800;font-size:.85rem;color:var(--mut);white-space:nowrap}
+    .filter-select{padding:8px 12px;border-radius:20px;border:1px solid var(--brd);background:var(--srf);color:var(--txt);font-weight:700;font-size:.8rem;cursor:pointer;font-family:var(--font);min-width:120px}
+    .filter-select:focus{outline:none;border-color:#3b82f6}
+    
+    @media(max-width:768px){
+      .results-score{font-size:3rem}.gt-topic-grid{grid-template-columns:1fr}
+      .gt-subject-header{flex-direction:column;align-items:flex-start}
+      .sub-row{gap:6px;padding:10px}.btn-sub{padding:8px 14px;font-size:.8rem}
+      .chat-box{width:95%;right:2.5%}
+      .filter-row{gap:6px;padding:8px}
+    }
+  </style>
+</head>
+<body class="protected-mode" oncontextmenu="return false;">
+
+  <div id="login-overlay">
+    <div class="login-box">
+      <div class="logo-text">🎯 APPSC Mastery</div>
+      <h2 style="margin-bottom:25px;color:var(--txt);">Student Login</h2>
+      <input type="text" id="login-phone" class="login-inp" placeholder="User ID / Phone">
+      <input type="password" id="login-pass" class="login-inp" placeholder="Password">
+      <button class="btn btn-blue" style="width:100%;padding:14px;font-size:1.1rem;margin-top:10px;" onclick="attemptLogin()">Login</button>
+      <button class="btn btn-dark" style="width:100%;padding:12px;font-size:.9rem;margin-top:10px;border-radius:8px;" onclick="logout()">Logout / Clear Data</button>
+      <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:700;display:none;"></div>
+    </div>
+  </div>
+
+  <div class="main-wrap">
+    <div class="top-info-bar">
+      <div class="news-ticker-wrap"><span class="news-icon">📢</span><div class="ticker-container"><span id="newsTicker"></span></div></div>
+      <div id="google_translate_element"></div>
+      <select class="lang-select" id="lang-select" onchange="changeLanguage(this.value)">
+        <option value="en">🌐 English</option><option value="te">🔴 తెలుగు</option><option value="hi">🔴 हिन्दी</option><option value="ta">🔴 தமிழ்</option><option value="ml">🔴 മലയാളം</option><option value="kn">🔴 ಕನ್ನಡ</option>
+      </select>
+    </div>
+    
+    <div id="shell" class="shell">
+      <!-- ✅ FIX 2: Group & Stage Filter Row -->
+      <div class="filter-row">
+        <span class="filter-label">📚 Group:</span>
+        <select class="filter-select" id="filterGroup" onchange="updateGroupFilter(this.value)">
+          <option value="ALL">All Groups</option>
+          <option value="Group 1">Group 1</option>
+          <option value="Group 2">Group 2</option>
+        </select>
+        <span class="filter-label">📅 Stage:</span>
+        <select class="filter-select" id="filterStage" onchange="updateStageFilter(this.value)">
+          <option value="ALL">All Stages</option>
+          <option value="Prelims">Prelims</option>
+          <option value="Mains">Mains</option>
+        </select>
+      </div>
+      <div class="sub-row" id="sub-row"></div>
+      <div class="sub-cat-row" id="sub-cat-row" style="display:none;"></div>
+      <div class="study-tabs-row" id="study-tabs-row"></div>
+      <div class="content" id="content-area"></div>
+    </div>
+    <div id="quiz-player" class="q-player" style="display:none;"></div>
+    
+    <!-- ✅ AI Chat Button -->
+    <button class="btn ai-btn" id="ai-toggle-btn" onclick="toggleAIChat()" title="AI Tutor">🤖</button>
+    <div id="ai-shell" class="chat-box">
+      <div class="chat-msgs" id="chat-msgs"><div class="chat-msg bot"><div class="msg-bub"><strong>[AI Tutor]</strong> Ask me anything about APPSC exams!</div></div></div>
+      <div class="chat-inp-row"><input id="chat-inp" class="chat-inp" placeholder="Type your question..." onkeypress="if(event.key=='Enter')sendChat()"><button class="btn btn-blue" id="chat-send-btn" onclick="sendChat()">Send</button></div>
+    </div>
+  </div>
+
+  <!-- ✅ Image Modal -->
+  <div id="img-modal" class="modal" onclick="closeModal()"><span class="modal-close">×</span><img id="modal-img" src=""></div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <script>
+    // ==================== FIREBASE CONFIG ====================
+    var fbConfig={apiKey:"AIzaSyCT7qsnsliqWcTKWzMFkWHJwk14SGUycYE",authDomain:"cleverstudents9.firebaseapp.com",databaseURL:"https://cleverstudents9-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"cleverstudents9",storageBucket:"cleverstudents9.firebasestorage.app",messagingSenderId:"113374810814",appId:"1:113374810814:web:e7974653ed4c85919c6e63"};
+    firebase.initializeApp(fbConfig);var db=firebase.database();
+
+    // ==================== GLOBAL STATE ====================
+    var DB={syllabus:{},essay:{},quiz:{}};  // ✅ FIX 3: Added essay data store
+    var settings={loginEnabled:true,users:{},copyEnabled:false},activeSessions={};
+    var myPhone=localStorage.getItem('cs_ph')||"",myToken=localStorage.getItem('cs_tk')||"";
+    var userAccess={modes:['ALL'],subjects:['ALL']};
+    var sub='History',subCategory='ALL',studyType='syllabus';
+    var currentGroup='ALL',currentStage='ALL';  // ✅ FIX 4: Group & Stage filters
+    var qActive=[],qIdx=0,qTimer=null,qSec=0,qAns=[],qSourceInfo=[];
+
+    // ==================== ✅ FIX 5: APPSC SUBJECT DEFINITIONS ====================
+    var SUBJECTS=[
+      {id:'History',name:'History',grad:'linear-gradient(135deg,#db2777,#be185d)',hasSubCats:true,
+       subCats:[
+         {id:'AncientHistory', name:'🏛️ Ancient History'},
+         {id:'MedievalHistory', name:'🏰 Medieval History'},
+         {id:'ModernHistory', name:'📜 Modern History'},
+         {id:'APHistory', name:'🗺️ A.P. History'},
+         {id:'ArtCulture', name:'🎨 Art & Culture'},
+         {id:'FreedomStruggle', name:'🇮🇳 Freedom Struggle'},
+         {id:'Bifurcation', name:'📋 A.P. Bifurcation'}
+       ]},
+      {id:'India Polity',name:'India Polity',grad:'linear-gradient(135deg,#2563eb,#1d4ed8)',hasSubCats:true,
+       subCats:[
+         {id:'Constitution', name:'📜 Constitution'},
+         {id:'FundamentalRights', name:'⚖️ Fundamental Rights'},
+         {id:'DPSP', name:'📋 DPSP'},
+         {id:'Parliament', name:'🏛️ Parliament'},
+         {id:'StateGovt', name:'🏢 State Government'},
+         {id:'Judiciary', name:'⚖️ Judiciary'},
+         {id:'LocalGovt', name:'🏘️ Local Government'},
+         {id:'ConstitutionalBodies', name:'📊 Constitutional Bodies'},
+         {id:'Ethics', name:'💎 Ethics & Integrity'}
+       ]},
+      {id:'Economy',name:'Economy',grad:'linear-gradient(135deg,#7c3aed,#5b21b6)',hasSubCats:true,
+       subCats:[
+         {id:'IndianEconomy', name:'💰 Indian Economy'},
+         {id:'APEconomy', name:'📊 A.P. Economy'},
+         {id:'Agriculture', name:'🌾 Agriculture'},
+         {id:'Industry', name:'🏭 Industry'},
+         {id:'Budget', name:'📋 Budget & Planning'},
+         {id:'EconomicReforms', name:'📈 Economic Reforms'},
+         {id:'Poverty', name:'📉 Poverty & Unemployment'},
+         {id:'WelfareSchemes', name:'🤝 Welfare Schemes'}
+       ]},
+      {id:'Geography',name:'Geography',grad:'linear-gradient(135deg,#ea580c,#c2410c)',hasSubCats:true,
+       subCats:[
+         {id:'PhysicalGeography', name:'🌍 Physical Geography'},
+         {id:'IndianGeography', name:'🗺️ Indian Geography'},
+         {id:'APGeography', name:'📍 A.P. Geography'},
+         {id:'Climate', name:'🌤️ Climate & Soils'},
+         {id:'Demographics', name:'👥 Demographics'},
+         {id:'Urbanization', name:'🏙️ Urbanization'}
+       ]},
+      {id:'General Science',name:'General Science',grad:'linear-gradient(135deg,#10b981,#059669)',hasSubCats:true,
+       subCats:[
+         {id:'Physics', name:'⚛️ Physics'},
+         {id:'Chemistry', name:'🧪 Chemistry'},
+         {id:'Biology', name:'🧬 Biology'},
+         {id:'SpaceTech', name:'🚀 Space Technology'},
+         {id:'ICT', name:'💻 ICT'},
+         {id:'Biotechnology', name:'🔬 Biotechnology'}
+       ]},
+      {id:'Ecology & Environment',name:'Ecology & Environment',grad:'linear-gradient(135deg,#22c55e,#16a34a)',hasSubCats:true,
+       subCats:[
+         {id:'Ecology', name:'🌿 Ecology'},
+         {id:'Biodiversity', name:'🐾 Biodiversity'},
+         {id:'ClimateChange', name:'🌡️ Climate Change'},
+         {id:'DisasterManagement', name:'⚠️ Disaster Management'},
+         {id:'Pollution', name:'🏭 Pollution'}
+       ]},
+      {id:'Current Affairs',name:'Current Affairs',grad:'linear-gradient(135deg,#f59e0b,#d97706)',hasSubCats:true,
+       subCats:[
+         {id:'National', name:'🇮🇳 National'},
+         {id:'International', name:'🌐 International'},
+         {id:'APState', name:'📍 A.P. State'},
+         {id:'Sports', name:'🏅 Sports'},
+         {id:'Awards', name:'🏆 Awards'}
+       ]},
+      {id:'Mental Ability',name:'Mental Ability',grad:'linear-gradient(135deg,#ef4444,#dc2626)',hasSubCats:true,
+       subCats:[
+         {id:'Reasoning', name:'🧠 Reasoning'},
+         {id:'DataInterpretation', name:'📊 Data Interpretation'},
+         {id:'NumericalAbility', name:'🔢 Numerical Ability'},
+         {id:'LogicalReasoning', name:'🔍 Logical Reasoning'},
+         {id:'ProblemSolving', name:'🧩 Problem Solving'}
+       ]}
+    ];
+
+    // ==================== ✅ FIX 6: APPSC NEWS TICKER ====================
+    var newsWithLinks=[
+      {text:'📘 History - Group 1 & 2 Syllabus',action:function(){selectSubject('History');}},
+      {text:'🏛️ India Polity - Constitution Study',action:function(){selectSubject('India Polity');}},
+      {text:'💰 Economy - Indian & A.P. Economy',action:function(){selectSubject('Economy');}},
+      {text:'🗺️ Geography - India & A.P. Focus',action:function(){selectSubject('Geography');}},
+      {text:'🔬 General Science - Day-to-Day Science',action:function(){selectSubject('General Science');}},
+      {text:'🌿 Environment & Ecology',action:function(){selectSubject('Ecology & Environment');}},
+      {text:'📰 Current Affairs - National & A.P.',action:function(){selectSubject('Current Affairs');}},
+      {text:'🧠 Mental Ability & Reasoning',action:function(){selectSubject('Mental Ability');}},
+      {text:'✍️ Essay Writing - Group 1 Mains',action:function(){selectSubject('History');studyType='essay';refreshUI();}},
+      {text:'🏆 Grand Test - Create Custom APPSC Paper!',action:function(){openGrandTestConfig();}},
+      {text:'🤖 AI Tutor - Ask APPSC Questions!',action:function(){toggleAIChat();}}
+    ];
+    function buildNewsTicker(){var t=document.getElementById('newsTicker');if(!t)return;var s=newsWithLinks.slice().sort(function(){return 0.5-Math.random();}),h='';s.forEach(function(i,idx){h+='<a class="news-link" onclick="event.stopPropagation();handleNewsClick('+idx+')">'+i.text+'</a>';if(idx<s.length-1)h+='<span class="news-separator">|</span>';});t.innerHTML=h+h;}
+    function handleNewsClick(i){var n=newsWithLinks[i%newsWithLinks.length];if(n&&n.action)n.action();}
+    buildNewsTicker();setInterval(buildNewsTicker,300000);
+
+    // ==================== GOOGLE TRANSLATE ====================
+    window.googleTranslateElementInit=function(){new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'te,hi,ta,ml,kn,en',layout:google.translate.TranslateElement.InlineLayout.HORIZONTAL},'google_translate_element');};
+    function changeLanguage(l){var s=document.getElementById('lang-select');s.style.animation='none';s.offsetHeight;s.style.animation='redBlink 0.3s ease-in-out 5';var g=document.querySelector('.goog-te-combo');if(g){g.value=l;g.dispatchEvent(new Event('change',{bubbles:true}));}}
+
+    // ==================== AI CHAT ====================
+    function toggleAIChat(){var c=document.getElementById('ai-shell');c.style.display=(c.style.display==='block')?'none':'block';}
+    function sendChat(){var i=document.getElementById('chat-inp'),m=i.value.trim(),b=document.getElementById('chat-send-btn');if(!m)return;appendChat(m,'user');i.value='';if(b)b.disabled=true;var tid='t_'+Date.now();appendChat('🤔 Thinking...','bot',tid);setTimeout(function(){var found=getArr(DB.syllabus).find(function(t){return t.content&&t.content.toLowerCase().indexOf(m.toLowerCase())!==-1;});appendChat(found?'<strong>[Syllabus]</strong> '+(found.content||'').replace(/<[^>]*>/g,'').substring(0,300)+'...':'❌ Try asking about APPSC History, Polity, Economy, Geography, or Science.','bot');var n=document.getElementById(tid);if(n)n.remove();if(b)b.disabled=false;},500);}
+    function appendChat(t,s,i){var b=document.getElementById('chat-msgs');b.innerHTML+='<div class="chat-msg '+s+'" '+(i?'id="'+i+'"':'')+'><div class="msg-bub">'+t+'</div></div>';b.scrollTop=b.scrollHeight;}
+
+    // ==================== AUTH ====================
+    function checkAuth(){var o=document.getElementById('login-overlay');if(!settings.loginEnabled){o.style.display='none';applyPerms(true);}else if(myPhone&&myToken&&activeSessions[myPhone]===myToken){o.style.display='none';applyPerms(false);}else o.style.display='flex';}
+    function attemptLogin(){var p=document.getElementById('login-phone').value.trim(),pa=document.getElementById('login-pass').value.trim(),e=document.getElementById('login-error');if(!p||!pa){e.innerText='Enter ID and Password';e.style.display='block';return;}if(settings.users&&settings.users[p]&&settings.users[p].pass===pa){e.style.display='none';var t="sess_"+Date.now();myPhone=p;myToken=t;localStorage.setItem('cs_ph',p);localStorage.setItem('cs_tk',t);activeSessions[p]=t;db.ref('activeSessions').set(activeSessions);document.getElementById('login-overlay').style.display='none';applyPerms(false);}else{e.innerText='Invalid credentials';e.style.display='block';}}
+    function logout(){localStorage.removeItem('cs_ph');localStorage.removeItem('cs_tk');location.reload();}
+    function applyPerms(b){userAccess=b||!settings.loginEnabled?{modes:['ALL'],subjects:['ALL']}:(settings.users&&settings.users[localStorage.getItem('cs_ph')])?settings.users[localStorage.getItem('cs_ph')]:{modes:[],subjects:[]};refreshUI();}
+
+    // ==================== ✅ FIX 7: GROUP & STAGE FILTER FUNCTIONS ====================
+    function updateGroupFilter(val){
+      currentGroup=val;
+      document.getElementById('filterGroup').value=val;
+      refreshUI();
+    }
+    function updateStageFilter(val){
+      currentStage=val;
+      document.getElementById('filterStage').value=val;
+      refreshUI();
+    }
+
+    // ==================== UTILITY ====================
+    function getArr(obj){if(!obj)return[];var r=[];Object.keys(obj).forEach(function(k){r.push(obj[k]);});r.sort(function(a,b){return(a.order||999999)-(b.order||999999);});return r;}
+    function filterBySubject(data,subj){var r={};Object.keys(data).forEach(function(k){if(data[k]&&String(data[k].subject)===String(subj))r[k]=data[k];});return r;}
+    // ✅ FIX 8: Filter by Group and Stage
+    function filterByGroupStage(data,group,stage){
+      var r={};
+      Object.keys(data).forEach(function(k){
+        var item=data[k];
+        if(!item)return;
+        var matchGroup=(group==='ALL'||item.group===group);
+        var matchStage=(stage==='ALL'||item.stage===stage);
+        if(matchGroup&&matchStage)r[k]=item;
+      });
+      return r;
+    }
+    function getImgs(urls){if(!urls||!Array.isArray(urls)||!urls.length)return'';var h='';urls.forEach(function(u){if(u)h+='<img src="'+u+'" class="img-th" onclick="openModal(\''+encodeURIComponent(u)+'\')">';});return h;}
+    window.tog=function(id){var el=document.getElementById(id);if(el)el.classList.toggle('show');};
+    function shuffleArray(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=a[i];a[i]=a[j];a[j]=tmp;}return a;}
+    function openModal(d){var m=document.getElementById('img-modal');document.getElementById('modal-img').src=decodeURIComponent(d);m.classList.add('show');}
+    function closeModal(){document.getElementById('img-modal').classList.remove('show');}
+    function toast(msg,type){type=type||'info';var t=document.createElement('div');t.className='toast '+type;t.innerText=msg;document.body.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(function(){t.remove();},300);},3000);}
+
+    // ==================== NAVIGATION ====================
+    function selectSubject(s){sub=s;subCategory='ALL';studyType='syllabus';refreshUI();}
+    function selectSubCategory(c){subCategory=c;refreshUI();}
+    function setStudyType(t){studyType=t;refreshUI();}
+    function getCurrentSubCategories(){var so=SUBJECTS.find(function(s){return s.id===sub;});return so&&so.subCats?so.subCats:[];}
+
+    // ==================== ✅ FIX 9: SUBJECT MAPPING for APPSC Quiz Keys ====================
+    function mapKeyToSubject(keySubject){
+      var k=keySubject.toLowerCase().replace(/[^a-z]/g,'');
+      // Group 1 & 2 Subjects mapping
+      if(k==='history'||k==='historyculture'||k==='culture'||k==='ancienthistory'||k==='medievalhistory'||k==='modernhistory'||k==='aphistory'||k==='freedomstruggle'||k==='bifurcation')return'History';
+      if(k==='polity'||k==='governance'||k==='constitution'||k==='indianpolity'||k==='fundamentalrights'||k==='dpsp'||k==='parliament'||k==='stategovt'||k==='judiciary'||k==='localgovt'||k==='ethics')return'India Polity';
+      if(k==='economy'||k==='economics'||k==='indianeconomy'||k==='apeconomy'||k==='agriculture'||k==='industry'||k==='budget'||k==='economicreforms'||k==='poverty'||k==='welfareschemes'||k==='planning')return'Economy';
+      if(k==='geography'||k==='physicalgeography'||k==='indiangeography'||k==='apgeography'||k==='climate'||k==='demographics'||k==='urbanization')return'Geography';
+      if(k==='science'||k==='generalscience'||k==='physics'||k==='chemistry'||k==='biology'||k==='spacetech'||k==='ict'||k==='biotechnology'||k==='computer')return'General Science';
+      if(k==='ecology'||k==='environment'||k==='biodiversity'||k==='climatechange'||k==='disastermanagement'||k==='disaster'||k==='pollution')return'Ecology & Environment';
+      if(k==='currentaffairs'||k==='current'||k==='national'||k==='international'||k==='apstate'||k==='sports'||k==='awards')return'Current Affairs';
+      if(k==='reasoning'||k==='mentalability'||k==='datainterpretation'||k==='numerical'||k==='logical'||k==='problemsolving'||k==='mental')return'Mental Ability';
+      return null;
+    }
+
+    // ==================== GRAND TEST CONFIG ====================
+    function openGrandTestConfig(){
+      studyType='grandtest';
+      var sr=document.getElementById('sub-row'),scr=document.getElementById('sub-cat-row'),str=document.getElementById('study-tabs-row'),ca=document.getElementById('content-area');
+      sr.innerHTML=SUBJECTS.map(function(s){return'<button class="btn-sub" style="background:'+s.grad+';opacity:.5;cursor:default">'+s.name+'</button>';}).join('');
+      scr.style.display='none';
+      str.innerHTML='<button class="study-tab-btn" onclick="setStudyType(\'syllabus\')">📖 Syllabus</button><button class="study-tab-btn" onclick="setStudyType(\'essay\')">✍️ Essay</button><button class="study-tab-btn" onclick="setStudyType(\'quiz\')">📝 Quiz</button><button class="study-tab-btn grand-test active">🏆 Grand Test</button>';
+      buildGrandTestConfigUI(ca);
+    }
+    function buildGrandTestConfigUI(ca){
+      var quizData=DB.quiz,allTopics={};
+      Object.keys(quizData).forEach(function(key){if(!quizData[key]||!Array.isArray(quizData[key])||quizData[key].length===0)return;var ks=key.split('_')[0]||'',kt=key.split('_').slice(1).join('_')||key,dt=kt.replace(/_/g,' '),ms=mapKeyToSubject(ks);if(!ms)return;if(!allTopics[ms])allTopics[ms]={};if(!allTopics[ms][key])allTopics[ms][key]={name:dt,count:quizData[key].length,subject:ms};});
+      var h='<div class="banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);"><h1>🏆 Grand Test Configuration</h1><p>Customize Your APPSC Exam</p></div>';
+      h+='<div style="padding:10px 15px;color:var(--mut);font-size:.85rem;">📋 <b>Steps:</b> 1️⃣ Check Subject → 2️⃣ Select Topics → 3️⃣ Enter Marks → 4️⃣ Click Start</div>';
+      h+='<div class="gt-warning" id="gtWarning">⚠️ Select at least one subject, check its topics, and enter marks > 0 to enable the Start button.</div><div id="gtConfigForm">';
+      var so=['History','India Polity','Economy','Geography','General Science','Ecology & Environment','Current Affairs','Mental Ability'];
+      so.forEach(function(sn){if(!allTopics[sn])return;var tps=allTopics[sn],tks=Object.keys(tps).sort(),stq=0;tks.forEach(function(tk){stq+=tps[tk].count;});var go=SUBJECTS.find(function(s){return s.id===sn;}),gd=go?go.grad:'linear-gradient(135deg,#666,#444)',si=sn.replace(/[^a-z0-9]/gi,'_');
+        h+='<div class="gt-subject-section"><div class="gt-subject-header" onclick="toggleGTSection(\''+si+'\')"><div class="gt-subject-header-left"><input type="checkbox" class="gt-subj-check" data-subject="'+sn+'" onchange="gtOnSubjectToggle(\''+sn+'\')" style="accent-color:#f59e0b;width:18px;height:18px;"><span style="color:#fff;">'+sn+'</span><small style="color:var(--mut);">('+stq+' Qs available)</small></div><div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation();"><span style="font-size:.8rem;color:var(--mut);">Marks:</span><input type="number" class="gt-marks-input gt-subj-marks" data-subject="'+sn+'" value="0" min="0" max="'+stq+'" onchange="gtOnMarksChange(\''+sn+'\')" oninput="gtOnMarksInput(\''+sn+'\')" style="width:80px;" placeholder="0"><span style="font-size:.7rem;color:var(--mut);">/ '+stq+'</span></div><span style="cursor:pointer;font-size:.8rem;">▼</span></div><div style="padding:5px 0;" onclick="event.stopPropagation();"><button class="gt-select-all-btn" onclick="gtSelectAllTopics(\''+sn+'\')">✅ Select All</button> <button class="gt-select-all-btn" onclick="gtDeselectAllTopics(\''+sn+'\')">☐ Deselect All</button></div><div class="gt-topic-grid" id="gt_topics_'+si+'">';
+        tks.forEach(function(tk){var t=tps[tk];h+='<label class="gt-checkbox" onclick="event.stopPropagation();"><input type="checkbox" class="gt-topic-check" data-subject="'+sn+'" data-key="'+tk+'" data-count="'+t.count+'" onchange="gtOnTopicToggle(\''+sn+'\')">'+t.name+' <small style="color:var(--mut);margin-left:auto;">('+t.count+')</small></label>';});
+        h+='</div><div style="font-size:.75rem;color:var(--mut);margin-top:5px;" id="gt_distribution_'+si+'"></div></div>';
+      });
+      h+='<div class="gt-total-bar"><span>📊 Total Questions: <span id="gtTotalMarks" style="font-size:1.3rem;">0</span></span><button class="btn btn-green" onclick="startGrandTest()" id="gtStartBtn" disabled>🚀 Start Grand Test</button></div></div>';
+      ca.innerHTML=h;setTimeout(function(){updateGTTotal();},100);
+    }
+    function toggleGTSection(id){var el=document.getElementById('gt_topics_'+id);if(el)el.style.display=el.style.display==='none'?'grid':'none';}
+    function gtOnSubjectToggle(sn){var ic=document.querySelector('.gt-subj-check[data-subject="'+sn+'"]').checked;document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]').forEach(function(cb){cb.disabled=!ic;if(!ic)cb.checked=false;});if(!ic)document.querySelector('.gt-subj-marks[data-subject="'+sn+'"]').value=0;gtOnTopicToggle(sn);updateGTTotal();}
+    function gtOnTopicToggle(sn){var ta=0;document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]:checked').forEach(function(cb){ta+=parseInt(cb.dataset.count)||0;});var me=document.querySelector('.gt-subj-marks[data-subject="'+sn+'"]');if(me){me.max=ta;var cv=parseInt(me.value)||0;if(cv>ta&&ta>0)me.value=ta;if(ta===0)me.value=0;}updateGTTotal();updateGTDistribution(sn);}
+    function gtOnMarksInput(sn){updateGTTotal();updateGTDistribution(sn);}
+    function gtOnMarksChange(sn){var me=document.querySelector('.gt-subj-marks[data-subject="'+sn+'"]'),mv=parseInt(me.max)||0,cv=parseInt(me.value)||0;if(cv<0)me.value=0;if(mv>0&&cv>mv)me.value=mv;updateGTTotal();updateGTDistribution(sn);}
+    function gtSelectAllTopics(sn){if(!document.querySelector('.gt-subj-check[data-subject="'+sn+'"]').checked){document.querySelector('.gt-subj-check[data-subject="'+sn+'"]').checked=true;}document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]').forEach(function(cb){cb.disabled=false;cb.checked=true;});gtOnTopicToggle(sn);}
+    function gtDeselectAllTopics(sn){document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]').forEach(function(cb){cb.checked=false;});gtOnTopicToggle(sn);}
+    function updateGTDistribution(sn){var me=document.querySelector('.gt-subj-marks[data-subject="'+sn+'"]'),m=parseInt(me?me.value:0)||0,st=document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]:checked'),tc=st.length,si=sn.replace(/[^a-z0-9]/gi,'_'),de=document.getElementById('gt_distribution_'+si);if(!de)return;if(tc>0&&m>0){var pt=Math.floor(m/tc),r=m%tc,dt='📊 Equal Distribution: ~'+pt+' Qs per topic';if(r>0)dt+=' ('+r+' topic(s) get 1 extra Q)';de.innerHTML=dt;de.style.color='#22c55e';}else if(tc>0&&m===0){de.innerHTML='⚠️ Enter marks (greater than 0) to see distribution';de.style.color='#f59e0b';}else if(m>0&&tc===0){de.innerHTML='⚠️ Select at least one topic above';de.style.color='#ef4444';}else{de.innerHTML='';}}
+    function updateGTTotal(){var t=0,hv=false;document.querySelectorAll('.gt-subj-check:checked').forEach(function(cb){var sn=cb.dataset.subject,me=document.querySelector('.gt-subj-marks[data-subject="'+sn+'"]'),m=parseInt(me?me.value:0)||0,st=document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]:checked').length;if(m>0&&st>0){hv=true;t+=m;}});var te=document.getElementById('gtTotalMarks'),sb=document.getElementById('gtStartBtn'),we=document.getElementById('gtWarning');if(te)te.innerText=t;if(sb)sb.disabled=!(t>0&&hv);if(we){var ac=document.querySelectorAll('.gt-subj-check:checked').length>0;we.style.display=(ac&&!hv)?'block':'none';}}
+    function startGrandTest(){
+      var qd=DB.quiz,asq=[];
+      document.querySelectorAll('.gt-subj-check:checked').forEach(function(cb){var sn=cb.dataset.subject,tm=parseInt(document.querySelector('.gt-subj-marks[data-subject="'+sn+'"]').value)||0;if(tm===0)return;var sbt={},stk=[];document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]:checked').forEach(function(tcb){var k=tcb.dataset.key;stk.push(k);if(qd[k]&&Array.isArray(qd[k])){sbt[k]=[];qd[k].forEach(function(q){sbt[k].push({question:q,source:k,subject:sn,topic:k.split('_').slice(1).join('_').replace(/_/g,' ')||k});});}});if(stk.length===0)return;var tc=stk.length,bpt=Math.floor(tm/tc),ext=tm%tc,dist=[];for(var i=0;i<tc;i++){dist.push({key:stk[i],count:bpt+(i<ext?1:0)});}dist=shuffleArray(dist);dist.forEach(function(d){var tq=sbt[d.key]||[];if(tq.length===0)return;var sf=shuffleArray(tq),tp=Math.min(d.count,sf.length);for(var j=0;j<tp;j++){asq.push(sf[j]);}});});
+      if(asq.length===0){alert('⚠️ No questions could be selected! Please select topics and enter marks > 0.');return;}
+      asq=shuffleArray(asq);qActive=asq.map(function(i){return i.question;});qSourceInfo=asq.map(function(i){return{source:i.source,subject:i.subject,topic:i.topic};});qAns=new Array(qActive.length).fill(null);qIdx=0;qSec=0;
+      document.getElementById('shell').style.display='none';document.getElementById('ai-shell').style.display='none';
+      var p=document.getElementById('quiz-player');p.style.display='block';p.dataset.theme='linear-gradient(135deg,#f59e0b,#ef4444)';
+      stopQT();qTimer=setInterval(function(){qSec++;var el=document.getElementById('qt');if(el)el.innerText='⏱️ Timer: '+String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');},1000);renderQ();
+    }
+
+    // ==================== QUIZ ENGINE ====================
+    function renderQ(){var q=qActive[qIdx],pa=qAns[qIdx],c=document.getElementById('quiz-player').dataset.theme||'',m=String(Math.floor(qSec/60)).padStart(2,'0'),s=String(qSec%60).padStart(2,'0'),si=qSourceInfo[qIdx];function oc(o){if(!pa)return'';if(pa.sel===o)return pa.ok?'correct':'wrong';if(q.correctAnswer===o&&!pa.ok)return'reveal';return'';}var fb='';if(pa){fb='<div class="feedback show '+(pa.ok?'correct':'wrong')+'">'+(pa.ok?'✅ <b>Correct!</b>':'❌ <b>Incorrect!</b>')+'<br>✅ Correct Answer: <b>'+q.correctAnswer+') '+(q.options?q.options[q.correctAnswer]||'':'')+'</b>';if(q.explanation)fb+='<br><small>💡 '+(q.explanation||'')+'</small>';fb+='</div>';}var html='<div class="q-panel"><div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:8px;"><span class="btn" style="background:'+c+'">🏆 Q '+(qIdx+1)+'/'+qActive.length+'</span><span class="btn btn-dark" id="qt">⏱️ Timer: '+m+':'+s+'</span></div>';if(si)html+='<div style="font-size:.75rem;color:var(--mut);margin-bottom:8px;">📘 <b>'+si.subject+'</b> | 📝 '+si.topic+'</div>';html+='<div style="font-size:1.2rem;font-weight:800;margin-bottom:20px;line-height:1.5;">'+(q.question||'No Question')+'</div>';if(q.options){['A','B','C','D'].forEach(function(o){if(q.options[o]){html+='<button class="opt-btn '+oc(o)+'" onclick="answerQ(\''+o+'\')" '+(pa?'disabled':'')+'><b>'+o+')</b> '+q.options[o]+'</button>';}});}html+=fb+'<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:15px;"><button class="btn btn-dark" onclick="prevQ()" '+(qIdx===0?'disabled':'')+'>◀ Prev</button><button class="btn btn-green" onclick="nextQ()" '+(!pa?'disabled':'')+'>'+(qIdx===qActive.length-1?'🏁 Finish':'Next ▶')+'</button><button class="btn btn-red" onclick="confirmCloseQ()">✕ Exit</button></div></div>';document.getElementById('quiz-player').innerHTML=html;}
+    function answerQ(s){qAns[qIdx]={sel:s,ok:s===qActive[qIdx].correctAnswer};renderQ();}
+    function prevQ(){if(qIdx>0){qIdx--;renderQ();}}
+    function nextQ(){if(qIdx<qActive.length-1){qIdx++;renderQ();}else{finishGrandTest();}}
+    function stopQT(){if(qTimer){clearInterval(qTimer);qTimer=null;}}
+    function confirmCloseQ(){if(confirm('⚠️ Exit Grand Test? Your progress will be lost.'))closeQ();}
+    function closeQ(){stopQT();document.getElementById('quiz-player').style.display='none';document.getElementById('shell').style.display='block';refreshUI();}
+
+    // ==================== FINISH GRAND TEST ====================
+    function finishGrandTest(){stopQT();var total=qActive.length,ok=0,wrong=0,skipped=0;var subjectAnalysis={},topicAnalysis={};for(var i=0;i<qAns.length;i++){var si=qSourceInfo[i],subj=si?si.subject:'Unknown',topic=si?si.topic:'Unknown';if(!subjectAnalysis[subj])subjectAnalysis[subj]={total:0,correct:0,wrong:0,skipped:0,marks:0,correctMarks:0};if(!topicAnalysis[topic])topicAnalysis[topic]={total:0,correct:0,wrong:0,skipped:0,subject:subj};subjectAnalysis[subj].total++;subjectAnalysis[subj].marks++;topicAnalysis[topic].total++;if(!qAns[i]){skipped++;subjectAnalysis[subj].skipped++;topicAnalysis[topic].skipped++;}else if(qAns[i].ok){ok++;subjectAnalysis[subj].correct++;subjectAnalysis[subj].correctMarks++;topicAnalysis[topic].correct++;}else{wrong++;subjectAnalysis[subj].wrong++;topicAnalysis[topic].wrong++;}}var percent=total>0?Math.round((ok/total)*100):0;var grade,gradeColor;if(percent>=90){grade='🏆 Excellent!';gradeColor='#22c55e';}else if(percent>=75){grade='🌟 Very Good!';gradeColor='#3b82f6';}else if(percent>=60){grade='👍 Good';gradeColor='#f59e0b';}else if(percent>=40){grade='📚 Need Practice';gradeColor='#f97316';}else{grade='💪 Keep Trying!';gradeColor='#ef4444';}var timeStr=String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');var c='linear-gradient(135deg,#f59e0b,#ef4444)';var html='<div class="results-container"><div class="results-header"><div class="results-score" style="background:'+c+';-webkit-background-clip:text;-webkit-text-fill-color:transparent;">'+percent+'%</div><p style="font-size:1.5rem;font-weight:900;color:'+gradeColor+';margin:10px 0;">'+grade+'</p><div class="results-summary"><div class="results-summary-item"><div class="val" style="color:#22c55e;">'+ok+'</div><div class="lbl">✅ Correct</div></div><div class="results-summary-item"><div class="val" style="color:#ef4444;">'+wrong+'</div><div class="lbl">❌ Wrong</div></div><div class="results-summary-item"><div class="val" style="color:#94a3b8;">'+skipped+'</div><div class="lbl">⚠️ Skipped</div></div><div class="results-summary-item"><div class="val" style="color:#60a5fa;">'+total+'</div><div class="lbl">📝 Total</div></div><div class="results-summary-item"><div class="val" style="color:#f59e0b;">'+timeStr+'</div><div class="lbl">⏱️ Time</div></div></div></div>';
+    html+='<h3 style="margin:20px 0 10px;color:#f59e0b;">📊 Subject-wise Performance Analysis</h3>';Object.keys(subjectAnalysis).sort().forEach(function(sn){var sa=subjectAnalysis[sn],sp=sa.total>0?Math.round((sa.correct/sa.total)*100):0,bc=sp>=70?'#22c55e':(sp>=40?'#f59e0b':'#ef4444');html+='<div class="analysis-card"><h4>📘 '+sn+' <span style="float:right;font-size:.9rem;">'+sa.correct+'/'+sa.total+' ('+sp+'%)</span></h4><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+sp+'%;background:'+bc+';"></div></div><small style="color:var(--mut);">✅ '+sa.correct+' Correct | ❌ '+sa.wrong+' Wrong | ⚠️ '+sa.skipped+' Skipped | 📝 '+sa.marks+' Marks</small>'+(sp<50?'<br><small style="color:#f97316;">⚠️ Focus Area: Spend more time on '+sn+'</small>':'')+(sp>=80?'<br><small style="color:#22c55e;">✅ Strength Area: Good command on '+sn+'</small>':'')+'</div>';});
+    html+='<h3 style="margin:20px 0 10px;color:#f59e0b;">📝 Topic-wise Detailed Analysis</h3>';var tks=Object.keys(topicAnalysis).sort(function(a,b){var pa=topicAnalysis[a].total>0?topicAnalysis[a].correct/topicAnalysis[a].total:0;var pb=topicAnalysis[b].total>0?topicAnalysis[b].correct/topicAnalysis[b].total:0;return pa-pb;});var wt=[],st=[];tks.forEach(function(tn){var ta=topicAnalysis[tn],tp=ta.total>0?Math.round((ta.correct/ta.total)*100):0,bc=tp>=70?'#22c55e':(tp>=40?'#f59e0b':'#ef4444');html+='<div class="analysis-card"><h4>📝 '+tn+' <small style="color:var(--mut);">('+ta.subject+')</small> <span style="float:right;font-size:.9rem;">'+ta.correct+'/'+ta.total+' ('+tp+'%)</span></h4><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+tp+'%;background:'+bc+';"></div></div><small style="color:var(--mut);">✅ '+ta.correct+' | ❌ '+ta.wrong+' | ⚠️ '+ta.skipped+'</small>';if(tp<40)wt.push({name:tn,subject:ta.subject,percent:tp});if(tp>=80)st.push({name:tn,subject:ta.subject,percent:tp});html+='</div>';});if(wt.length>0){html+='<div class="analysis-card" style="border-color:#ef4444;background:rgba(239,68,68,.05);"><h4 style="color:#ef4444;">⚠️ Topics Needing Immediate Attention:</h4><ul style="padding-left:20px;line-height:1.8;">';wt.forEach(function(t){html+='<li><b>'+t.name+'</b> ('+t.subject+') - Score: '+t.percent+'%</li>';});html+='</ul></div>';}if(st.length>0){html+='<div class="analysis-card" style="border-color:#22c55e;background:rgba(34,197,94,.05);"><h4 style="color:#22c55e;">✅ Strong Areas - Keep It Up:</h4><ul style="padding-left:20px;line-height:1.8;">';st.forEach(function(t){html+='<li><b>'+t.name+'</b> ('+t.subject+') - Score: '+t.percent+'%</li>';});html+='</ul></div>';}
+    html+='<h3 style="margin:20px 0 10px;color:#f59e0b;">📋 Detailed Question Review</h3>';for(var j=0;j<qActive.length;j++){var qq=qActive[j],ans=qAns[j],si=qSourceInfo[j],isC=ans&&ans.ok,isW=ans&&!ans.ok,isS=!ans;var qnoClass=isC?'correct-q':(isW?'wrong-q':'skipped-q');var statusClass=isC?'correct':(isW?'wrong':'skipped');var statusText=isC?'✓ Correct':(isW?'✗ Wrong':'⚠ Skipped');html+='<div class="result-item"><span class="result-qno '+qnoClass+'">'+(j+1)+'</span><span class="result-status '+statusClass+'">'+statusText+'</span>';if(si)html+='<div class="result-source">📘 '+si.subject+' → 📝 '+si.topic+'</div>';html+='<div class="result-question">'+qq.question+'</div><div class="result-option correct-answer">✅ <b>Correct Answer:</b> '+qq.correctAnswer+') '+(qq.options?qq.options[qq.correctAnswer]||'':'')+'</div>';if(isW)html+='<div class="result-option user-wrong">❌ <b>Your Answer:</b> '+ans.sel+') '+(qq.options?qq.options[ans.sel]||'':'')+'</div>';if(isC)html+='<div class="result-option user-correct">✅ <b>Your Answer:</b> '+ans.sel+') '+(qq.options?qq.options[ans.sel]||'':'')+'</div>';if(qq.explanation)html+='<div class="result-explanation">💡 <b>Explanation:</b> '+(qq.explanation||'')+'</div>';html+='</div>';}html+='<div style="text-align:center;margin-top:30px;padding:20px;"><button class="btn btn-blue" onclick="closeQ()">📚 Back to Topics</button></div></div>';document.getElementById('quiz-player').innerHTML=html;}
+
+    // ==================== REGULAR QUIZ ====================
+    function launchQ(k,s,e,c){var data=DB.quiz[k];if(!data||!Array.isArray(data)){alert('Quiz not found: '+k);return;}qActive=data.slice(s,e);qIdx=0;qAns=new Array(qActive.length).fill(null);qSourceInfo=qActive.map(function(){return{source:k,subject:sub,topic:k.replace(/_/g,' ')};});document.getElementById('shell').style.display='none';document.getElementById('ai-shell').style.display='none';var p=document.getElementById('quiz-player');p.style.display='block';p.dataset.theme=c;qSec=0;stopQT();qTimer=setInterval(function(){qSec++;var el=document.getElementById('qt');if(el)el.innerText='⏱️ Timer: '+String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');},1000);renderQ();}
+    function finishQ(){stopQT();var total=qActive.length,ok=0,wrong=0,skipped=0;for(var i=0;i<qAns.length;i++){if(!qAns[i])skipped++;else if(qAns[i].ok)ok++;else wrong++;}var percent=total>0?Math.round((ok/total)*100):0,c=document.getElementById('quiz-player').dataset.theme||'';var grade,gradeColor;if(percent>=90){grade='Excellent!';gradeColor='#22c55e';}else if(percent>=75){grade='Very Good!';gradeColor='#3b82f6';}else if(percent>=60){grade='Good';gradeColor='#f59e0b';}else{grade='Keep Trying!';gradeColor='#ef4444';}var timeStr=String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');var html='<div class="results-container"><div class="results-header"><div class="results-score" style="background:'+c+';-webkit-background-clip:text;-webkit-text-fill-color:transparent;">'+percent+'%</div><p style="font-size:1.5rem;color:'+gradeColor+';">'+grade+'</p><div class="results-summary"><div class="results-summary-item"><div class="val" style="color:#22c55e;">'+ok+'</div><div class="lbl">✅ Correct</div></div><div class="results-summary-item"><div class="val" style="color:#ef4444;">'+wrong+'</div><div class="lbl">❌ Wrong</div></div><div class="results-summary-item"><div class="val" style="color:#94a3b8;">'+skipped+'</div><div class="lbl">⚠️ Skipped</div></div><div class="results-summary-item"><div class="val">'+total+'</div><div class="lbl">📝 Total</div></div><div class="results-summary-item"><div class="val">'+timeStr+'</div><div class="lbl">⏱️ Time</div></div></div></div><h3>📋 Review:</h3>';for(var j=0;j<qActive.length;j++){var qq=qActive[j],ans=qAns[j],isC=ans&&ans.ok,isW=ans&&!ans.ok;html+='<div class="result-item"><span class="result-qno '+(isC?'correct-q':(isW?'wrong-q':'skipped-q'))+'">'+(j+1)+'</span><span class="result-status '+(isC?'correct':(isW?'wrong':'skipped'))+'">'+(isC?'✓':(isW?'✗':'⚠'))+'</span><div class="result-question">'+qq.question+'</div><div class="result-option correct-answer">✅ <b>Answer:</b> '+qq.correctAnswer+') '+(qq.options?qq.options[qq.correctAnswer]||'':'')+'</div>';if(isW)html+='<div class="result-option user-wrong">❌ <b>Your:</b> '+ans.sel+') '+(qq.options?qq.options[ans.sel]||'':'')+'</div>';if(qq.explanation)html+='<div class="result-explanation">💡 '+qq.explanation+'</div>';html+='</div>';}html+='<div style="text-align:center;margin-top:20px;"><button class="btn btn-blue" onclick="closeQ()">📚 Back</button> <button class="btn btn-green" onclick="retakeQuiz()">🔄 Retake</button></div></div>';document.getElementById('quiz-player').innerHTML=html;}
+    function retakeQuiz(){qIdx=0;qAns=new Array(qActive.length).fill(null);qSec=0;stopQT();qTimer=setInterval(function(){qSec++;var el=document.getElementById('qt');if(el)el.innerText='⏱️ Timer: '+String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');},1000);renderQ();}
+
+    // ==================== ✅ FIX 10: MAIN UI WITH GROUP/STAGE FILTERS ====================
+    function refreshUI(){
+      if(studyType==='grandtest'){openGrandTestConfig();return;}
+      var sr=document.getElementById('sub-row'),scr=document.getElementById('sub-cat-row'),str=document.getElementById('study-tabs-row'),ca=document.getElementById('content-area');
+      var userSubs=userAccess.subjects||[],as=SUBJECTS.slice();
+      if(userSubs.indexOf('ALL')===-1){as=SUBJECTS.filter(function(s){return userSubs.indexOf(s.id)!==-1;});}
+      if(as.length&&!as.find(function(s){return s.id===sub;}))sub=as[0].id;
+      var so=SUBJECTS.find(function(s){return s.id===sub;});
+      sr.innerHTML=as.map(function(s){return'<button class="btn-sub '+(sub===s.id?'active':'')+'" style="background:'+s.grad+';" onclick="selectSubject(\''+s.id+'\')">'+(sub===s.id?'✔ ':'')+s.name+'</button>';}).join('');
+      if(so&&so.hasSubCats){scr.style.display='flex';var scs=getCurrentSubCategories();scr.innerHTML='<button class="btn-sub-cat '+(subCategory==='ALL'?'active':'')+'" onclick="selectSubCategory(\'ALL\')">📚 All Topics</button>'+scs.map(function(c){return'<button class="btn-sub-cat '+(subCategory===c.id?'active':'')+'" onclick="selectSubCategory(\''+c.id+'\')">'+c.name+'</button>';}).join('');}else{scr.style.display='none';subCategory='ALL';}
+      // ✅ Updated tabs with Essay option for Group 1 Mains
+      str.innerHTML='<button class="study-tab-btn '+(studyType==='syllabus'?'active':'')+'" onclick="setStudyType(\'syllabus\')">📖 Syllabus</button><button class="study-tab-btn '+(studyType==='essay'?'active':'')+'" onclick="setStudyType(\'essay\')">✍️ Essay</button><button class="study-tab-btn '+(studyType==='quiz'?'active':'')+'" onclick="setStudyType(\'quiz\')">📝 Quiz</button><button class="study-tab-btn grand-test" onclick="openGrandTestConfig()">🏆 Grand Test</button>';
+      if(!so||!as.length){ca.innerHTML='<div style="padding:50px;text-align:center;color:#ef4444;">No access</div>';return;}
+      var bt=so.name;if(so.hasSubCats&&subCategory!=='ALL'){var co=getCurrentSubCategories().find(function(c){return c.id===subCategory;});bt=co?co.name:subCategory;}
+      // ✅ Show group/stage info in banner
+      var filterInfo='';
+      if(currentGroup!=='ALL'||currentStage!=='ALL'){
+        filterInfo='<small style="font-size:.75rem;">('+(currentGroup!=='ALL'?currentGroup:'All Groups')+' | '+(currentStage!=='ALL'?currentStage:'All Stages')+')</small>';
+      }
+      var h='<div class="banner" style="background:'+so.grad+';"><h1>'+bt+'</h1><p>'+(studyType==='syllabus'?'📖 Study Material':(studyType==='essay'?'✍️ Essay Writing':'📝 Practice Tests'))+' '+filterInfo+'</p></div>';
+      if(so.hasSubCats&&subCategory!=='ALL')h+='<div class="back-btn-row"><button class="btn btn-dark btn-sm" onclick="selectSubCategory(\'ALL\')">← Back to All Topics</button></div>';
+      ca.innerHTML=h+'<div style="padding:40px;text-align:center;"><span class="spinner"></span></div>';
+      if(studyType==='syllabus')renderSyllabus(so,ca,h);
+      else if(studyType==='essay')renderEssay(so,ca,h);  // ✅ FIX 11: Essay rendering
+      else renderQuizTopics(so,ca,h);
+    }
+
+    // ✅ FIX 12: RENDER SYLLABUS with Group/Stage filtering
+    function renderSyllabus(so,ca,h){
+      // First filter by group and stage
+      var filteredData=filterByGroupStage(DB.syllabus,currentGroup,currentStage);
+      var items;
+      if(so.hasSubCats&&subCategory!=='ALL'){items=getArr(filterBySubject(filteredData,subCategory));}
+      else if(so.hasSubCats){var ai=[];getCurrentSubCategories().forEach(function(c){getArr(filterBySubject(filteredData,c.id)).forEach(function(i){ai.push(i);});});items=ai.concat(getArr(filterBySubject(filteredData,sub)));}
+      else{items=getArr(filterBySubject(filteredData,sub));}
+      if(items.length){items.forEach(function(t,i){var sid='it_'+i;h+='<div class="ch-row" style="background:'+so.grad+';" onclick="tog(\''+sid+'\')"><span>'+(t.title||'Topic')+'</span><span>📖 View [+]</span></div><div id="'+sid+'" class="ch-content">'+(t.content||'No content yet')+getImgs(t.imageUrls)+'</div>';});}
+      else h+='<div style="padding:40px;text-align:center;color:var(--mut);">⏳ No syllabus content found for '+(currentGroup!=='ALL'?currentGroup:'selected filters')+'. Try changing filters.</div>';
+      ca.innerHTML=h;
+    }
+
+    // ✅ FIX 13: RENDER ESSAY with Group/Stage filtering
+    function renderEssay(so,ca,h){
+      var filteredData=filterByGroupStage(DB.essay,currentGroup,currentStage);
+      var items=getArr(filterBySubject(filteredData,sub));
+      if(items.length===0)items=getArr(filteredData); // Show all essays for subject if none match exactly
+      if(items.length){items.forEach(function(t,i){var sid='es_'+i;h+='<div class="ch-row" style="background:'+so.grad+';" onclick="tog(\''+sid+'\')"><span>'+(t.title||'Essay Topic')+'</span><span>✍️ Read [+]</span></div><div id="'+sid+'" class="ch-content">'+(t.content||'No essay content yet')+'</div>';});}
+      else h+='<div style="padding:40px;text-align:center;color:var(--mut);">⏳ No essays found. Switch to Group 1 Mains to see essay topics.</div>';
+      ca.innerHTML=h;
+    }
+
+    // ✅ FIX 14: RENDER QUIZ TOPICS
+    function renderQuizTopics(so,ca,h){
+      var allTopics={};
+      Object.keys(DB.quiz).forEach(function(key){if(!DB.quiz[key]||!Array.isArray(DB.quiz[key])||DB.quiz[key].length===0)return;var ks=key.split('_')[0]||'',ms=mapKeyToSubject(ks);if(!ms)return;var si=false;if(so.hasSubCats){if(subCategory==='ALL'){si=(ms===sub);}else{si=(ks===subCategory||ks===subCategory.replace(/\s+/g,'')||ks===subCategory.replace(/\s+/g,'_'));}}else{si=(ms===sub);}if(si){var dn=key.split('_').slice(1).join('_').replace(/_/g,' ')||key;if(!allTopics[dn])allTopics[dn]=[];allTopics[dn].push({key:key,count:DB.quiz[key].length});}});
+      var tns=Object.keys(allTopics).sort();if(tns.length){tns.forEach(function(tn){var tid='qt_'+tn.replace(/[^a-z0-9]/gi,'_'),tq=0;allTopics[tn].forEach(function(t){tq+=t.count;});h+='<div class="ch-row" style="background:'+so.grad+';" onclick="tog(\''+tid+'\')"><span>'+tn+'</span><span>📝 '+tq+' Qs [+]</span></div><div id="'+tid+'" class="ch-content"><div class="grid">';allTopics[tn].forEach(function(gi){var qs=DB.quiz[gi.key];if(qs&&Array.isArray(qs)&&qs.length){var tc=Math.ceil(qs.length/10);for(var t=1;t<=tc;t++){var st=(t-1)*10,end=Math.min(st+10,qs.length);h+='<div class="q-card" style="background:'+so.grad+';" onclick="launchQ(\''+gi.key+'\','+st+','+end+',\''+so.grad.replace(/'/g,"\\'")+'\')"><h4>Test '+t+'</h4><small>'+(end-st)+' Questions</small></div>';}}});h+='</div></div>';});}else{h+='<div style="padding:40px;text-align:center;color:var(--mut);">⏳ No quizzes found. Admin will upload soon!</div>';}ca.innerHTML=h;}
+
+    // ==================== ✅ FIX 15: DATA LOADING FROM APPSC PATHS ====================
+    function loadAllData(cb){
+      var paths={syllabus:'appscSyllabus',essay:'appscEssay',quiz:'appscQuestionBank'},keys=Object.keys(paths),loaded=0,total=keys.length;
+      keys.forEach(function(k){
+        db.ref(paths[k]).once('value').then(function(snap){
+          DB[k]=snap.val()||{};
+          console.log('✅ Loaded '+k+': '+Object.keys(DB[k]).length+' items');
+          loaded++;if(loaded>=total&&cb)cb();
+        }).catch(function(err){
+          console.error('❌ Error loading '+k+':',err);
+          DB[k]={};loaded++;if(loaded>=total&&cb)cb();
+        });
+      });
+    }
+    function initApp(){
+      db.ref('appSettings').on('value',function(s){
+        settings=s.val()||{loginEnabled:true,users:{},copyEnabled:false};
+        if(settings.copyEnabled){document.body.classList.remove('protected-mode');document.body.classList.add('copy-allowed');}
+        else{document.body.classList.add('protected-mode');document.body.classList.remove('copy-allowed');}
+        checkAuth();
+      });
+      db.ref('activeSessions').on('value',function(s){activeSessions=s.val()||{};checkAuth();});
+      loadAllData(function(){console.log('📊 All APPSC data loaded successfully');refreshUI();});
+    }
+    window.onload=initApp;
+  </script>
+</body>
+</html>
