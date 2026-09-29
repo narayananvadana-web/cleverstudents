@@ -1,263 +1,914 @@
-<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Control Center | Education Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>APPSC Mastery | Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a; --surface: #1e293b; --primary: #3b82f6; --success: #10b981;
-      --danger: #ef4444; --text: #f8fafc; --muted: #94a3b8; --border: #334155;
-      --font: system-ui, -apple-system, sans-serif;
+      --bg: #080c14;
+      --srf: #161b27;
+      --brd: rgba(255, 255, 255, .1);
+      --txt: #e2e8f0;
+      --mut: #94a3b8;
+      --font: 'Nunito', sans-serif;
+      --r-lg: 16px;
+      --r-md: 8px;
+      --r-sm: 4px;
     }
-    html[data-theme="light"] {
-      --bg: #f8fafc; --surface: #ffffff; --primary: #2563eb; --text: #0f172a;
-      --muted: #64748b; --border: #e2e8f0;
+    body.light-mode {
+      --bg: #f8fafc;
+      --srf: #fff;
+      --txt: #0f172a;
+      --brd: rgba(0, 0, 0, .1);
+      --mut: #64748b;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; }
-    
-    /* Layout */
-    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
-    .card { background: var(--surface); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
-    
-    /* Typography & Elements */
-    h1, h2, h3 { font-weight: 600; margin-bottom: 1rem; }
-    button { background: var(--primary); color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
-    button:hover { opacity: 0.9; }
-    button.danger { background: var(--danger); }
-    input, select, textarea { width: 100%; padding: 0.75rem; margin-bottom: 1rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; }
-    
-    /* Utilities */
-    .hidden { display: none !important; }
-    .flex { display: flex; gap: 1rem; align-items: center; }
-    
-    /* Taxonomy Accordion */
-    .accordion-item { border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.5rem; background: var(--surface); }
-    .accordion-header { padding: 1rem; cursor: pointer; display: flex; justify-content: space-between; user-select: none; font-weight: bold; }
-    .accordion-content { padding: 1rem; border-top: 1px solid var(--border); background: var(--bg); display: none; }
-    .accordion-content.open { display: block; }
-    .draggable { cursor: grab; }
-    .draggable:active { cursor: grabbing; }
-
-    /* Toast & Spinner */
-    #toast { position: fixed; bottom: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 4px; color: #fff; transform: translateY(100px); transition: transform 0.3s; z-index: 9999; }
-    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--text); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+    *, ::before, ::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 100% !important;
+      background: var(--bg) !important;
+      overflow-x: hidden !important;
+    }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background .3s, color .3s;
+    }
+    body.protected-mode, body.protected-mode * { user-select: none !important; -webkit-user-select: none !important; -ms-user-select: none !important; }
+    body.copy-allowed, body.copy-allowed * { user-select: auto !important; -webkit-user-select: auto !important; -ms-user-select: auto !important; }
+    input, textarea, select { user-select: auto !important; -webkit-user-select: auto !important; }
+    #editForm, #editForm *, #groupView, #groupView * { user-select: auto !important; -webkit-user-select: auto !important; }
+    .top-bar { background: var(--srf); border-bottom: 1px solid var(--brd); padding: 0 15px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 20px rgba(0, 0, 0, .5); }
+    body.light-mode .top-bar { box-shadow: 0 4px 20px rgba(0, 0, 0, .05); }
+    .top-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; padding: 12px 0; justify-content: space-between; }
+    .logo { font-family: 'Fredoka One', cursive; font-size: 1.5rem; background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; flex-shrink: 0; }
+    .theme-btn { background: var(--bg); color: var(--txt); border: 1px solid var(--brd); font-weight: 700; font-size: .85rem; cursor: pointer; padding: 6px 12px; border-radius: 50px; font-family: var(--font); }
+    .btn { padding: 10px 20px; border: none; border-radius: 50px; cursor: pointer; font-weight: 800; color: #fff; font-family: var(--font); display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: .2s; }
+    .btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .btn-blue { background: #3b82f6; } .btn-green { background: #10b981; } .btn-red { background: #ef4444; } .btn-dark { background: #334155; } .btn-orange { background: #f59e0b; } .btn-teal { background: #0d9488; } .btn-purple { background: #8b5cf6; } .btn-pink { background: #ec4899; }
+    .btn-sm { padding: 6px 14px; font-size: .8rem; } .btn-xs { padding: 4px 10px; font-size: .7rem; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .main-wrap { max-width: 100% !important; width: 100% !important; padding: 20px 10px 80px !important; margin: 0 auto; }
+    .shell { background: var(--srf); border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--brd); width: 100%; max-width: 1400px; margin: 0 auto; }
+    .banner { padding: 12px 20px !important; display: flex; align-items: center; justify-content: center; gap: 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, .2); flex-wrap: wrap; text-align: center; }
+    .banner h1 { font-size: 1.4rem !important; font-weight: 900 !important; color: #fff !important; }
+    .admin-tabs { display: flex; gap: 6px; padding: 12px 15px; background: rgba(0, 0, 0, .15); border-bottom: 1px solid var(--brd); flex-wrap: wrap; justify-content: center; overflow-x: auto; }
+    .admin-tab-btn { padding: 8px 18px; border-radius: 50px; border: 1px solid var(--brd); background: 0 0; color: var(--mut); font-weight: 700; font-size: .85rem; cursor: pointer; font-family: var(--font); transition: .2s; white-space: nowrap; }
+    .admin-tab-btn:hover { color: var(--txt); border-color: var(--txt); }
+    .admin-tab-btn.active { background: #ef4444; color: #fff; border-color: #ef4444; box-shadow: 0 2px 8px rgba(239, 68, 68, .4); }
+    .admin-content { padding: 20px; background: var(--srf); }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-weight: 700; margin-bottom: 6px; color: var(--txt); font-size: .9rem; }
+    .form-inp { width: 100%; padding: 12px 16px; background: rgba(0, 0, 0, .2); border: 1px solid var(--brd); border-radius: 8px; font-family: var(--font); color: var(--txt); font-size: .95rem; outline: 0; margin-bottom: 10px; }
+    textarea.form-inp { min-height: 80px; resize: vertical; }
+    select.form-inp { appearance: none; cursor: pointer; }
+    .card { background: rgba(255, 255, 255, .03); border: 1px solid var(--brd); border-radius: var(--r-md); padding: 20px; margin-bottom: 16px; }
+    .csv-box { background: rgba(14, 165, 233, .08); border: 2px dashed #0ea5e9; border-radius: var(--r-md); padding: 20px; margin-bottom: 20px; }
+    .csv-box h3 { color: #38bdf8; }
+    .csv-fmt { background: rgba(0, 0, 0, .3); border-radius: 8px; padding: 12px; font-size: .75rem; color: var(--mut); line-height: 1.6; margin: 12px 0; overflow-x: auto; white-space: pre; font-family: monospace; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; padding: 12px; background: rgba(0, 0, 0, .2); border-radius: 8px; border: 1px solid var(--brd); }
+    .toolbar select { min-width: 180px; }
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(0, 0, 0, .2); border: 1px solid var(--brd); border-radius: 8px; margin-bottom: 8px; flex-wrap: wrap; gap: 10px; }
+    .list-item:hover { border-color: #3b82f6; } .list-item.selected { background: rgba(59, 130, 246, .15); border-color: #3b82f6; }
+    .list-item .item-check { width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6; }
+    .list-item .item-info { flex: 1; min-width: 200px; }
+    .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+    .tag-green { background: #15803d; color: #fff; } .tag-red { background: #b91c1c; color: #fff; } .tag-blue { background: #1d4ed8; color: #fff; } .tag-orange { background: #c2410c; color: #fff; } .tag-teal { background: #0d9488; color: #fff; }
+    .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, .3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Login Overlay */
+    .toast { position: fixed; bottom: 20px; right: 20px; padding: 14px 24px; border-radius: 8px; font-weight: 700; z-index: 99999; animation: slideIn .3s ease; color: #fff; max-width: 400px; }
+    .toast.success { background: #15803d; } .toast.error { background: #b91c1c; } .toast.info { background: #1d4ed8; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+    .login-box { background: var(--srf); padding: 40px 30px; border-radius: var(--r-lg); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); width: 90%; max-width: 380px; border: 1px solid var(--brd); text-align: center; }
+    .login-inp { width: 100%; padding: 14px; margin-bottom: 16px; border-radius: 8px; border: 1px solid var(--brd); background: rgba(0, 0, 0, .2); color: var(--txt); font-family: var(--font); font-size: 1rem; outline: 0; }
+    .login-info { background: rgba(59, 130, 246, .15); border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: .85rem; color: var(--txt); text-align: left; line-height: 1.6; }
+    
+    /* Upload Box Styles */
+    .file-upload-area{border:2px dashed #0ea5e9;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(14,165,233,.05);margin-bottom:10px}
+    .file-upload-area:hover{border-color:#38bdf8;background:rgba(14,165,233,.1)}
+    .file-upload-area.drag-over{border-color:#22c55e;background:rgba(34,197,94,.1)}
+    .file-upload-icon{font-size:2rem;margin-bottom:8px}
+    .file-types-info{font-size:.7rem;color:var(--mut);margin-top:5px}
+
+    @media(max-width: 600px) { .list-item { flex-direction: column; align-items: flex-start; } .admin-tabs { gap: 4px; padding: 8px; } .admin-tab-btn { padding: 6px 14px; font-size: .75rem; } .toolbar { flex-direction: column; } }
   </style>
 </head>
-<body>
+<body class="protected-mode">
 
-  <!-- Authentication -->
   <div id="login-overlay">
-    <div class="card" style="width: 100%; max-width: 400px; text-align: center;">
-      <h2>Admin Login</h2>
-      <input type="password" id="admin-token" placeholder="Enter Access Token" onkeydown="if(event.key==='Enter') auth.login()">
-      <button onclick="auth.login()" style="width: 100%">Authenticate</button>
+    <div class="login-box">
+      <div class="logo" style="margin-bottom:20px;">⚙️ APPSC Admin Panel</div>
+      <h2 style="margin-bottom:25px;color:var(--txt);">Admin Login</h2>
+      <div class="login-info"><strong>🔑 Default Login:</strong><br>ID: admin<br>Password: admin123</div>
+      <input type="text" id="login-phone" class="login-inp" placeholder="Admin ID">
+      <input type="password" id="login-pass" class="login-inp" placeholder="Password">
+      <button class="btn btn-orange" style="width:100%;padding:14px;font-size:1.1rem;margin-top:10px;" onclick="window.attemptLogin()">Login</button>
+      <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:700;display:none;"></div>
     </div>
   </div>
 
-  <div class="container hidden" id="app-content">
-    <header class="header">
-      <div class="flex">
-        <h1>Admin Control Center</h1>
-        <div id="google_translate_element"></div>
+  <div class="top-bar">
+    <div class="top-inner">
+      <div class="logo">⚙️ APPSC Admin Panel</div>
+      <div style="display:flex;align-items:center;gap:15px;flex-wrap:wrap;">
+        <span id="admin-info" style="font-weight:700;font-size:.9rem;"></span>
+        <button class="theme-btn" id="theme-toggle" onclick="window.toggleTheme()">Light Mode</button>
+        <button class="btn btn-red btn-sm" onclick="window.logout()">Logout</button>
       </div>
-      <div class="flex">
-        <button onclick="theme.toggle()">Toggle Theme</button>
-        <button onclick="app.toggleProtectedMode()" id="btn-protect">Protected Mode: ON</button>
-        <button class="danger" onclick="auth.logout()">Logout</button>
-      </div>
-    </header>
-
-    <div class="card" id="upload-section">
-      <h2>Smart Bulk Upload (CSV)</h2>
-      <p style="color: var(--muted); margin-bottom: 1rem;">Format: Subject, Sub-Subject, Topic, Sub-Topic, Question, OptA, OptB, OptC, OptD, Correct, Explanation</p>
-      <div class="flex" style="align-items: flex-start;">
-        <div style="flex: 1; border: 2px dashed var(--border); padding: 2rem; text-align: center; border-radius: 4px;" id="drop-zone">
-          <p>Drag & Drop CSV here or</p>
-          <input type="file" id="csv-file" accept=".csv" style="display: none;" onchange="csvParser.handleFile(event)">
-          <button onclick="document.getElementById('csv-file').click()" style="margin-top: 1rem;">Browse File</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Syllabus & Taxonomy Management</h2>
-      <button onclick="taxonomy.render()" style="margin-bottom: 1rem;">Refresh Structure</button>
-      <div id="taxonomy-container"></div>
     </div>
   </div>
 
-  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <div class="main-wrap">
+    <div id="shell" class="shell">
+      <div class="banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);"><h1>⚙️ Admin Control Panel</h1><p>Manage APPSC Syllabus & Quiz Content</p></div>
+      <div class="admin-tabs" id="admin-tabs">
+        <button class="admin-tab-btn active" onclick="window.switchTab('syllabus')">📖 Syllabus</button>
+        <button class="admin-tab-btn" onclick="window.switchTab('essay')">✍️ Essay Writing</button>
+        <button class="admin-tab-btn" onclick="window.switchTab('quiz')">📝 Quiz</button>
+        <button class="admin-tab-btn" onclick="window.switchTab('users')">👥 Users</button>
+        <button class="admin-tab-btn" onclick="window.switchTab('settings')">⚙️ Settings</button>
+      </div>
+      <div class="admin-content" id="admin-content"><div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- Global Drag Preventers to stop browser from opening dropped files -->
   <script>
-    function googleTranslateElementInit() { new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element'); }
-    
-    // Core Utilities
-    const ui = {
-      toast: (msg, type = 'success') => {
-        const el = document.getElementById('toast') || Object.assign(document.createElement('div'), { id: 'toast' });
-        el.textContent = msg;
-        el.style.background = type === 'error' ? 'var(--danger)' : 'var(--success)';
-        document.body.appendChild(el);
-        setTimeout(() => el.style.transform = 'translateY(0)', 10);
-        setTimeout(() => el.style.transform = 'translateY(100px)', 3000);
-      },
-      sanitize: (str) => {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-      }
-    };
+    document.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); }, false);
+    document.addEventListener('drop', function(e) { e.preventDefault(); e.stopPropagation(); }, false);
+  </script>
 
-    const theme = {
-      init: () => document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark'),
-      toggle: () => {
-        const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', current);
-        localStorage.setItem('theme', current);
-      }
-    };
-    theme.init();
-
-    // KV Database Abstraction (Vercel KV / REST equivalent)
-    const db = {
-      url: 'https://your-kv-store-endpoint.example.com', // Replace with real KV endpoint
-      headers: () => ({ 'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`, 'Content-Type': 'application/json' }),
-      fetchDB: async (key) => {
-        try { 
-          // MOCK IMPLEMENTATION FOR DEMO - Replace with actual fetch
-          // const res = await fetch(`${db.url}/get/${key}`, { headers: db.headers() });
-          // return res.ok ? (await res.json()).result : null;
-          return JSON.parse(localStorage.getItem(`kv_${key}`)) || null;
-        } catch(e) { ui.toast('Fetch failed', 'error'); return null; }
-      },
-      saveDB: async (key, value) => {
-        try {
-          // MOCK IMPLEMENTATION FOR DEMO - Replace with actual fetch
-          // const res = await fetch(`${db.url}/set/${key}`, { method: 'POST', headers: db.headers(), body: JSON.stringify(value) });
-          // return res.ok;
-          localStorage.setItem(`kv_${key}`, JSON.stringify(value));
-          return true;
-        } catch(e) { ui.toast('Save failed', 'error'); return false; }
-      }
-    };
-
-    // Authentication
-    const auth = {
-      login: async () => {
-        const token = document.getElementById('admin-token').value;
-        if (!token) return ui.toast('Enter token', 'error');
-        sessionStorage.setItem('admin_token', token);
-        // Verify token via dummy fetch
-        // const isValid = await db.fetchDB('settings');
-        document.getElementById('login-overlay').classList.add('hidden');
-        document.getElementById('app-content').classList.remove('hidden');
-        app.init();
-      },
-      logout: () => { sessionStorage.removeItem('admin_token'); location.reload(); }
-    };
-
-    // Application State
-    const app = {
-      settings: { protectedMode: true },
-      init: async () => {
-        const settings = await db.fetchDB('sys_settings');
-        if (settings) app.settings = settings;
-        app.updateProtectBtn();
-        taxonomy.render();
-      },
-      toggleProtectedMode: async () => {
-        app.settings.protectedMode = !app.settings.protectedMode;
-        await db.saveDB('sys_settings', app.settings);
-        app.updateProtectBtn();
-        ui.toast(`Protected Mode: ${app.settings.protectedMode ? 'ON' : 'OFF'}`);
-      },
-      updateProtectBtn: () => {
-        const btn = document.getElementById('btn-protect');
-        btn.textContent = `Protected Mode: ${app.settings.protectedMode ? 'ON' : 'OFF'}`;
-        btn.style.background = app.settings.protectedMode ? 'var(--success)' : 'var(--danger)';
-      }
-    };
-
-    // Smart CSV Parser
-    const csvParser = {
-      handleFile: (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => csvParser.process(event.target.result);
-        reader.readAsText(file);
-      },
-      process: async (text) => {
-        const rows = text.split('\n').map(r => r.split(',').map(c => c.trim()));
-        let successCount = 0, failCount = 0;
-        let structure = await db.fetchDB('taxonomy') || {};
-
-        for (let i = 1; i < rows.length; i++) { // Skip header
-          if (rows[i].length < 11) { failCount++; continue; }
-          const [sub, subSub, topic, subTopic, q, oA, oB, oC, oD, ans, exp] = rows[i];
-          if (!sub || !q) { failCount++; continue; }
-
-          // Build Taxonomy
-          structure[sub] = structure[sub] || {};
-          structure[sub][subSub] = structure[sub][subSub] || {};
-          structure[sub][subSub][topic] = structure[sub][subSub][topic] || [];
-          if (!structure[sub][subSub][topic].includes(subTopic)) structure[sub][subSub][topic].push(subTopic);
-
-          // Save Question to Granular KV Key
-          const qKey = `q_${sub}_${subSub}_${topic}_${subTopic}`.replace(/\s+/g, '_').toLowerCase();
-          let qBank = await db.fetchDB(qKey) || [];
-          qBank.push({ question: ui.sanitize(q), options: {A:oA, B:oB, C:oC, D:oD}, correct: ans, explanation: ui.sanitize(exp) });
-          await db.saveDB(qKey, qBank);
-          successCount++;
-        }
-        await db.saveDB('taxonomy', structure);
-        ui.toast(`Upload Complete: ${successCount} saved, ${failCount} skipped.`);
-        taxonomy.render();
-      }
-    };
-
-    // Drag-and-Drop Taxonomy Rendering
-    const taxonomy = {
-      render: async () => {
-        const data = await db.fetchDB('taxonomy') || {};
-        const container = document.getElementById('taxonomy-container');
-        container.innerHTML = '';
+  <script>
+    // ============ VERCEL KV API HELPERS (No Firebase) ============
+    async function fetchDB(key) {
+      try {
+        const res = await fetch(`/api/db?path=${encodeURIComponent(key)}`);
+        if (!res.ok) return null;
+        let data = await res.json();
         
-        Object.keys(data).forEach(sub => {
-          const item = document.createElement('div');
-          item.className = 'accordion-item draggable';
-          item.draggable = true;
-          item.innerHTML = `
-            <div class="accordion-header" onclick="this.nextElementSibling.classList.toggle('open')">📚 ${sub}</div>
-            <div class="accordion-content">
-              ${Object.keys(data[sub]).map(subSub => `
-                <div style="margin-left:1rem; border-left:2px solid var(--border); padding-left:1rem;">
-                  <strong>📘 ${subSub}</strong>${Object.keys(data[sub][subSub]).map(topic => `
-                    <div style="margin-left:1rem; color:var(--muted)">📄 ${topic} 
-                      (${data[sub][subSub][topic].length} sub-topics)
-                    </div>
-                  `).join('')}
-                </div>
-              `).join('')}
-            </div>`;
-          container.appendChild(item);
+        if (data && typeof data === 'object') {
+          if ('result' in data) data = data.result;
+          else if ('value' in data) data = data.value;
+        }
+        if (typeof data === 'string') {
+          try { data = JSON.parse(data); } catch (e) { }
+        }
+        if (data && typeof data === 'object' && data[key]) {
+            data = data[key]; 
+        }
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+           if (key === 'appscQuestionBank') {
+             Object.keys(data).forEach(groupKey => {
+               if (data[groupKey] && typeof data[groupKey] === 'object' && !Array.isArray(data[groupKey])) {
+                 data[groupKey] = Object.values(data[groupKey]); 
+               }
+             });
+           }
+        }
+        return data;
+      } catch (err) {
+        console.error(`❌ DB Fetch Error for ${key}:`, err);
+        return null;
+      }
+    }
+
+    async function saveDB(key, value) {
+      try {
+        const res = await fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'set', path: key, data: value })
+        });
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+      } catch (err) {
+        console.error(`DB Save Error for ${key}:`, err);
+        throw err;
+      }
+    }
+
+    // ============ GLOBAL STATE & CONFIG ============
+    var DEFAULT_ADMIN_ID = 'admin', DEFAULT_ADMIN_PASS = 'admin123', adminPhone = '', adminToken = '';
+    var settings = { loginEnabled: true, users: {}, adminPass: DEFAULT_ADMIN_PASS, copyEnabled: false }, activeSessions = {}, currentTab = 'syllabus';
+    var allData = { syllabus: {}, essay: {}, quiz: {} }, csvRows = [], selectedItems = {};
+    var currentFilters = { group: 'ALL', stage: 'ALL', sort: 'manual' };
+    window.skippedRowsData = ""; 
+
+    var APPSC_GROUPS = ['Group 1', 'Group 2'];
+    var APPSC_STAGES = ['Prelims', 'Mains'];
+
+    window.initTheme = function() {
+      var t = localStorage.getItem('cs_ad_th') || 'dark', b = document.getElementById('theme-toggle');
+      t === 'light' ? (document.body.classList.add('light-mode'), b.innerText = 'Dark Mode') : (document.body.classList.remove('light-mode'), b.innerText = 'Light Mode');
+    }
+    window.initTheme();
+    window.toggleTheme = function() {
+      var l = document.body.classList.toggle('light-mode');
+      localStorage.setItem('cs_ad_th', l ? 'light' : 'dark');
+      document.getElementById('theme-toggle').innerText = l ? 'Dark Mode' : 'Light Mode';
+    }
+    window.applyCopyProtectionState = function() {
+      if (settings.copyEnabled === true) {
+        document.body.classList.remove('protected-mode');
+        document.body.classList.add('copy-allowed');
+        document.body.removeAttribute('oncontextmenu');
+        document.body.removeAttribute('oncopy');
+        document.body.removeAttribute('oncut');
+      } else {
+        document.body.classList.add('protected-mode');
+        document.body.classList.remove('copy-allowed');
+        document.body.setAttribute('oncontextmenu', 'return false;');
+        document.body.setAttribute('oncopy', 'return false;');
+        document.body.setAttribute('oncut', 'return false;');
+      }
+    }
+    function toast(msg, type) {
+      type = type || 'info';
+      var t = document.createElement('div');
+      t.className = 'toast ' + type;
+      t.innerText = msg;
+      document.body.appendChild(t);
+      setTimeout(function() { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(function() { t.remove(); }, 300); }, 3000);
+    }
+    function sanitizeHTML(s){if(!s)return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+    function scrubHtml(s){if(!s)return '';var d=document.createElement('div');d.innerHTML=s;var ws=d.querySelectorAll('script,iframe');for(var i=0;i<ws.length;i++)ws[i].remove();var as=d.querySelectorAll('*');for(var j=0;j<as.length;j++){var el=as[j];for(var k=el.attributes.length-1;k>=0;k--){var n=el.attributes[k].name.toLowerCase();if(n.indexOf('on')===0||/^(src|href)$/.test(n) && (el.getAttribute(n)||'').toLowerCase().indexOf('javascript:')===0)el.removeAttribute(el.attributes[k].name)}}return d.innerHTML}
+    function escHTML(s) { return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : ''; }
+
+    window.checkAuth = function() {
+      var o = document.getElementById('login-overlay'), ph = localStorage.getItem('cs_ad_ph'), tk = localStorage.getItem('cs_ad_tk');
+      if (ph && tk && activeSessions[ph] === tk) {
+        adminPhone = ph; adminToken = tk; o.style.display = 'none';
+        document.getElementById('admin-info').innerText = 'Admin: ' + ph; window.refreshUI();
+      } else { o.style.display = 'flex'; }
+    }
+    
+    window.attemptLogin = async function() {
+      var p = document.getElementById('login-phone').value.trim(), pa = document.getElementById('login-pass').value.trim(), e = document.getElementById('login-error');
+      if (!p || !pa) { e.innerText = 'Enter ID and Password'; e.style.display = 'block'; return; }
+      var cp = settings.adminPass || DEFAULT_ADMIN_PASS;
+      if (p === DEFAULT_ADMIN_ID && pa === cp) {
+        e.style.display = 'none';
+        var t = "adm_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+        adminPhone = p; adminToken = t;
+        localStorage.setItem('cs_ad_ph', p); localStorage.setItem('cs_ad_tk', t);
+        activeSessions[p] = t; 
+        await saveDB('activeSessions', activeSessions);
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('admin-info').innerText = 'Admin: ' + p; window.refreshUI();
+      } else { e.innerText = 'Invalid credentials'; e.style.display = 'block'; }
+    }
+    
+    window.logout = async function() {
+      if (adminPhone) { 
+          delete activeSessions[adminPhone]; 
+          await saveDB('activeSessions', activeSessions); 
+      }
+      localStorage.removeItem('cs_ad_ph'); localStorage.removeItem('cs_ad_tk'); location.reload();
+    }
+
+    window.switchTab = function(tab) {
+      currentTab = tab; csvRows = []; selectedItems = {};
+      currentFilters = { group: 'ALL', stage: 'ALL', sort: 'manual' };
+      var btns = document.querySelectorAll('.admin-tab-btn');
+      for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+      event.target.classList.add('active'); window.refreshUI();
+    }
+
+    window.refreshUI = async function() {
+      var ac = document.getElementById('admin-content');
+      if (!adminPhone) { ac.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;">Please login first</div>'; return; }
+      if (currentTab === 'users') { window.renderUsers(); return; }
+      if (currentTab === 'settings') { window.renderSettings(); return; }
+      
+      var refMap = { 'syllabus': 'appscSyllabus', 'essay': 'appscEssay', 'quiz': 'appscQuestionBank' };
+      var keyMap = { 'syllabus': 'syllabus', 'essay': 'essay', 'quiz': 'quiz' };
+      ac.innerHTML = '<div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading Data...</div>';
+      
+      try {
+        const data = await fetchDB(refMap[currentTab]);
+        allData[keyMap[currentTab]] = data || {};
+        window.renderContent(keyMap[currentTab]);
+      } catch (err) {
+        ac.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;"><p>⚠️ Error loading data</p><button class="btn btn-blue btn-sm" onclick="window.refreshUI()">🔄 Retry</button></div>';
+      }
+    }
+
+    window.renderContent = function(dk) {
+      var ac = document.getElementById('admin-content'), data = allData[dk] || {}, keys = Object.keys(data), isQuiz = (dk === 'quiz'), isEssay = (dk === 'essay'), h = '';
+
+      if (isQuiz) {
+        h += '<div class="csv-box"><h3>📥 Bulk Upload APPSC Quiz (CSV/JSON/TXT)</h3>';
+        h += '<div class="csv-fmt"><strong>10 Columns:</strong> Group | Stage | Subject | Topic | Question | Option A | Option B | Option C | Option D | Correct | Explanation<br>🖼 Supports 2 or 4 options (A/B/C/D). Option C &amp; D columns optional.</div>';
+        h+='<div class="file-upload-area" id="fileDropZone" onclick="document.getElementById(\'csvFileInput\').click()"><div class="file-upload-icon">📁</div><div style="font-weight:700;color:#38bdf8;">Click or Drag & Drop Files</div><div class="file-types-info">.csv .tsv .txt .json .html</div></div>';
+        h+='<input type="file" id="csvFileInput" style="display:none;" accept=".csv,.tsv,.txt,.json,.html,text/*" onchange="window.handleFileEvent(event)">';
+        h+='<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste Excel Data/CSV/JSON here..." style="min-height:90px;"></textarea><button class="btn btn-teal btn-sm notranslate" onclick="window.parsePastedEvent()">🔍 Parse Data</button></div>';
+        h+='<div id="csvPreviewArea"></div></div>';
+      }
+
+      h += '<div class="toolbar">';
+      var go = '<option value="ALL">📚 All Groups</option>';
+      for (var gi = 0; gi < APPSC_GROUPS.length; gi++) {
+        var gs = currentFilters.group === APPSC_GROUPS[gi] ? 'selected' : '';
+        go += '<option value="' + APPSC_GROUPS[gi] + '" ' + gs + '>' + APPSC_GROUPS[gi] + '</option>';
+      }
+      h += '<select class="form-inp" id="filterGroup" onchange="window.updateFilter(\'group\', this.value)" style="max-width:160px;margin-bottom:0;">' + go + '</select>';
+      
+      var so = '<option value="ALL">📅 All Stages</option>';
+      for (var si = 0; si < APPSC_STAGES.length; si++) {
+        var ss = currentFilters.stage === APPSC_STAGES[si] ? 'selected' : '';
+        so += '<option value="' + APPSC_STAGES[si] + '" ' + ss + '>' + APPSC_STAGES[si] + '</option>';
+      }
+      h += '<select class="form-inp" id="filterStage" onchange="window.updateFilter(\'stage\', this.value)" style="max-width:160px;margin-bottom:0;">' + so + '</select>';
+      
+      var sso = { 'manual': currentFilters.sort === 'manual' ? 'selected' : '', 'newest': currentFilters.sort === 'newest' ? 'selected' : '', 'az': currentFilters.sort === 'az' ? 'selected' : '', 'za': currentFilters.sort === 'za' ? 'selected' : '' };
+      h += '<select class="form-inp" id="sortOrder" onchange="window.updateFilter(\'sort\', this.value)" style="max-width:140px;margin-bottom:0;">';
+      h += '<option value="manual" ' + sso['manual'] + '>🔢 Manual</option>';
+      h += '<option value="newest" ' + sso['newest'] + '>🆕 Newest</option>';
+      h += '<option value="az" ' + sso['az'] + '>🔤 A-Z</option>';
+      h += '<option value="za" ' + sso['za'] + '>🔤 Z-A</option>';
+      h += '</select>';
+
+      h += '<button class="btn btn-blue btn-sm" onclick="window.selectAllItems()">☑ Select All</button>';
+      h += '<button class="btn btn-dark btn-sm" onclick="window.deselectAllItems()">☐ Deselect</button>';
+      h += '<button class="btn btn-red btn-sm" onclick="window.deleteSelected()">🗑 Delete (<span id="selCount">0</span>)</button>';
+      h += '<button class="btn btn-purple btn-sm" onclick="window.downloadData(\'' + dk + '\')">📥 JSON</button>';
+      h += '<button class="btn btn-teal btn-sm" onclick="window.downloadCSV(\'' + dk + '\')">📊 CSV</button>';
+      if (!isQuiz) h += '<button class="btn btn-green btn-sm" onclick="window.showAddForm()">➕ Add New</button>';
+      h += '<span style="color:var(--mut);margin-left:auto;">Total: <strong>' + keys.length + '</strong></span></div>';
+
+      h += '<div id="itemsList">';
+      if (keys.length === 0) {
+        h += '<div style="padding:40px;text-align:center;color:var(--mut);">No data yet. Add your first ' + (isEssay ? 'essay' : 'item') + '!</div>';
+      } else {
+        var dk2 = window.getFilteredAndSortedKeys(keys, data, isQuiz);
+        for (var i = 0; i < dk2.length; i++) {
+          var k = dk2[i], item = data[k], checked = selectedItems[k] ? 'checked' : '', selClass = selectedItems[k] ? 'selected' : '';
+          if (isQuiz) {
+            var cnt = Array.isArray(item) ? item.length : 0, fq = (Array.isArray(item) && item.length > 0) ? item[0] : {};
+            var extractedGroup = fq.group || k.split('_')[0] || '';
+            var extractedStage = fq.stage || k.split('_')[1] || '';
+            var extractedSubject = fq.subject || k.split('_')[2] || '';
+            
+            h += '<div class="list-item ' + selClass + '" data-key="' + k + '"><input type="checkbox" class="item-check" ' + checked + ' onchange="window.toggleSelect(\'' + k + '\',this.checked)" onclick="event.stopPropagation()"><div class="item-info"><strong>' + k.replace(/_/g,' ') + '</strong><span class="tag tag-teal" style="margin-left:8px;">' + cnt + ' Qs</span>';
+            if (extractedGroup) h += '<span class="tag tag-green" style="margin-left:4px;">📚 ' + extractedGroup + '</span>';
+            if (extractedStage) h += '<span class="tag tag-orange" style="margin-left:4px;">📅 ' + extractedStage + '</span>';
+            if (extractedSubject) h += '<span class="tag tag-blue" style="margin-left:4px;">📘 ' + extractedSubject + '</span>';
+            h += '</div><div style="display:flex;gap:6px;">';
+            h += '<button class="btn btn-dark btn-xs" onclick="window.moveItem(\'' + k + '\',-1)">🔼</button><button class="btn btn-dark btn-xs" onclick="window.moveItem(\'' + k + '\',1)">🔽</button>';
+            h += '<button class="btn btn-orange btn-xs" onclick="window.editQuizGroup(\'' + k + '\')">✏️ Edit</button><button class="btn btn-red btn-xs" onclick="window.deleteSingle(\'' + k + '\')">🗑</button></div></div>';
+          } else if (isEssay) {
+            h += '<div class="list-item ' + selClass + '" data-key="' + k + '"><input type="checkbox" class="item-check" ' + checked + ' onchange="window.toggleSelect(\'' + k + '\',this.checked)" onclick="event.stopPropagation()"><div class="item-info"><strong>' + (item.title || 'Untitled Essay') + '</strong>';
+            if (item.group) h += '<span class="tag tag-green" style="margin-left:8px;">' + item.group + '</span>';
+            if (item.stage) h += '<span class="tag tag-orange" style="margin-left:4px;">' + item.stage + '</span>';
+            if (item.subject) h += '<span class="tag tag-blue" style="margin-left:4px;">' + item.subject + '</span>';
+            h += '</div><div style="display:flex;gap:6px;">';
+            h += '<button class="btn btn-blue btn-xs" onclick="window.editEssayItem(\'' + k + '\')">✏️ Edit</button><button class="btn btn-red btn-xs" onclick="window.deleteSingle(\'' + k + '\')">🗑</button></div></div>';
+          } else {
+            h += '<div class="list-item ' + selClass + '" data-key="' + k + '"><input type="checkbox" class="item-check" ' + checked + ' onchange="window.toggleSelect(\'' + k + '\',this.checked)" onclick="event.stopPropagation()"><div class="item-info"><strong>' + (item.title || 'Untitled') + '</strong>';
+            if (item.group) h += '<span class="tag tag-green" style="margin-left:8px;">' + item.group + '</span>';
+            if (item.stage) h += '<span class="tag tag-orange" style="margin-left:4px;">' + item.stage + '</span>';
+            if (item.subject) h += '<span class="tag tag-blue" style="margin-left:4px;">' + item.subject + '</span>';
+            h += '</div><div style="display:flex;gap:6px;">';
+            h += '<button class="btn btn-blue btn-xs" onclick="window.editSyllabusItem(\'' + k + '\')">✏️ Edit</button><button class="btn btn-red btn-xs" onclick="window.deleteSingle(\'' + k + '\')">🗑</button></div></div>';
+          }
+        }
+      }
+      h += '</div><div id="editForm" style="display:none;margin-top:20px;"></div><div id="groupView" style="display:none;margin-top:20px;"></div>';
+      ac.innerHTML = h;
+      window.setupFileDropZone();
+      window.updateSelCount();
+    }
+
+    // ============ ROBUST FILE DROP ZONE ============
+    window.setupFileDropZone = function(){
+      var dropZone = document.getElementById('fileDropZone');
+      var fileInput = document.getElementById('csvFileInput');
+      if(!dropZone || !fileInput) return;
+
+      dropZone.addEventListener('dragover', function(e) {
+          e.preventDefault(); e.stopPropagation();
+          dropZone.classList.add('drag-over');
+      }, false);
+      dropZone.addEventListener('dragleave', function(e) {
+          e.preventDefault(); e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+      }, false);
+      dropZone.addEventListener('drop', function(e) {
+          e.preventDefault(); e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+          var files = e.dataTransfer.files;
+          if(files && files.length > 0) {
+              fileInput.files = files; 
+              window.handleFileEvent({target: {files: files}});
+          }
+      }, false);
+    }
+
+    window.getFilteredAndSortedKeys = function(keys, data, isQuiz) {
+      var filtered = [];
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (isQuiz) {
+          var fq = (Array.isArray(data[k]) && data[k].length > 0) ? data[k][0] : {};
+          var keyGroup = fq.group || k.split('_')[0] || '';
+          var keyStage = fq.stage || k.split('_')[1] || '';
+          
+          if (currentFilters.group !== 'ALL') {
+            var groupNormalized = keyGroup.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+            var filterNormalized = currentFilters.group.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+            if (groupNormalized.indexOf(filterNormalized) === -1) continue;
+          }
+          if (currentFilters.stage !== 'ALL') {
+            var stageNormalized = keyStage.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+            var filterStageNorm = currentFilters.stage.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+            if (stageNormalized.indexOf(filterStageNorm) === -1) continue;
+          }
+        } else {
+          var item = data[k];
+          if (currentFilters.group !== 'ALL' && item.group !== currentFilters.group) continue;
+          if (currentFilters.stage !== 'ALL' && item.stage !== currentFilters.stage) continue;
+        }
+        filtered.push(k);
+      }
+      
+      if (currentFilters.sort === 'az') {
+        filtered.sort(function(a, b) {
+          var na = (data[a] && data[a].title) ? data[a].title.toLowerCase() : a.toLowerCase();
+          var nb = (data[b] && data[b].title) ? data[b].title.toLowerCase() : b.toLowerCase();
+          return na.localeCompare(nb);
+        });
+      } else if (currentFilters.sort === 'za') {
+        filtered.sort(function(a, b) {
+          var na = (data[a] && data[a].title) ? data[a].title.toLowerCase() : a.toLowerCase();
+          var nb = (data[b] && data[b].title) ? data[b].title.toLowerCase() : b.toLowerCase();
+          return nb.localeCompare(na);
+        });
+      } else if (currentFilters.sort === 'newest') {
+        filtered.reverse();
+      }
+      return filtered;
+    }
+
+    window.updateFilter = function(type, value) { currentFilters[type] = value; selectedItems = {}; window.refreshUI(); }
+
+    window.showAddForm = function() {
+      var ef = document.getElementById('editForm');
+      ef.style.display = 'block';
+      var isEssay = (currentTab === 'essay');
+      var formTitle = isEssay ? '➕ Add Essay Topic' : '➕ Add Syllabus Item';
+      
+      var groupOptions = APPSC_GROUPS.map(function(g) { return '<option>' + g + '</option>'; }).join('');
+      var stageOptions = APPSC_STAGES.map(function(s) { return '<option>' + s + '</option>'; }).join('');
+      
+      var subjects = ['History & Culture', 'Polity & Governance', 'Economy', 'Geography', 'General Science', 'Ecology & Environment', 'Current Affairs', 'Mental Ability & Reasoning', 'Data Interpretation', 'General Essay', 'Ethics & Integrity', 'Telugu', 'English', 'Disaster Management', 'Social & Cultural History of A.P.', 'Indian Constitution', 'Planning'];
+      var subjectOptions = subjects.map(function(s) { return '<option>' + s + '</option>'; }).join('');
+
+      ef.innerHTML = '<div class="card"><h3>' + formTitle + '</h3>' +
+        '<div class="form-group"><label>Group *</label><select id="ef-group" class="form-inp">' + groupOptions + '</select></div>' +
+        '<div class="form-group"><label>Stage *</label><select id="ef-stage" class="form-inp">' + stageOptions + '</select></div>' +
+        '<div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp">' + subjectOptions + '</select></div>' +
+        '<div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp" placeholder="Enter title..."></div>' +
+        '<div class="form-group"><label>Content (HTML allowed)</label><textarea id="ef-content" class="form-inp" style="min-height:200px;" placeholder="Enter content..."></textarea></div>' +
+        '<button class="btn btn-green btn-sm" onclick="window.saveSyllabusOrEssay(null)">💾 Save</button> ' +
+        '<button class="btn btn-dark btn-sm" onclick="document.getElementById(\'editForm\').style.display=\'none\'">❌ Cancel</button></div>';
+    }
+
+    window.editSyllabusItem = function(key) { var item = allData.syllabus[key]; if (!item) return; window.editGenericItem(key, item, 'syllabus'); }
+    window.editEssayItem = function(key) { var item = allData.essay[key]; if (!item) return; window.editGenericItem(key, item, 'essay'); }
+
+    window.editGenericItem = function(key, item, type) {
+      var ef = document.getElementById('editForm');
+      ef.style.display = 'block';
+      var isEssay = (type === 'essay');
+      var formTitle = isEssay ? '✏️ Edit Essay' : '✏️ Edit Syllabus';
+      var subjects = ['History & Culture', 'Polity & Governance', 'Economy', 'Geography', 'General Science', 'Ecology & Environment', 'Current Affairs', 'Mental Ability & Reasoning', 'Data Interpretation', 'General Essay', 'Ethics & Integrity', 'Telugu', 'English', 'Disaster Management', 'Social & Cultural History of A.P.', 'Indian Constitution', 'Planning'];
+
+      ef.innerHTML = '<div class="card"><h3>' + formTitle + '</h3>' +
+        '<div class="form-group"><label>Group</label><select id="ef-group" class="form-inp">' + APPSC_GROUPS.map(function(g) { return '<option ' + (item.group === g ? 'selected' : '') + '>' + g + '</option>'; }).join('') + '</select></div>' +
+        '<div class="form-group"><label>Stage</label><select id="ef-stage" class="form-inp">' + APPSC_STAGES.map(function(s) { return '<option ' + (item.stage === s ? 'selected' : '') + '>' + s + '</option>'; }).join('') + '</select></div>' +
+        '<div class="form-group"><label>Subject</label><select id="ef-subject" class="form-inp">' + subjects.map(function(s) { return '<option ' + (item.subject === s ? 'selected' : '') + '>' + s + '</option>'; }).join('') + '</select></div>' +
+        '<div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp" value="' + escHTML(item.title || '') + '"></div>' +
+        '<div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:200px;">' + escHTML(item.content || '') + '</textarea></div>' +
+        '<button class="btn btn-green btn-sm" onclick="window.saveSyllabusOrEssay(\'' + key + '\')">💾 Update</button> ' +
+        '<button class="btn btn-dark btn-sm" onclick="document.getElementById(\'editForm\').style.display=\'none\'">❌ Cancel</button></div>';
+    }
+
+    window.saveSyllabusOrEssay = async function(editingKey) {
+      var group = document.getElementById('ef-group').value;
+      var stage = document.getElementById('ef-stage').value;
+      var subject = document.getElementById('ef-subject').value;
+      var title = document.getElementById('ef-title').value;
+      var content = document.getElementById('ef-content').value;
+
+      if (!title || !group || !stage) { toast('Title, Group & Stage are required', 'error'); return; }
+
+      var item = { title: title, group: group, stage: stage, subject: subject, content: content, order: Date.now() };
+      var fbPath = currentTab === 'essay' ? 'appscEssay' : 'appscSyllabus';
+      var dataKey = currentTab === 'essay' ? 'essay' : 'syllabus';
+      
+      var finalKey = editingKey ? editingKey : "appsc_" + Date.now();
+      allData[dataKey][finalKey] = item;
+      
+      await saveDB(`${fbPath}/${finalKey}`, item);
+      toast(editingKey ? 'Updated!' : 'Added!', 'success');
+      document.getElementById('editForm').style.display = 'none';
+      window.refreshUI();
+    }
+
+    window.editQuizGroup = function(key) {
+      var qs = allData.quiz[key];
+      if (!qs || !Array.isArray(qs)) { toast('No data!', 'error'); return; }
+      var gv = document.getElementById('groupView');
+      var h = '<div class="card"><h3>✏️ Edit Quiz Group</h3>';
+      h += '<div class="form-group"><label>Group Key</label><input type="text" id="qe-title" class="form-inp" value="' + key + '" style="max-width:400px;" readonly></div>';
+      h += '<p style="color:var(--mut);">' + qs.length + ' Questions</p>';
+      h += '<button class="btn btn-dark btn-sm" onclick="document.getElementById(\'groupView\').style.display=\'none\'">← Back</button>';
+      h += '<button class="btn btn-green btn-sm" style="margin-left:10px;" onclick="window.saveQuizGroupEdits(\'' + key + '\')">💾 Save All</button><br><br>';
+      for (var i = 0; i < qs.length; i++) {
+        var q = qs[i];
+        h += '<div class="card" style="margin-bottom:12px;padding:15px;"><strong style="color:#f59e0b;">Q' + (i + 1) + '</strong>';
+        h += '<div class="form-group"><label>Question</label><textarea class="form-inp qe-q" data-idx="' + i + '" style="min-height:50px;">' + escHTML(q.question) + '</textarea></div>';
+        h += '<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option A</label><input class="form-inp qe-a" data-idx="' + i + '" value="' + escHTML(q.options.A || '') + '"></div><div class="form-group" style="flex:1;"><label>Option B</label><input class="form-inp qe-b" data-idx="' + i + '" value="' + escHTML(q.options.B || '') + '"></div></div>';
+        h += '<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option C <span class="optional-label">(optional)</span></label><input class="form-inp qe-c-opt" data-idx="' + i + '" value="' + escHTML(q.options.C || '') + '"></div><div class="form-group" style="flex:1;"><label>Option D <span class="optional-label">(optional)</span></label><input class="form-inp qe-d-opt" data-idx="' + i + '" value="' + escHTML(q.options.D || '') + '"></div></div>';
+        h += '<div class="form-group"><label>Correct</label><select class="form-inp qe-c" data-idx="' + i + '" style="max-width:100px;"><option value="A" ' + (q.correctAnswer === 'A' ? 'selected' : '') + '>A</option><option value="B" ' + (q.correctAnswer === 'B' ? 'selected' : '') + '>B</option><option value="C" ' + (q.correctAnswer === 'C' ? 'selected' : '') + '>C</option><option value="D" ' + (q.correctAnswer === 'D' ? 'selected' : '') + '>D</option></select></div>';
+        h += '<div class="form-group"><label>Explanation</label><input class="form-inp qe-e" data-idx="' + i + '" value="' + escHTML(q.explanation || '') + '"></div></div>';
+      }
+      h += '<button class="btn btn-green btn-sm" onclick="window.saveQuizGroupEdits(\'' + key + '\')">💾 Save All</button></div>';
+      gv.innerHTML = h; gv.style.display = 'block'; gv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    window.saveQuizGroupEdits = async function(oldKey) {
+      var qs = allData.quiz[oldKey];
+      if (!qs) return;
+      var qEls = document.querySelectorAll('.qe-q'), aEls = document.querySelectorAll('.qe-a'), bEls = document.querySelectorAll('.qe-b'), cOptEls = document.querySelectorAll('.qe-c-opt'), dOptEls = document.querySelectorAll('.qe-d-opt'), cEls = document.querySelectorAll('.qe-c'), eEls = document.querySelectorAll('.qe-e');
+      for (var i = 0; i < qEls.length; i++) {
+        var idx = parseInt(qEls[i].dataset.idx);
+        qs[idx].question = qEls[i].value;
+        qs[idx].options = { A: aEls[i].value, B: bEls[i].value, C: cOptEls[i].value, D: dOptEls[i].value };
+        qs[idx].correctAnswer = cEls[i].value;
+        qs[idx].explanation = eEls[i].value;
+      }
+      await saveDB(`appscQuestionBank/${oldKey}`, qs);
+      allData.quiz[oldKey] = qs;
+      toast('✅ Updated!', 'success');
+      document.getElementById('groupView').style.display = 'none';
+      window.refreshUI();
+    }
+
+    window.toggleSelect = function(key, checked) { if (checked) selectedItems[key] = true; else delete selectedItems[key]; window.updateSelCount(); }
+    window.selectAllItems = function() { var items = document.querySelectorAll('#itemsList .list-item'); for (var i = 0; i < items.length; i++) { var key = items[i].dataset.key; selectedItems[key] = true; items[i].classList.add('selected'); items[i].querySelector('.item-check').checked = true; } window.updateSelCount(); }
+    window.deselectAllItems = function() { selectedItems = {}; var items = document.querySelectorAll('#itemsList .list-item'); for (var i = 0; i < items.length; i++) { items[i].classList.remove('selected'); items[i].querySelector('.item-check').checked = false; } window.updateSelCount(); }
+    window.updateSelCount = function() { var cnt = Object.keys(selectedItems).length, el = document.getElementById('selCount'); if (el) el.innerText = cnt; }
+    
+    // GRANULAR DELETE FOR VERCEL
+    window.deleteSelected = async function() { 
+      var sk = Object.keys(selectedItems); if (sk.length === 0) { toast('No items selected!', 'error'); return; } 
+      if (!confirm('Delete ' + sk.length + ' items?')) return; 
+      var rp = currentTab === 'quiz' ? 'appscQuestionBank' : (currentTab === 'essay' ? 'appscEssay' : 'appscSyllabus'); 
+      for(var i=0; i<sk.length; i++) {
+        delete allData[currentTab === 'quiz' ? 'quiz' : (currentTab === 'essay' ? 'essay' : 'syllabus')][sk[i]];
+        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: `${rp}/${sk[i]}` }) });
+      }
+      toast('Deleted '+sk.length+' items!','success'); selectedItems={}; window.refreshUI();
+    }
+    
+    window.deleteSingle = async function(id) { 
+      if (!confirm('Delete permanently?')) return; 
+      var rp = currentTab === 'quiz' ? 'appscQuestionBank' : (currentTab === 'essay' ? 'appscEssay' : 'appscSyllabus'); 
+      delete allData[currentTab === 'quiz' ? 'quiz' : (currentTab === 'essay' ? 'essay' : 'syllabus')][id];
+      await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: `${rp}/${id}` }) });
+      toast('Deleted!','success'); delete selectedItems[id]; window.refreshUI();
+    }
+
+    window.moveItem = async function(key, dir) {
+      if (currentFilters.sort !== 'manual') { currentFilters.sort = 'manual'; document.getElementById('sortOrder').value = 'manual'; }
+      var data = allData.quiz, keys = Object.keys(data), dk2 = window.getFilteredAndSortedKeys(keys, data, true);
+      var idx = dk2.indexOf(key); if (idx === -1) return;
+      var targetIdx = idx + dir; if (targetIdx < 0 || targetIdx >= dk2.length) return;
+      var keyB = dk2[targetIdx], orderA = idx * 10, orderB = targetIdx * 10;
+      if (data[key] && data[key][0]) data[key][0].order = orderB;
+      if (data[keyB] && data[keyB][0]) data[keyB][0].order = orderA;
+      await saveDB(`appscQuestionBank/${key}`, data[key]);
+      await saveDB(`appscQuestionBank/${keyB}`, data[keyB]);
+      window.refreshUI();
+    }
+
+    // ============ ROBUST PARSING LOGIC (APPSC Format) ============
+    window.handleFileEvent = function(event){
+        var file=event.target.files[0];
+        if(!file){toast('No file selected!','error');return}
+        var reader=new FileReader();
+        reader.onload=function(e){ window.smartParse(e.target.result, file.name); };
+        reader.readAsText(file);
+        event.target.value = ''; 
+    }
+    window.parsePastedEvent = function(){
+        var txt=document.getElementById('csvPasteInput').value;
+        window.smartParse(txt, 'pasted');
+    }
+
+    window.smartParse = function(text, sourceName){
+        text = text ? text.trim() : '';
+        if(!text){ toast('Invalid or empty data!','error'); return; }
+        
+        if(text.startsWith('[') || text.startsWith('{')){
+            try{ var parsed = JSON.parse(text); window.parseJSONData(parsed); return; }catch(e){}
+        }
+        
+        var rows = window.parseCSVRows(text);
+        if(rows.length < 2){toast('Need header + data rows. Found: '+rows.length,'error');return}
+        
+        var delimiter = window.detectDelimiter(rows);
+        var headers = window.smartSplitLine(rows[0], delimiter);
+        
+        var colMap={group:-1,stage:-1,subject:-1,topic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};
+        for(var hi=0;hi<headers.length;hi++){
+            var hdr=headers[hi].toLowerCase().replace(/[\s_"-]/g,'');
+            if(hdr==='group')colMap.group=hi;
+            else if(hdr==='stage')colMap.stage=hi;
+            else if(hdr==='subject')colMap.subject=hi;
+            else if(hdr==='topic')colMap.topic=hi;
+            else if(hdr==='question'||hdr==='ques'||hdr==='q')colMap.question=hi;
+            else if(hdr==='optiona'||hdr==='opta'||hdr==='a')colMap.optA=hi;
+            else if(hdr==='optionb'||hdr==='optb'||hdr==='b')colMap.optB=hi;
+            else if(hdr==='optionc'||hdr==='optc'||hdr==='c')colMap.optC=hi;
+            else if(hdr==='optiond'||hdr==='optd'||hdr==='d')colMap.optD=hi;
+            else if(hdr==='correct'||hdr==='answer'||hdr==='ans')colMap.correct=hi;
+            else if(hdr==='explanation'||hdr==='exp')colMap.explanation=hi;
+        }
+        
+        // Fallbacks for APPSC mapping
+        if(colMap.group===-1&&headers.length>0)colMap.group=0;
+        if(colMap.stage===-1&&headers.length>1)colMap.stage=1;
+        if(colMap.subject===-1&&headers.length>2)colMap.subject=2;
+        if(colMap.topic===-1&&headers.length>3)colMap.topic=3;
+        if(colMap.question===-1&&headers.length>4)colMap.question=4;
+        if(colMap.optA===-1&&headers.length>5)colMap.optA=5;
+        if(colMap.optB===-1&&headers.length>6)colMap.optB=6;
+        if(colMap.correct===-1&&headers.length>7)colMap.correct=7;
+        
+        csvRows=[]; var errors=[];
+        window.skippedRowsData = rows[0] + delimiter + '"Error_Reason"\n';
+
+        for(var l=1;l<rows.length;l++){
+            var cols = window.smartSplitLine(rows[l], delimiter);
+            if(cols.length < 5){ 
+                errors.push('Row '+(l+1)+': too few columns'); 
+                window.skippedRowsData += rows[l] + delimiter + '"Too few columns"\n';
+                continue; 
+            }
+            
+            var group=window.getCol(cols,colMap.group)||'General', stage=window.getCol(cols,colMap.stage)||'General', subject=window.getCol(cols,colMap.subject)||'General', topic=window.getCol(cols,colMap.topic)||'General';
+            var question=window.getCol(cols,colMap.question), optA=window.getCol(cols,colMap.optA), optB=window.getCol(cols,colMap.optB), optC=window.getCol(cols,colMap.optC), optD=window.getCol(cols,colMap.optD), ans=window.getCol(cols,colMap.correct).toUpperCase().trim().charAt(0), exp=window.getCol(cols,colMap.explanation)||'';
+            
+            var errorMsg = "";
+            if(!question||!optA||!optB||!ans) errorMsg = "Missing Q/A/B/Correct";
+            else if(['A','B','C','D'].indexOf(ans)===-1) errorMsg = "Correct must be A/B/C/D";
+
+            if(errorMsg !== "") {
+                errors.push('Row '+(l+1)+': ' + errorMsg);
+                window.skippedRowsData += rows[l] + delimiter + '"' + errorMsg + '"\n';
+                continue;
+            }
+            
+            var key=(group+'_'+stage+'_'+subject+'_'+topic).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+            csvRows.push({key:key,group:group,stage:stage,subject:subject,topic:topic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
+        }
+        window.showCSVPreview(errors, sourceName+' ('+(delimiter==='\t'?'TSV':'CSV')+')');
+    }
+
+    window.parseJSONData = function(jsonData){
+        var rows=[];
+        if(!Array.isArray(jsonData) && typeof jsonData === 'object') {
+            Object.keys(jsonData).forEach(function(k) {
+                if(Array.isArray(jsonData[k])) { rows = rows.concat(jsonData[k]); }
+                else if(typeof jsonData[k] === 'object' && jsonData[k].question) { rows.push(jsonData[k]); }
+                else if(typeof jsonData[k] === 'object') { Object.keys(jsonData[k]).forEach(subKey => { if(jsonData[k][subKey].question) rows.push(jsonData[k][subKey]); }); }
+            });
+            if(rows.length === 0) { if(jsonData.question) rows=[jsonData]; else if(jsonData.questions) rows=jsonData.questions; }
+        } else { rows=jsonData; }
+
+        if(!rows || rows.length === 0){ toast('No valid questions found in JSON!','error'); return; }
+        
+        csvRows=[]; var errors=[];
+        window.skippedRowsData = "Group,Stage,Subject,Topic,Question,Option A,Option B,Option C,Option D,Correct,Explanation,Error_Reason\n";
+
+        for(var i=0;i<rows.length;i++){
+            var r=rows[i];
+            var group=r.group||r.Group||'General', stage=r.stage||r.Stage||'General', subject=r.subject||r.Subject||'General', topic=r.topic||r.Topic||'General';
+            var question=r.question||r.Question||'', optA=r.optionA||r.optA||(r.options&&r.options.A)||r['Option A']||'', optB=r.optionB||r.optB||(r.options&&r.options.B)||r['Option B']||'', optC=r.optionC||r.optC||(r.options&&r.options.C)||r['Option C']||'', optD=r.optionD||r.optD||(r.options&&r.options.D)||r['Option D']||'', ans=(r.correctAnswer||r.answer||r.Answer||'').toString().toUpperCase().charAt(0), exp=r.explanation||r.Explanation||'';
+            
+            var errorMsg = "";
+            if(!question||!optA||!optB||!ans) errorMsg = "Missing Data";
+            else if(['A','B','C','D'].indexOf(ans)===-1) errorMsg = "Invalid Correct Ans";
+
+            if(errorMsg !== "") {
+                errors.push('Row '+(i+1)+': ' + errorMsg);
+                window.skippedRowsData += `"${group}","${stage}","${subject}","${topic}","${escCSV(question)}","${escCSV(optA)}","${escCSV(optB)}","${escCSV(optC)}","${escCSV(optD)}","${ans}","${escCSV(exp)}","${errorMsg}"\n`;
+                continue;
+            }
+
+            var key=(group+'_'+stage+'_'+subject+'_'+topic).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+            csvRows.push({key:key,group:group,stage:stage,subject:subject,topic:topic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
+        }
+        window.showCSVPreview(errors,'JSON Data');
+    }
+
+    window.smartSplitLine = function(line, delimiter) { var result = []; var current = ''; var inQuotes = false; for (var i = 0; i < line.length; i++) { var ch = line[i]; if (ch === '"') { if (inQuotes && line[i + 1] === '"') { current += '"'; i++; } else { inQuotes = !inQuotes; } } else if (ch === delimiter && !inQuotes) { result.push(current.trim()); current = ''; } else { current += ch; } } result.push(current.trim()); return result; };
+    window.getCol = function(cols, idx){ return (idx >= 0 && idx < cols.length) ? cols[idx] : ''; }
+    window.parseCSVRows = function(text){ var rows=[], current='', inQuotes=false; for(var i=0;i<text.length;i++){ var ch=text[i]; if(ch==='"'){ if(inQuotes && text[i+1]==='"'){ current+='"'; i++; continue; } inQuotes=!inQuotes; continue; } if(ch==='\n' && !inQuotes){ if(current.trim()) rows.push(current.trim()); current=''; continue; } if(ch==='\r' && !inQuotes){ if(current.trim()) rows.push(current.trim()); current=''; if(text[i+1]==='\n') i++; continue; } current+=ch; } if(current.trim()) rows.push(current.trim()); return rows; }
+    window.detectDelimiter = function(rows){ var tc=0,cc=0; for(var i=0;i<Math.min(5,rows.length);i++){ var inQ=false; for(var j=0;j<rows[i].length;j++){ var ch=rows[i][j]; if(ch==='"'){ if(inQ && rows[i][j+1]==='"') j++; else inQ=!inQ; continue; } if(ch==='\t' && !inQ) tc++; else if(ch===',' && !inQ) cc++; } } return tc>=cc ? '\t' : ','; }
+
+    window.showCSVPreview = function(errors,formatType){
+        if(csvRows.length===0){toast('No valid rows! Errors: '+errors.length,'error');return}
+        var groups={};
+        for(var i=0;i<csvRows.length;i++) groups[csvRows[i].key]=(groups[csvRows[i].key]||0)+1;
+        var pv=document.getElementById('csvPreviewArea'); pv.style.display='block';
+        var h='<div style="margin-top:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:6px;"><p><strong>✅ '+csvRows.length+' Questions</strong> in <strong>'+Object.keys(groups).length+' Groups</strong> ('+formatType+')</p>';
+        if(errors.length>0) {
+            h+='<p style="color:#f59e0b;font-size:.7rem;">⚠️ '+errors.length+' skipped due to empty/invalid fields.</p>';
+            h+='<button class="btn btn-orange btn-sm notranslate" onclick="window.downloadSkipped()">📥 Download Skipped Rows</button><br><br>';
+        }
+        h+='<button class="btn btn-green btn-sm notranslate" onclick="window.uploadCSVToFB()">🚀 Upload '+csvRows.length+' Qs</button> <button class="btn btn-dark btn-sm notranslate" onclick="window.clearCSVData()">🗑 Clear</button><div id="csvUploadStatus" style="margin-top:6px;font-size:.75rem;"></div></div>';
+        pv.innerHTML=h; pv.scrollIntoView({behavior:'smooth'});
+    }
+
+    window.downloadSkipped = function() {
+        if(!window.skippedRowsData) return;
+        var blob = new Blob([window.skippedRowsData], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a'); a.href = url; a.download = 'skipped_questions_errors.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+    
+    window.clearCSVData = function(){csvRows=[];var fi=document.getElementById('csvFileInput'),pi=document.getElementById('csvPasteInput'),pv=document.getElementById('csvPreviewArea');if(fi)fi.value='';if(pi)pi.value='';if(pv){pv.style.display='none';pv.innerHTML='';}}
+    
+    // GRANULAR UPLOAD (SAFE FOR VERCEL LIMITS)
+    window.uploadCSVToFB = async function(){
+      if(!csvRows||csvRows.length===0)return;
+      var st=document.getElementById('csvUploadStatus');
+      st.innerHTML='<span class="spinner"></span> Preparing Upload...';
+      
+      var groups={};
+      for(var i=0;i<csvRows.length;i++){
+        var r=csvRows[i];
+        if(!groups[r.key])groups[r.key]=[];
+        groups[r.key].push({
+          question:r.question,
+          options:{A:r.optionA,B:r.optionB,C:r.optionC||'',D:r.optionD||''},
+          correctAnswer:r.correctAnswer,
+          group:r.group,
+          stage:r.stage,
+          subject:r.subject,
+          topic:r.topic,
+          explanation:r.explanation||'',
+          order:Date.now()
         });
       }
-    };
+      
+      var gKeys = Object.keys(groups);
+      var done = 0, failed = 0;
+      
+      for(var j=0; j<gKeys.length; j++){
+        var k = gKeys[j];
+        var newQs = groups[k];
+        st.innerHTML=`<span class="spinner"></span> Uploading Group ${j+1} of ${gKeys.length}...`;
+        
+        try {
+            var existingQs = await fetchDB(`appscQuestionBank/${k}`) || [];
+            if (!Array.isArray(existingQs)) { existingQs = typeof existingQs === 'object' ? Object.values(existingQs) : []; }
+            newQs.forEach(function(q){
+               var sig = q.question+'|'+q.options.A+'|'+q.options.B+'|'+q.options.C+'|'+q.options.D;
+               if(!existingQs.some(function(x){ return (x.question||'')+'|'+((x.options&&x.options.A)||'')+'|'+((x.options&&x.options.B)||'')+'|'+((x.options&&x.options.C)||'')+'|'+((x.options&&x.options.D)||'') === sig })){
+                 existingQs.push(q);
+               }
+            });
+            await saveDB(`appscQuestionBank/${k}`, existingQs);
+            if(!allData.quiz) allData.quiz = {};
+            allData.quiz[k] = existingQs;
+            done++;
+        } catch (err) {
+            console.error("❌ Upload failed for group:", k, err);
+            failed++;
+        }
+      }
+      
+      if(failed > 0){ st.innerHTML=`<span style="color:#ef4444;">⚠️ Uploaded ${done}, Failed ${failed} groups. Check F12 Console.</span>`; } 
+      else { st.innerHTML=`<span style="color:#22c55e;">✅ Done! Uploaded to ${done} groups.</span>`; toast('Upload Complete!','success'); setTimeout(function(){window.clearCSVData();window.refreshUI()}, 1500); }
+    }
 
-    // Drag and Drop Logic (Minimal setup for UX visualization)
-    document.getElementById('drop-zone').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--primary)'; });
-    document.getElementById('drop-zone').addEventListener('dragleave', e => { e.currentTarget.style.borderColor = 'var(--border)'; });
-    document.getElementById('drop-zone').addEventListener('drop', e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--border)'; document.getElementById('csv-file').files = e.dataTransfer.files; csvParser.handleFile({target: {files: e.dataTransfer.files}}); });
+    window.downloadData = function(dk) {
+      var data = allData[dk] || {}, ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data), ed = {};
+      for (var i = 0; i < ks.length; i++) { ed[ks[i]] = data[ks[i]]; }
+      var blob = new Blob([JSON.stringify(ed, null, 2)], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = dk + '_data.json'; a.click(); URL.revokeObjectURL(url); toast('Downloaded JSON!', 'success');
+    }
 
-    if(sessionStorage.getItem('admin_token')) auth.login();
+    window.downloadCSV = function(dk) {
+      var data = allData[dk] || {}, ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data), isQuiz = (dk == 'quiz'), csv = '';
+      if (isQuiz) {
+        csv = 'Group,Stage,Subject,Topic,Question,Option A,Option B,Option C,Option D,Correct,Explanation\n';
+        for (var i = 0; i < ks.length; i++) {
+          var g = data[ks[i]];
+          if (!Array.isArray(g)) continue;
+          for (var j = 0; j < g.length; j++) {
+            var q = g[j];
+            csv += '"' + escCSV(q.group||'') + '","' + escCSV(q.stage||'') + '","' + escCSV(q.subject||'') + '","' + escCSV(q.topic||'') + '","' + escCSV(q.question) + '","' + escCSV(q.options.A) + '","' + escCSV(q.options.B) + '","' + escCSV(q.options.C) + '","' + escCSV(q.options.D) + '","' + q.correctAnswer + '","' + escCSV(q.explanation || '') + '"\n';
+          }
+        }
+      } else {
+        csv = 'Group,Stage,Subject,Title,Content\n';
+        for (var m = 0; m < ks.length; m++) {
+          var it = data[ks[m]];
+          csv += '"' + (it.group || '') + '","' + (it.stage || '') + '","' + (it.subject || '') + '","' + escCSV(it.title || '') + '","' + escCSV((it.content || '').replace(/<[^>]*>/g, '').substring(0, 300)) + '"\n';
+        }
+      }
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = dk + '_export.csv'; a.click(); URL.revokeObjectURL(url); toast('Downloaded CSV!', 'success');
+    }
+
+    // ============ USERS & SETTINGS ============
+    window.renderUsers = function() {
+      var ac = document.getElementById('admin-content'), users = settings.users || {}, h = '<button class="btn btn-green btn-sm" onclick="window.showAddUser()">➕ Add User</button><br><br>';
+      Object.keys(users).forEach(function(ph) {
+        var u = users[ph];
+        h += '<div class="card"><strong>📱 ' + ph + '</strong> | Pass: ' + u.pass + '<br>Subjects: ' + (u.subjects || []).join(', ') + '<br><button class="btn btn-blue btn-xs" onclick="window.editUser(\'' + ph + '\')">✏️</button> <button class="btn btn-red btn-xs" onclick="window.deleteUser(\'' + ph + '\')">🗑</button></div>';
+      });
+      h += '<div id="userEditForm" style="display:none;"></div>';
+      ac.innerHTML = h;
+    }
+
+    window.showAddUser = function() {
+      var ef = document.getElementById('userEditForm'); ef.style.display = 'block';
+      var subjects = ['History & Culture', 'Polity & Governance', 'Economy', 'Geography', 'General Science', 'Current Affairs', 'Mental Ability & Reasoning'];
+      ef.innerHTML = '<div class="card"><h3>➕ Add User</h3><input id="uf-phone" class="form-inp" placeholder="Phone/ID"><input id="uf-pass" class="form-inp" placeholder="Password"><label>Subjects:</label><div class="checkbox-group">' + subjects.map(function(s) { return '<label class="checkbox-label"><input type="checkbox" value="' + s + '" class="uf-subs"> ' + s + '</label>'; }).join('') + '</div><button class="btn btn-green btn-sm" onclick="window.saveUser(null)">💾 Save</button> <button class="btn btn-dark btn-sm" onclick="document.getElementById(\'userEditForm\').style.display=\'none\'">❌ Cancel</button></div>';
+    }
+
+    window.editUser = function(phone) {
+      var u = settings.users[phone]; if (!u) return;
+      var ef = document.getElementById('userEditForm'); ef.style.display = 'block';
+      var subjects = ['History & Culture', 'Polity & Governance', 'Economy', 'Geography', 'General Science', 'Current Affairs', 'Mental Ability & Reasoning'];
+      ef.innerHTML = '<div class="card"><h3>✏️ Edit ' + phone + '</h3><input id="uf-phone" class="form-inp" value="' + phone + '" readonly><input id="uf-pass" class="form-inp" value="' + u.pass + '"><label>Subjects:</label><div class="checkbox-group">' + subjects.map(function(s) { return '<label class="checkbox-label"><input type="checkbox" value="' + s + '" class="uf-subs" ' + (u.subjects && u.subjects.indexOf(s) !== -1 ? 'checked' : '') + '> ' + s + '</label>'; }).join('') + '</div><button class="btn btn-green btn-sm" onclick="window.saveUser(\'' + phone + '\')">💾 Update</button> <button class="btn btn-dark btn-sm" onclick="document.getElementById(\'userEditForm\').style.display=\'none\'">❌ Cancel</button></div>';
+    }
+
+    window.saveUser = async function(orig) {
+      var phone = document.getElementById('uf-phone').value, pass = document.getElementById('uf-pass').value, subs = [];
+      document.querySelectorAll('.uf-subs:checked').forEach(function(c) { subs.push(c.value); });
+      if (!phone || !pass) { toast('Fill all fields', 'error'); return; }
+      var upd = {};
+      Object.keys(settings.users).forEach(function(k) { upd[k] = settings.users[k]; });
+      if (orig && orig !== phone) delete upd[orig];
+      upd[phone] = { pass: pass, modes: ['ALL'], subjects: subs, classes: ['ALL'] };
+      settings.users = upd;
+      await saveDB('appSettings', settings);
+      toast('Saved!', 'success'); document.getElementById('userEditForm').style.display = 'none'; window.renderUsers();
+    }
+
+    window.deleteUser = async function(phone) {
+      if (!confirm('Delete ' + phone + '?')) return;
+      var upd = {};
+      Object.keys(settings.users).forEach(function(k) { if (k !== phone) upd[k] = settings.users[k]; });
+      settings.users = upd;
+      await saveDB('appSettings', settings);
+      toast('Deleted!', 'success'); window.renderUsers();
+    }
+
+    window.renderSettings = function() {
+      var ac = document.getElementById('admin-content');
+      ac.innerHTML = '<div class="card"><h3>⚙️ Settings</h3><label class="checkbox-label"><input type="checkbox" id="set-login" ' + (settings.loginEnabled ? 'checked' : '') + '> Enable Login</label><br><label class="checkbox-label"><input type="checkbox" id="set-copy" ' + (settings.copyEnabled ? 'checked' : '') + '> Enable Copy</label><br><label>Admin Password</label><input id="set-admin-pass" class="form-inp" value="' + (settings.adminPass || DEFAULT_ADMIN_PASS) + '" style="max-width:300px;"><button class="btn btn-green btn-sm" onclick="window.saveSettings()">💾 Save</button></div>';
+    }
+
+    window.saveSettings = async function() {
+      var le = document.getElementById('set-login').checked, ce = document.getElementById('set-copy').checked, ap = document.getElementById('set-admin-pass').value;
+      settings.loginEnabled = le; settings.adminPass = ap; settings.copyEnabled = ce; 
+      await saveDB('appSettings', settings);
+      window.applyCopyProtectionState(); toast('Saved!', 'success');
+    }
+
+    // Initialize application workflow
+    async function initApp() {
+      const [sets, sess] = await Promise.all([
+        fetchDB('appSettings'),
+        fetchDB('activeSessions')
+      ]);
+      if(sets) {
+         settings.loginEnabled = sets.loginEnabled !== undefined ? sets.loginEnabled : true;
+         settings.copyEnabled = sets.copyEnabled !== undefined ? sets.copyEnabled : false;
+         settings.users = sets.users || {};
+         settings.adminPass = sets.adminPass || DEFAULT_ADMIN_PASS;
+      }
+      window.applyCopyProtectionState();
+      if(sess) activeSessions = sess;
+      window.checkAuth();
+    }
+    window.onload = initApp;
   </script>
 </body>
 </html>
