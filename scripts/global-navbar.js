@@ -44,7 +44,7 @@ const menuData = [
      {
     title: "All Competations",
     links: [
-      { name: "APPSC", url: "#" },
+      { name: "APPSC", url: "https://www.cleverstudents.in/panels/APSPSC-Student.html" },
       { name: "SSC", url: "https://www.cleverstudents.in/panels/SSC-Mastery-Student.html" },
       { name: "RRB", url: "#" }
     ]
