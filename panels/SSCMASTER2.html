@@ -158,6 +158,12 @@
     </div>
   </div>
 
+  <!-- Global Drag Preventers (Keeps browser from opening dropped files in a new tab) -->
+  <script>
+    document.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); }, false);
+    document.addEventListener('drop', function(e) { e.preventDefault(); e.stopPropagation(); }, false);
+  </script>
+
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <script>
     // ============ VERCEL KV API HELPERS ============
@@ -190,7 +196,6 @@
            }
         }
         
-        console.log(`✅ Final processed data for ${key}:`, data);
         return data;
       } catch (err) {
         console.error(`❌ DB Fetch Error for ${key}:`, err);
@@ -264,7 +269,7 @@
       updateGuestDisplay();
     }
     
-    async function attemptLogin(){
+    window.attemptLogin = async function(){
       var p=document.getElementById('login-phone').value.trim(),pa=document.getElementById('login-pass').value.trim(),e=document.getElementById('login-error');
       if(!p||!pa){e.innerText='Enter ID and Password';e.style.display='block';return}
       var cp=settings.adminPass||DEFAULT_ADMIN_PASS;
@@ -283,7 +288,7 @@
       }
     }
     
-    async function logout(){
+    window.logout = async function(){
       if(adminPhone){
         delete activeSessions[adminPhone];
         await saveDB('activeSessions', activeSessions);
@@ -434,22 +439,22 @@
     // ============ COLLAPSIBLE 4-LEVEL GROUPED LIST ============
     window.togAdm = function(id){var el=document.getElementById(id);if(el)el.classList.toggle('collapsed')}
     function admItemRow(k,i,item,isQuiz){var selClass=selectedItems[k]?'selected':'',isChecked=selectedItems[k]?true:false;
-      var h='<div class="list-item '+selClass+'" data-key="'+escapeAttr(k)+'" data-index="'+i+'" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">';
-      h+='<div class="drag-handle notranslate">☰</div><div class="item-toggle"><label class="toggle-switch"><input type="checkbox" '+(isChecked?'checked':'')+' onchange="toggleSelect(\''+escapeAttr(k)+'\',this.checked)"><span class="toggle-slider"></span></label></div><div class="item-info">';
+      var h='<div class="list-item '+selClass+'" data-key="'+escapeAttr(k)+'" data-index="'+i+'" draggable="true" ondragstart="window.handleDragStart(event)" ondragend="window.handleDragEnd(event)" ondragover="window.handleDragOver(event)" ondragleave="window.handleDragLeave(event)" ondrop="window.handleDrop(event)">';
+      h+='<div class="drag-handle notranslate">☰</div><div class="item-toggle"><label class="toggle-switch"><input type="checkbox" '+(isChecked?'checked':'')+' onchange="window.toggleSelect(\''+escapeAttr(k)+'\',this.checked)"><span class="toggle-slider"></span></label></div><div class="item-info">';
       if(isQuiz){var cnt=Array.isArray(item)?item.length:0,fq=(Array.isArray(item)&&item.length>0)?item[0]:{};
         h+='<strong>'+sanitizeHTML(k.replace(/_/g,' '))+'</strong><span class="tag tag-teal">'+cnt+' Qs</span>';
         if(fq.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(fq.subject)+'</span>';
         var ss=getSavedSubSubject(fq);if(ss)h+='<span class="tag tag-orange">'+sanitizeHTML(ss)+'</span>';
         var tp=getSavedTopic(fq);if(tp)h+='<span class="tag tag-purple">'+sanitizeHTML(tp)+'</span>';
         var st=getSavedSubTopic(fq);if(st)h+='<span class="tag tag-pink">'+sanitizeHTML(st)+'</span>';
-        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="event.stopPropagation();viewQuizGroup(\''+escapeAttr(k)+'\')">👁 View</button><button class="btn btn-orange btn-xs notranslate" onclick="event.stopPropagation();editQuizGroup(\''+escapeAttr(k)+'\')">✏️ Edit</button>';
+        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="event.stopPropagation();window.viewQuizGroup(\''+escapeAttr(k)+'\')">👁 View</button><button class="btn btn-orange btn-xs notranslate" onclick="event.stopPropagation();window.editQuizGroup(\''+escapeAttr(k)+'\')">✏️ Edit</button>';
       }else{h+='<strong>'+(item.title?sanitizeHTML(item.title.replace(/<[^>]*>/g,'')):'Untitled')+'</strong>';
         if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
         if(item.subSubject)h+='<span class="tag tag-orange">'+sanitizeHTML(item.subSubject)+'</span>';
         if(item.topic)h+='<span class="tag tag-purple">'+sanitizeHTML(item.topic)+'</span>';
         if(item.subTopic)h+='<span class="tag tag-pink">'+sanitizeHTML(item.subTopic)+'</span>';
-        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="event.stopPropagation();editSyllabusItem(\''+escapeAttr(k)+'\')">✏️ Edit</button>';}
-      h+='<button class="btn btn-red btn-xs notranslate" onclick="event.stopPropagation();deleteSingle(\''+escapeAttr(k)+'\')">🗑</button></div></div>';
+        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="event.stopPropagation();window.editSyllabusItem(\''+escapeAttr(k)+'\')">✏️ Edit</button>';}
+      h+='<button class="btn btn-red btn-xs notranslate" onclick="event.stopPropagation();window.deleteSingle(\''+escapeAttr(k)+'\')">🗑</button></div></div>';
       return h}
     function admPathOf(k,item,isQuiz){var p={};if(isQuiz){var fq=(Array.isArray(item)&&item.length>0)?item[0]:{};p.subject=fq.subject||'General';p.sub=getSavedSubSubject(fq)||'General';p.topic=getSavedTopic(fq)||'General';p.st=getSavedSubTopic(fq)||'General';}else{p.subject=item.subject||'General';p.sub=item.subSubject||'General';p.topic=item.topic||'General';p.st=item.subTopic||'General';}return p}
     function renderItemsList(dk,fk,data,isQuiz){
@@ -466,21 +471,21 @@
       Object.keys(tree).sort().forEach(function(subject){
         var sBodyId='ad_subj_'+tick+'_'+san(subject);var sTot=0;
         Object.keys(tree[subject]).forEach(function(sub){var subObj=tree[subject][sub];Object.keys(subObj).forEach(function(tp){Object.keys(subObj[tp]).forEach(function(st){sTot+=subObj[tp][st].length})})});
-        h+='<div class="ad-h" style="background:'+subjColors[tick%subjColors.length]+';" onclick="togAdm(\''+sBodyId+'\')"><span>📚 '+sanitizeHTML(subject)+'</span><span class="item-count-badge">'+sTot+' group(s)</span><span>▼</span></div>';
+        h+='<div class="ad-h" style="background:'+subjColors[tick%subjColors.length]+';" onclick="window.togAdm(\''+sBodyId+'\')"><span>📚 '+sanitizeHTML(subject)+'</span><span class="item-count-badge">'+sTot+' group(s)</span><span>▼</span></div>';
         h+='<div class="ad-body" id="'+sBodyId+'">';
         Object.keys(tree[subject]).sort().forEach(function(sub){
           var ssBodyId=sBodyId+'_ss_'+san(sub);var subObj=tree[subject][sub];var ssT=0;
           Object.keys(subObj).forEach(function(tp){Object.keys(subObj[tp]).forEach(function(st){ssT+=subObj[tp][st].length})});
-          h+='<div class="ad-h ad-h-sub" style="background:rgba(59,130,246,.25);" onclick="togAdm(\''+ssBodyId+'\')"><span>📂 '+sanitizeHTML(sub)+' ('+ssT+')</span><span>▼</span></div>';
+          h+='<div class="ad-h ad-h-sub" style="background:rgba(59,130,246,.25);" onclick="window.togAdm(\''+ssBodyId+'\')"><span>📂 '+sanitizeHTML(sub)+' ('+ssT+')</span><span>▼</span></div>';
           h+='<div class="ad-body" id="'+ssBodyId+'">';
           Object.keys(subObj).sort().forEach(function(tp){
             var tpBodyId=ssBodyId+'_tp_'+san(tp);var tpT=0;
             Object.keys(subObj[tp]).forEach(function(st){tpT+=subObj[tp][st].length});
-            h+='<div class="ad-h ad-h-topic" style="background:rgba(245,158,11,.22);" onclick="togAdm(\''+tpBodyId+'\')"><span>📌 '+sanitizeHTML(tp)+' ('+tpT+')</span><span>▼</span></div>';
+            h+='<div class="ad-h ad-h-topic" style="background:rgba(245,158,11,.22);" onclick="window.togAdm(\''+tpBodyId+'\')"><span>📌 '+sanitizeHTML(tp)+' ('+tpT+')</span><span>▼</span></div>';
             h+='<div class="ad-body" id="'+tpBodyId+'">';
             Object.keys(subObj[tp]).sort().forEach(function(st){
               var stBodyId=tpBodyId+'_st_'+san(st);
-              h+='<div class="ad-h ad-h-st" style="background:rgba(236,72,153,.2);" onclick="togAdm(\''+stBodyId+'\')"><span>🔹 '+sanitizeHTML(st)+' ('+subObj[tp][st].length+')</span><span>▼</span></div>';
+              h+='<div class="ad-h ad-h-st" style="background:rgba(236,72,153,.2);" onclick="window.togAdm(\''+stBodyId+'\')"><span>🔹 '+sanitizeHTML(st)+' ('+subObj[tp][st].length+')</span><span>▼</span></div>';
               h+='<div class="ad-body" id="'+stBodyId+'">';
               subObj[tp][st].forEach(function(k){h+=admItemRow(k,fk.indexOf(k),data[k],isQuiz)});
               h+='</div>';
@@ -497,45 +502,78 @@
 
     function renderContent(dk){
       var ac=document.getElementById('admin-content'),data=allData[dk]||{},keys=Object.keys(data),isQuiz=(dk==='quiz'),h='';
-      if(isQuiz)h+='<div class="info-banner">📝 Quiz: <strong>Subject → Sub-Subject → Topic → Sub-Topic</strong> | 🖼 HTML/SVG supported. <button class="btn btn-yellow btn-xs notranslate" onclick="showHierarchyManager()" style="margin-left:10px;">🏗️ Manage Hierarchy</button></div>';
-      else h+='<div class="info-banner">📖 Syllabus: <strong>Subject → Sub-Subject → Topic → Sub-Topic</strong>. <button class="btn btn-yellow btn-xs notranslate" onclick="showHierarchyManager()" style="margin-left:10px;">🏗️ Manage Hierarchy</button></div>';
+      if(isQuiz)h+='<div class="info-banner">📝 Quiz: <strong>Subject → Sub-Subject → Topic → Sub-Topic</strong> | 🖼 HTML/SVG supported. <button class="btn btn-yellow btn-xs notranslate" onclick="window.showHierarchyManager()" style="margin-left:10px;">🏗️ Manage Hierarchy</button></div>';
+      else h+='<div class="info-banner">📖 Syllabus: <strong>Subject → Sub-Subject → Topic → Sub-Topic</strong>. <button class="btn btn-yellow btn-xs notranslate" onclick="window.showHierarchyManager()" style="margin-left:10px;">🏗️ Manage Hierarchy</button></div>';
       if(isQuiz){
         h+='<div class="csv-box"><h3>📥 Bulk Upload Quiz (CSV/TSV/TXT/JSON/HTML)</h3><div class="csv-fmt"><strong>10 Columns:</strong> SNO | Subject | Sub-Subject | Topic | Sub-Topic | Question | Option A | Option B | Correct | Explanation<br>🖼 Supports 2 or 4 options (A/B/C/D). Option C &amp; D columns optional — questions with only A/B work automatically on the Student app.<br>🖼 HTML/SVG with double‑quotes fully supported. Drag & drop .tsv file directly.</div>';
         h+='<div class="file-upload-area" id="fileDropZone" onclick="document.getElementById(\'csvFileInput\').click()"><div class="file-upload-icon">📁</div><div style="font-weight:700;color:#38bdf8;">Click or Drag & Drop Files</div><div class="file-types-info">.csv .tsv .txt .json .html .htm</div></div>';
-        h+='<input type="file" id="csvFileInput" style="display:none;" accept=".csv,.tsv,.txt,.json,.html,.htm,text/*" onchange="handleFileEvent(event)">';
-        h+='<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste CSV/TSV/JSON/HTML here..." style="min-height:90px;"></textarea><button class="btn btn-teal btn-sm notranslate" onclick="parsePastedEvent()">🔍 Parse</button></div>';
+        h+='<input type="file" id="csvFileInput" style="display:none;" accept=".csv,.tsv,.txt,.json,.html,.htm,text/*" onchange="window.handleFileEvent(event)">';
+        h+='<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste CSV/TSV/JSON/HTML here..." style="min-height:90px;"></textarea><button class="btn btn-teal btn-sm notranslate" onclick="window.parsePastedEvent()">🔍 Parse</button></div>';
         h+='<div id="csvPreviewArea"></div></div>';
       }
       h+='<div class="toolbar">';
       var mainSubs=getMainSubjects();
-      h+='<select class="form-inp" id="filterSubject" onchange="updateFilter(\'subject\',this.value);updateSubFilter()" style="max-width:150px;"><option value="ALL">📚 All Subjects</option>';
+      h+='<select class="form-inp" id="filterSubject" onchange="window.updateFilter(\'subject\',this.value);window.updateSubFilter()" style="max-width:150px;"><option value="ALL">📚 All Subjects</option>';
       for(var si=0;si<mainSubs.length;si++)h+='<option value="'+escapeAttr(mainSubs[si])+'" '+(currentFilters.subject===mainSubs[si]?'selected':'')+'>'+sanitizeHTML(mainSubs[si])+'</option>';
-      h+='</select><select class="form-inp" id="filterSubSubject" onchange="updateFilter(\'subSubject\',this.value);updateTopicFilter()" style="max-width:150px;"><option value="ALL">📝 All Sub-Subjects</option>';
+      h+='</select><select class="form-inp" id="filterSubSubject" onchange="window.updateFilter(\'subSubject\',this.value);window.updateTopicFilter()" style="max-width:150px;"><option value="ALL">📝 All Sub-Subjects</option>';
       if(currentFilters.subject!=='ALL'){var subs=getSubSubjects(currentFilters.subject);for(var ssi=0;ssi<subs.length;ssi++)h+='<option value="'+escapeAttr(subs[ssi])+'" '+(currentFilters.subSubject===subs[ssi]?'selected':'')+'>'+sanitizeHTML(subs[ssi])+'</option>'}
-      h+='</select><select class="form-inp" id="filterTopic" onchange="updateFilter(\'topic\',this.value);updateSubTopicFilter()" style="max-width:150px;"><option value="ALL">📌 All Topics</option>';
+      h+='</select><select class="form-inp" id="filterTopic" onchange="window.updateFilter(\'topic\',this.value);window.updateSubTopicFilter()" style="max-width:150px;"><option value="ALL">📌 All Topics</option>';
       if(currentFilters.subject!=='ALL'&&currentFilters.subSubject!=='ALL'){var topics=getTopics(currentFilters.subject,currentFilters.subSubject);for(var ti=0;ti<topics.length;ti++)h+='<option value="'+escapeAttr(topics[ti])+'" '+(currentFilters.topic===topics[ti]?'selected':'')+'>'+sanitizeHTML(topics[ti])+'</option>'}
-      h+='</select><select class="form-inp" id="filterSubTopic" onchange="updateFilter(\'subTopic\',this.value)" style="max-width:150px;"><option value="ALL">🔹 All Sub-Topics</option>';
+      h+='</select><select class="form-inp" id="filterSubTopic" onchange="window.updateFilter(\'subTopic\',this.value)" style="max-width:150px;"><option value="ALL">🔹 All Sub-Topics</option>';
       if(currentFilters.subject!=='ALL'&&currentFilters.subSubject!=='ALL'&&currentFilters.topic!=='ALL'){var sts=getSubTopics(currentFilters.subject,currentFilters.subSubject,currentFilters.topic);for(var sti=0;sti<sts.length;sti++)h+='<option value="'+escapeAttr(sts[sti])+'" '+(currentFilters.subTopic===sts[sti]?'selected':'')+'>'+sanitizeHTML(sts[sti])+'</option>'}
-      h+='</select><select class="form-inp notranslate" id="sortOrder" onchange="updateFilter(\'sort\',this.value)" style="max-width:110px;"><option value="manual" '+(currentFilters.sort==='manual'?'selected':'')+'>Manual</option><option value="newest" '+(currentFilters.sort==='newest'?'selected':'')+'>Newest</option><option value="az" '+(currentFilters.sort==='az'?'selected':'')+'>A-Z</option></select>';
-      h+='<button class="btn btn-blue btn-sm notranslate" onclick="selectAllItems()">☑ All</button><button class="btn btn-dark btn-sm notranslate" onclick="deselectAllItems()">☐ None</button><button class="btn btn-red btn-sm notranslate" onclick="deleteSelected()">🗑 Del (<span id="selCount">0</span>)</button>';
-      h+='<button class="btn btn-purple btn-sm notranslate" onclick="downloadData(\''+dk+'\')">📥 JSON</button><button class="btn btn-teal btn-sm notranslate" onclick="downloadCSV(\''+dk+'\')">📊 CSV</button>';
-      if(!isQuiz)h+='<button class="btn btn-green btn-sm notranslate" onclick="showAddSyllabusForm()">➕ Add</button>';
-      if(isQuiz)h+='<button class="btn btn-pink btn-sm notranslate" id="btnToggleAnswers" onclick="toggleAllAnswers()">👁 Show Answers</button>';
+      h+='</select><select class="form-inp notranslate" id="sortOrder" onchange="window.updateFilter(\'sort\',this.value)" style="max-width:110px;"><option value="manual" '+(currentFilters.sort==='manual'?'selected':'')+'>Manual</option><option value="newest" '+(currentFilters.sort==='newest'?'selected':'')+'>Newest</option><option value="az" '+(currentFilters.sort==='az'?'selected':'')+'>A-Z</option></select>';
+      h+='<button class="btn btn-blue btn-sm notranslate" onclick="window.selectAllItems()">☑ All</button><button class="btn btn-dark btn-sm notranslate" onclick="window.deselectAllItems()">☐ None</button><button class="btn btn-red btn-sm notranslate" onclick="window.deleteSelected()">🗑 Del (<span id="selCount">0</span>)</button>';
+      h+='<button class="btn btn-purple btn-sm notranslate" onclick="window.downloadData(\''+dk+'\')">📥 JSON</button><button class="btn btn-teal btn-sm notranslate" onclick="window.downloadCSV(\''+dk+'\')">📊 CSV</button>';
+      if(!isQuiz)h+='<button class="btn btn-green btn-sm notranslate" onclick="window.showAddSyllabusForm()">➕ Add</button>';
+      if(isQuiz)h+='<button class="btn btn-pink btn-sm notranslate" id="btnToggleAnswers" onclick="window.toggleAllAnswers()">👁 Show Answers</button>';
       h+='<span style="color:var(--mut);margin-left:auto;font-size:.72rem;">Total: <strong>'+keys.length+'</strong></span></div>';
       h+='<div id="itemsList">';
       if(keys.length===0)h+='<div style="padding:25px;text-align:center;color:var(--mut);">No data yet.</div>';
       else{var fk=getFilteredAndSortedKeys(keys,data,isQuiz);
         h+=renderItemsList(dk,fk,data,isQuiz)}
       h+='</div><div id="editForm" style="display:none;margin-top:15px;"></div><div id="groupView" style="display:none;margin-top:15px;"></div>';
-      ac.innerHTML=h;setupFileDropZone();updateSelCount();
+      ac.innerHTML=h;
+      setupFileDropZone();
+      updateSelCount();
     }
 
-    function setupFileDropZone(){var dropZone=document.getElementById('fileDropZone');if(!dropZone)return;['dragenter','dragover','dragleave','drop'].forEach(function(e){dropZone.addEventListener(e,function(ev){ev.preventDefault();ev.stopPropagation();});});['dragenter','dragover'].forEach(function(e){dropZone.addEventListener(e,function(){dropZone.classList.add('drag-over');});});['dragleave','drop'].forEach(function(e){dropZone.addEventListener(e,function(){dropZone.classList.remove('drag-over');});});dropZone.addEventListener('drop',function(e){var files=e.dataTransfer.files;if(files.length>0){document.getElementById('csvFileInput').files=files;handleFileEvent({target:{files:files}});}});}
+    // ============ ROBUST FILE DROP ZONE ============
+    function setupFileDropZone(){
+      var dropZone = document.getElementById('fileDropZone');
+      var fileInput = document.getElementById('csvFileInput');
+      if(!dropZone || !fileInput) return;
+
+      dropZone.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('drag-over');
+      }, false);
+
+      dropZone.addEventListener('dragleave', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+      }, false);
+
+      dropZone.addEventListener('drop', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+          var files = e.dataTransfer.files;
+          if(files && files.length > 0) {
+              fileInput.files = files; 
+              window.handleFileEvent({target: {files: files}});
+          }
+      }, false);
+    }
+
     window.toggleAllAnswers = function(){window.answersVisible=!window.answersVisible;var all=document.querySelectorAll('.quiz-answers-hidden');var btn=document.getElementById('btnToggleAnswers');for(var i=0;i<all.length;i++)all[i].style.display=window.answersVisible?'block':'none';if(btn)btn.innerHTML=window.answersVisible?'🙈 Hide':'👁 Show'}
     window.viewQuizGroup = function(key){var gv=document.getElementById('groupView'),qs=(allData.quiz&&allData.quiz[key])?allData.quiz[key]:null;if(!qs||!Array.isArray(qs)){gv.innerHTML='<p>No data</p>';gv.style.display='block';return}var h='<div class="card"><h3>📝 '+sanitizeHTML(key.replace(/_/g,' '))+' ('+qs.length+' Qs)</h3><button class="btn btn-dark btn-sm" onclick="document.getElementById(\'groupView\').style.display=\'none\'">← Back</button><br><br>';for(var i=0;i<qs.length;i++){var q=qs[i];h+='<div class="answer-display-box"><strong>Q'+(i+1)+':</strong> '+scrubHtml(q.question)+'<br><strong>✅ Answer:</strong> '+sanitizeHTML(q.correctAnswer)+') '+scrubHtml((q.options&&q.options[q.correctAnswer])||'');if(q.options)h+='<br><small style="color:var(--mut);">A: '+scrubHtml(q.options.A||'')+' | B: '+scrubHtml(q.options.B||'')+(q.options.C?' | C: '+scrubHtml(q.options.C||''):'')+(q.options.D?' | D: '+scrubHtml(q.options.D||''):'')+'</small>';if(q.explanation)h+='<br><small style="color:#fbbf24;">💡 '+scrubHtml(q.explanation)+'</small>';h+='</div>'}h+='</div>';gv.innerHTML=h;gv.style.display='block';gv.scrollIntoView({behavior:'smooth'})}
     window.updateSubFilter = function(){var sel=document.getElementById('filterSubSubject');if(!sel)return;sel.innerHTML='<option value="ALL">📝 All Sub-Subjects</option>';if(currentFilters.subject!=='ALL'){var subs=getSubSubjects(currentFilters.subject);for(var i=0;i<subs.length;i++)sel.innerHTML+='<option value="'+escapeAttr(subs[i])+'">'+sanitizeHTML(subs[i])+'</option>'}currentFilters.subSubject='ALL';currentFilters.topic='ALL';currentFilters.subTopic='ALL';window.updateTopicFilter();}
     window.updateTopicFilter = function(){var sel=document.getElementById('filterTopic');if(!sel)return;sel.innerHTML='<option value="ALL">📌 All Topics</option>';if(currentFilters.subject!=='ALL'&&currentFilters.subSubject!=='ALL'){var topics=getTopics(currentFilters.subject,currentFilters.subSubject);for(var i=0;i<topics.length;i++)sel.innerHTML+='<option value="'+escapeAttr(topics[i])+'">'+sanitizeHTML(topics[i])+'</option>'}currentFilters.topic='ALL';currentFilters.subTopic='ALL';window.updateSubTopicFilter();}
     window.updateSubTopicFilter = function(){var sel=document.getElementById('filterSubTopic');if(!sel)return;sel.innerHTML='<option value="ALL">🔹 All Sub-Topics</option>';if(currentFilters.subject!=='ALL'&&currentFilters.subSubject!=='ALL'&&currentFilters.topic!=='ALL'){var sts=getSubTopics(currentFilters.subject,currentFilters.subSubject,currentFilters.topic);for(var i=0;i<sts.length;i++)sel.innerHTML+='<option value="'+escapeAttr(sts[i])+'">'+sanitizeHTML(sts[i])+'</option>'}currentFilters.subTopic='ALL';}
+    
+    // ============ LIST DRAG AND DROP REORDERING ============
     window.handleDragStart = function(e){draggedItem=e.target.closest('.list-item');if(!draggedItem)return;draggedKey=draggedItem.dataset.key;draggedIndex=parseInt(draggedItem.dataset.index);draggedItem.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
     window.handleDragEnd = function(e){if(draggedItem)draggedItem.classList.remove('dragging');document.querySelectorAll('.list-item').forEach(function(el){el.classList.remove('drag-over')});draggedItem=null;draggedKey=null;draggedIndex=null;}
     window.handleDragOver = function(e){e.preventDefault();e.dataTransfer.dropEffect='move';var target=e.target.closest('.list-item');if(target&&target!==draggedItem)target.classList.add('drag-over');}
@@ -552,13 +590,13 @@
       if(isQuiz){
         allData.quiz[keyA][0].order = orderB;
         allData.quiz[keyB][0].order = orderA;
-        await saveDB(`${dbKey}/${keyA}`, allData.quiz[keyA]);
-        await saveDB(`${dbKey}/${keyB}`, allData.quiz[keyB]);
+        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: `${dbKey}/${keyA}`, data: allData.quiz[keyA] }) });
+        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: `${dbKey}/${keyB}`, data: allData.quiz[keyB] }) });
       }else{
         allData.syllabus[keyA].order = orderB;
         allData.syllabus[keyB].order = orderA;
-        await saveDB(`${dbKey}/${keyA}`, allData.syllabus[keyA]);
-        await saveDB(`${dbKey}/${keyB}`, allData.syllabus[keyB]);
+        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: `${dbKey}/${keyA}`, data: allData.syllabus[keyA] }) });
+        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: `${dbKey}/${keyB}`, data: allData.syllabus[keyB] }) });
       }
       refreshUI();
     }
@@ -571,7 +609,6 @@
     window.deselectAllItems = function(){selectedItems={};updateSelCount();refreshUI();}
     function updateSelCount(){var cnt=Object.keys(selectedItems).length,el=document.getElementById('selCount');if(el)el.innerText=cnt;}
     
-    // GRANULAR DELETE (SAFE FOR LARGE DBS)
     window.deleteSelected = async function(){
       var sk=Object.keys(selectedItems);
       if(sk.length===0){toast('No items selected!','error');return}
@@ -611,17 +648,188 @@
     
     window.downloadData = function(dk){var data=allData[dk]||{},ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data),ed={};for(var i=0;i<ks.length;i++)ed[ks[i]]=data[ks[i]];var blob=new Blob([JSON.stringify(ed,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=dk+'_data.json';a.click();URL.revokeObjectURL(url);toast('Downloaded!','success')}
     window.downloadCSV = function(dk){var data=allData[dk]||{},ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data),isQuiz=(dk=='quiz'),csv='';if(isQuiz){csv='Subject,Sub-Subject,Topic,Sub-Topic,Question,Option A,Option B,Option C,Option D,Correct,Explanation\n';for(var i=0;i<ks.length;i++){var g=data[ks[i]];if(!Array.isArray(g))continue;for(var j=0;j<g.length;j++){var q=g[j];csv+='"'+escCSV(q.subject||'')+'","'+escCSV(getSavedSubSubject(q))+'","'+escCSV(getSavedTopic(q))+'","'+escCSV(getSavedSubTopic(q))+'","'+escCSV(q.question)+'","'+escCSV(q.options.A)+'","'+escCSV(q.options.B)+'","'+escCSV(q.options.C)+'","'+escCSV(q.options.D)+'","'+q.correctAnswer+'","'+escCSV(q.explanation||'')+'"\n'}}}else{csv='Title,Subject,Sub-Subject,Topic,Sub-Topic,Content\n';for(var m=0;m<ks.length;m++){var it=data[ks[m]];csv+='"'+escCSV(it.title||'')+'","'+escCSV(it.subject||'')+'","'+escCSV(it.subSubject||'')+'","'+escCSV(it.topic||'')+'","'+escCSV(it.subTopic||'')+'","'+escCSV((it.content||'').replace(/<[^>]*>/g,'').substring(0,300))+'"\n'}}var blob=new Blob([csv],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=dk+'_export.csv';a.click();URL.revokeObjectURL(url);toast('Downloaded!','success')}
-    window.handleFileEvent = function(event){var file=event.target.files[0];if(!file){toast('No file selected!','error');return}var reader=new FileReader();reader.onload=function(e){smartParse(e.target.result,file.name);};reader.readAsText(file);}
-    window.parsePastedEvent = function(){var txt=document.getElementById('csvPasteInput').value.trim();if(!txt){toast('Paste data first!','error');return}if(txt.startsWith('[')||txt.startsWith('{')){try{parseJSONData(JSON.parse(txt));return;}catch(e){}}smartParse(txt,'pasted');}
-    function smartParse(text,sourceName){if(!text||typeof text!=='string'){toast('Invalid data!','error');return}var rows=parseCSVRows(text);if(rows.length<2){toast('Need header + data rows. Found: '+rows.length,'error');return}var delimiter=detectDelimiter(rows);var headers=smartSplitLine(rows[0],delimiter);var colMap={subject:-1,subSubject:-1,topic:-1,subTopic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};for(var hi=0;hi<headers.length;hi++){var hdr=headers[hi].toLowerCase().replace(/[\s_-]/g,'');if(hdr==='subject'||hdr==='mainsubject')colMap.subject=hi;else if(hdr==='subsubject'||hdr==='sub-subject')colMap.subSubject=hi;else if(hdr==='topic')colMap.topic=hi;else if(hdr==='subtopic'||hdr==='sub-topic')colMap.subTopic=hi;else if(hdr==='question'||hdr==='ques'||hdr==='q')colMap.question=hi;else if(hdr==='optiona'||hdr==='opta'||hdr==='a')colMap.optA=hi;else if(hdr==='optionb'||hdr==='optb'||hdr==='b')colMap.optB=hi;else if(hdr==='optionc'||hdr==='optc'||hdr==='c')colMap.optC=hi;else if(hdr==='optiond'||hdr==='optd'||hdr==='d')colMap.optD=hi;else if(hdr==='correct'||hdr==='answer'||hdr==='ans')colMap.correct=hi;else if(hdr==='explanation'||hdr==='exp')colMap.explanation=hi;}if(colMap.subject===-1&&headers.length>1)colMap.subject=1;if(colMap.subSubject===-1&&headers.length>2)colMap.subSubject=2;if(colMap.topic===-1&&headers.length>3)colMap.topic=3;if(colMap.subTopic===-1&&headers.length>4)colMap.subTopic=4;if(colMap.question===-1&&headers.length>5)colMap.question=5;if(colMap.optA===-1&&headers.length>6)colMap.optA=6;if(colMap.optB===-1&&headers.length>7)colMap.optB=7;if(colMap.correct===-1&&headers.length>8)colMap.correct=8;if(colMap.explanation===-1&&headers.length>9)colMap.explanation=9;csvRows=[];var errors=[];for(var l=1;l<rows.length;l++){var cols=smartSplitLine(rows[l],delimiter);if(cols.length<7){errors.push('Row '+(l+1)+': too few columns');continue}var subject=getCol(cols,colMap.subject)||'General',subSubject=getCol(cols,colMap.subSubject)||'General',topic=getCol(cols,colMap.topic)||'General',subTopic=getCol(cols,colMap.subTopic)||'';var question=getCol(cols,colMap.question),optA=getCol(cols,colMap.optA),optB=getCol(cols,colMap.optB),optC=getCol(cols,colMap.optC),optD=getCol(cols,colMap.optD),ans=getCol(cols,colMap.correct).toUpperCase().trim().charAt(0),exp=getCol(cols,colMap.explanation)||'';if(!question||!optA||!optB||!ans){errors.push('Row '+(l+1)+': missing Q/A/B/Correct');continue}if(['A','B','C','D'].indexOf(ans)===-1){errors.push('Row '+(l+1)+': Correct must be A/B/C/D');continue}var key=(subject+'_'+subSubject+'_'+topic+(subTopic?'_'+subTopic:'')).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');csvRows.push({key:key,subject:subject,subSubject:subSubject,topic:topic,subTopic:subTopic||'',question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});}showCSVPreview(errors,sourceName+' ('+(delimiter==='\t'?'TSV':'CSV')+')');}
-    function parseCSVRows(text){var rows=[],current='',inQuotes=false;for(var i=0;i<text.length;i++){var ch=text[i];if(inQuotes&&ch==='"'&&i+1<text.length&&text[i+1]==='"'){current+='""';i++;continue;}if(ch==='"'){inQuotes=!inQuotes;current+=ch;continue;}if(ch==='\n'&&!inQuotes){if(current.trim())rows.push(current.trim());current='';continue;}if(ch==='\r'&&!inQuotes){if(current.trim())rows.push(current.trim());current='';if(i+1<text.length&&text[i+1]==='\n')i++;continue;}current+=ch;}if(current.trim())rows.push(current.trim());return rows;}
-    function detectDelimiter(rows){var tc=0,cc=0;for(var i=0;i<Math.min(5,rows.length);i++){var inQ=false;for(var j=0;j<rows[i].length;j++){var ch=rows[i][j];if(inQ&&ch==='"'&&rows[i][j+1]==='"'){j++;continue;}if(ch==='"'){inQ=!inQ;continue;}if(ch==='\t'&&!inQ)tc++;else if(ch===','&&!inQ)cc++;}}return tc>=cc?'\t':',';}
-    function smartSplitLine(line,delimiter){var result=[],current='',inQuotes=false;for(var i=0;i<line.length;i++){var ch=line[i];if(inQuotes&&ch==='"'&&line[i+1]==='"'){current+='"';i++;continue;}if(ch==='"'){inQuotes=!inQuotes;continue;}if(ch===delimiter&&!inQuotes){result.push(current.trim());current='';continue;}current+=ch;}result.push(current.trim());return result;}
-    function parseJSONData(jsonData){var rows=[];if(!Array.isArray(jsonData)){if(jsonData.question)rows=[jsonData];else if(jsonData.questions)rows=jsonData.questions;else{toast('Invalid JSON!','error');return}}else rows=jsonData;csvRows=[];var errors=[];for(var i=0;i<rows.length;i++){var r=rows[i];var subject=r.subject||r.Subject||'',subSubject=r.subSubject||r.subsubject||r['Sub-Subject']||'',topic=r.topic||r.Topic||'',subTopic=r.subTopic||r.subtopic||r['Sub-Topic']||'',question=r.question||r.Question||'',optA=r.optionA||r.optA||(r.options&&r.options.A)||r['Option A']||'',optB=r.optionB||r.optB||(r.options&&r.options.B)||r['Option B']||'',optC=r.optionC||r.optC||(r.options&&r.options.C)||r['Option C']||'',optD=r.optionD||r.optD||(r.options&&r.options.D)||r['Option D']||'',ans=(r.correctAnswer||r.answer||r.Answer||'').toString().toUpperCase().charAt(0),exp=r.explanation||r.Explanation||'';if(!subject||!question||!optA||!optB||!ans){errors.push('Row '+(i+1)+': missing');continue}if(['A','B','C','D'].indexOf(ans)===-1){errors.push('Row '+(i+1)+': A/B/C/D');continue}var key=(subject+'_'+subSubject+'_'+topic+(subTopic?'_'+subTopic:'')).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');csvRows.push({key:key,subject:subject,subSubject:subSubject,topic:topic,subTopic:subTopic||'',question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});}showCSVPreview(errors,'JSON');}
-    function showCSVPreview(errors,formatType){if(csvRows.length===0){toast('No valid rows! Errors: '+errors.length,'error');return}var groups={};for(var i=0;i<csvRows.length;i++)groups[csvRows[i].key]=(groups[csvRows[i].key]||0)+1;var pv=document.getElementById('csvPreviewArea');pv.style.display='block';var h='<div style="margin-top:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:6px;"><p><strong>✅ '+csvRows.length+' Questions</strong> in <strong>'+Object.keys(groups).length+' Groups</strong> ('+formatType+')</p>';if(errors.length>0)h+='<p style="color:#f59e0b;font-size:.7rem;">⚠️ '+errors.length+' skipped</p>';h+='<button class="btn btn-green btn-sm notranslate" onclick="uploadCSVToFB()">🚀 Upload '+csvRows.length+' Qs</button> <button class="btn btn-dark btn-sm notranslate" onclick="clearCSVData()">🗑 Clear</button><div id="csvUploadStatus" style="margin-top:6px;font-size:.75rem;"></div></div>';pv.innerHTML=h;pv.scrollIntoView({behavior:'smooth'});}
+    
+    // ============ ROBUST PARSING LOGIC ============
+    window.handleFileEvent = function(event){
+        var file=event.target.files[0];
+        if(!file){toast('No file selected!','error');return}
+        var reader=new FileReader();
+        reader.onload=function(e){ window.smartParse(e.target.result, file.name); };
+        reader.readAsText(file);
+        event.target.value = ''; // Reset input to allow uploading same file again
+    }
+    
+    window.parsePastedEvent = function(){
+        var txt=document.getElementById('csvPasteInput').value;
+        window.smartParse(txt, 'pasted');
+    }
+
+    window.smartParse = function(text, sourceName){
+        text = text ? text.trim() : '';
+        if(!text){ toast('Invalid or empty data!','error'); return; }
+        
+        // 1. Check if it's JSON
+        if(text.startsWith('[') || text.startsWith('{')){
+            try{ 
+                var parsed = JSON.parse(text);
+                window.parseJSONData(parsed); 
+                return; 
+            }catch(e){
+                console.warn('Data started with { or [ but failed JSON parsing. Trying CSV...', e);
+            }
+        }
+        
+        // 2. CSV / TSV Fallback
+        var rows = window.parseCSVRows(text);
+        if(rows.length < 2){toast('Need header + data rows. Found: '+rows.length,'error');return}
+        
+        var delimiter = window.detectDelimiter(rows);
+        var headers = window.smartSplitLine(rows[0], delimiter);
+        
+        var colMap={subject:-1,subSubject:-1,topic:-1,subTopic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};
+        for(var hi=0;hi<headers.length;hi++){
+            var hdr=headers[hi].toLowerCase().replace(/[\s_"-]/g,'');
+            if(hdr==='subject'||hdr==='mainsubject')colMap.subject=hi;
+            else if(hdr==='subsubject')colMap.subSubject=hi;
+            else if(hdr==='topic')colMap.topic=hi;
+            else if(hdr==='subtopic')colMap.subTopic=hi;
+            else if(hdr==='question'||hdr==='ques'||hdr==='q')colMap.question=hi;
+            else if(hdr==='optiona'||hdr==='opta'||hdr==='a')colMap.optA=hi;
+            else if(hdr==='optionb'||hdr==='optb'||hdr==='b')colMap.optB=hi;
+            else if(hdr==='optionc'||hdr==='optc'||hdr==='c')colMap.optC=hi;
+            else if(hdr==='optiond'||hdr==='optd'||hdr==='d')colMap.optD=hi;
+            else if(hdr==='correct'||hdr==='answer'||hdr==='ans')colMap.correct=hi;
+            else if(hdr==='explanation'||hdr==='exp')colMap.explanation=hi;
+        }
+        
+        // Fallbacks if headers weren't named exactly
+        if(colMap.subject===-1&&headers.length>1)colMap.subject=1;
+        if(colMap.subSubject===-1&&headers.length>2)colMap.subSubject=2;
+        if(colMap.topic===-1&&headers.length>3)colMap.topic=3;
+        if(colMap.subTopic===-1&&headers.length>4)colMap.subTopic=4;
+        if(colMap.question===-1&&headers.length>5)colMap.question=5;
+        if(colMap.optA===-1&&headers.length>6)colMap.optA=6;
+        if(colMap.optB===-1&&headers.length>7)colMap.optB=7;
+        if(colMap.correct===-1&&headers.length>8)colMap.correct=8;
+        if(colMap.explanation===-1&&headers.length>9)colMap.explanation=9;
+        
+        csvRows=[]; var errors=[];
+        for(var l=1;l<rows.length;l++){
+            var cols = window.smartSplitLine(rows[l], delimiter);
+            if(cols.length < 7){ errors.push('Row '+(l+1)+': too few columns'); continue; }
+            
+            var subject=window.getCol(cols,colMap.subject)||'General', subSubject=window.getCol(cols,colMap.subSubject)||'General', topic=window.getCol(cols,colMap.topic)||'General', subTopic=window.getCol(cols,colMap.subTopic)||'';
+            var question=window.getCol(cols,colMap.question), optA=window.getCol(cols,colMap.optA), optB=window.getCol(cols,colMap.optB), optC=window.getCol(cols,colMap.optC), optD=window.getCol(cols,colMap.optD), ans=window.getCol(cols,colMap.correct).toUpperCase().trim().charAt(0), exp=window.getCol(cols,colMap.explanation)||'';
+            
+            if(!question||!optA||!optB||!ans){errors.push('Row '+(l+1)+': missing Q/A/B/Correct');continue;}
+            if(['A','B','C','D'].indexOf(ans)===-1){errors.push('Row '+(l+1)+': Correct must be A/B/C/D');continue;}
+            
+            var key=(subject+'_'+subSubject+'_'+topic+(subTopic?'_'+subTopic:'')).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+            csvRows.push({key:key,subject:subject,subSubject:subSubject,topic:topic,subTopic:subTopic||'',question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
+        }
+        window.showCSVPreview(errors, sourceName+' ('+(delimiter==='\t'?'TSV':'CSV')+')');
+    }
+
+    window.smartSplitLine = function(line, delimiter) {
+        var result = []; var current = ''; var inQuotes = false;
+        for (var i = 0; i < line.length; i++) {
+            var ch = line[i];
+            if (ch === '"') {
+                if (inQuotes && line[i + 1] === '"') { current += '"'; i++; } else { inQuotes = !inQuotes; }
+            } else if (ch === delimiter && !inQuotes) {
+                result.push(current.trim()); current = '';
+            } else { current += ch; }
+        }
+        result.push(current.trim());
+        return result;
+    };
+    
+    window.getCol = function(cols, idx){ return (idx >= 0 && idx < cols.length) ? cols[idx] : ''; }
+    
+    window.parseCSVRows = function(text){
+        var rows=[], current='', inQuotes=false;
+        for(var i=0;i<text.length;i++){
+            var ch=text[i];
+            if(ch==='"'){
+                if(inQuotes && text[i+1]==='"'){ current+='"'; i++; continue; }
+                inQuotes=!inQuotes; continue;
+            }
+            if(ch==='\n' && !inQuotes){ if(current.trim()) rows.push(current.trim()); current=''; continue; }
+            if(ch==='\r' && !inQuotes){ if(current.trim()) rows.push(current.trim()); current=''; if(text[i+1]==='\n') i++; continue; }
+            current+=ch;
+        }
+        if(current.trim()) rows.push(current.trim());
+        return rows;
+    }
+    
+    window.detectDelimiter = function(rows){
+        var tc=0,cc=0;
+        for(var i=0;i<Math.min(5,rows.length);i++){
+            var inQ=false;
+            for(var j=0;j<rows[i].length;j++){
+                var ch=rows[i][j];
+                if(ch==='"'){ if(inQ && rows[i][j+1]==='"') j++; else inQ=!inQ; continue; }
+                if(ch==='\t' && !inQ) tc++;
+                else if(ch===',' && !inQ) cc++;
+            }
+        }
+        return tc>=cc ? '\t' : ',';
+    }
+
+    window.parseJSONData = function(jsonData){
+        var rows=[];
+        // Auto-extract if Firebase JSON export format
+        if(!Array.isArray(jsonData) && typeof jsonData === 'object') {
+            Object.keys(jsonData).forEach(function(k) {
+                if(Array.isArray(jsonData[k])) {
+                    rows = rows.concat(jsonData[k]);
+                } else if(typeof jsonData[k] === 'object' && jsonData[k].question) {
+                     rows.push(jsonData[k]); // Direct question objects
+                } else if(typeof jsonData[k] === 'object') {
+                     // Might be numbered objects { "0": {question}, "1": {question} }
+                     Object.keys(jsonData[k]).forEach(subKey => {
+                         if(jsonData[k][subKey].question) rows.push(jsonData[k][subKey]);
+                     });
+                }
+            });
+            if(rows.length === 0) {
+               if(jsonData.question) rows=[jsonData];
+               else if(jsonData.questions) rows=jsonData.questions;
+            }
+        } else {
+            rows=jsonData;
+        }
+
+        if(!rows || rows.length === 0){ toast('No valid questions found in JSON!','error'); return; }
+        
+        csvRows=[]; var errors=[];
+        for(var i=0;i<rows.length;i++){
+            var r=rows[i];
+            var subject=r.subject||r.Subject||'General', subSubject=r.subSubject||r.subsubject||r['Sub-Subject']||'General', topic=r.topic||r.Topic||'General', subTopic=r.subTopic||r.subtopic||r['Sub-Topic']||'';
+            var question=r.question||r.Question||'', optA=r.optionA||r.optA||(r.options&&r.options.A)||r['Option A']||'', optB=r.optionB||r.optB||(r.options&&r.options.B)||r['Option B']||'', optC=r.optionC||r.optC||(r.options&&r.options.C)||r['Option C']||'', optD=r.optionD||r.optD||(r.options&&r.options.D)||r['Option D']||'', ans=(r.correctAnswer||r.answer||r.Answer||'').toString().toUpperCase().charAt(0), exp=r.explanation||r.Explanation||'';
+            
+            if(!question||!optA||!optB||!ans){errors.push('Row '+(i+1)+': missing data');continue}
+            if(['A','B','C','D'].indexOf(ans)===-1){errors.push('Row '+(i+1)+': Invalid Correct Ans');continue}
+            var key=(subject+'_'+subSubject+'_'+topic+(subTopic?'_'+subTopic:'')).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+            csvRows.push({key:key,subject:subject,subSubject:subSubject,topic:topic,subTopic:subTopic||'',question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
+        }
+        window.showCSVPreview(errors,'JSON Data');
+    }
+
+    window.showCSVPreview = function(errors,formatType){
+        if(csvRows.length===0){toast('No valid rows! Errors: '+errors.length,'error');return}
+        var groups={};
+        for(var i=0;i<csvRows.length;i++) groups[csvRows[i].key]=(groups[csvRows[i].key]||0)+1;
+        var pv=document.getElementById('csvPreviewArea'); pv.style.display='block';
+        var h='<div style="margin-top:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:6px;"><p><strong>✅ '+csvRows.length+' Questions</strong> in <strong>'+Object.keys(groups).length+' Groups</strong> ('+formatType+')</p>';
+        if(errors.length>0) h+='<p style="color:#f59e0b;font-size:.7rem;">⚠️ '+errors.length+' skipped due to empty fields.</p>';
+        h+='<button class="btn btn-green btn-sm notranslate" onclick="window.uploadCSVToFB()">🚀 Upload '+csvRows.length+' Qs</button> <button class="btn btn-dark btn-sm notranslate" onclick="window.clearCSVData()">🗑 Clear</button><div id="csvUploadStatus" style="margin-top:6px;font-size:.75rem;"></div></div>';
+        pv.innerHTML=h; pv.scrollIntoView({behavior:'smooth'});
+    }
+    
     window.clearCSVData = function(){csvRows=[];var fi=document.getElementById('csvFileInput'),pi=document.getElementById('csvPasteInput'),pv=document.getElementById('csvPreviewArea');if(fi)fi.value='';if(pi)pi.value='';if(pv){pv.style.display='none';pv.innerHTML='';}}
     
-    // NEW: GRANULAR UPLOAD (SAFE FOR VERCEL LIMITS)
+    // GRANULAR UPLOAD (SAFE FOR VERCEL LIMITS)
     window.uploadCSVToFB = async function(){
       if(!csvRows||csvRows.length===0)return;
       var st=document.getElementById('csvUploadStatus');
@@ -689,15 +897,15 @@
       }
       
       if(failed > 0){
-        st.innerHTML=`<span style="color:#ef4444;">⚠️ Uploaded ${done}, Failed ${failed} groups. Check F12 Console.</span>`;
+        st.innerHTML=`<span style="color:#ef4444;">⚠️ Uploaded ${done}, Failed ${failed} groups.</span>`;
       } else {
         st.innerHTML=`<span style="color:#22c55e;">✅ Done! Uploaded to ${done} groups.</span>`;
         toast('Upload Complete!','success');
-        setTimeout(function(){clearCSVData();refreshUI()}, 1500);
+        setTimeout(function(){window.clearCSVData();refreshUI()}, 1500);
       }
     }
     
-    window.editQuizGroup = function(key){var qs=allData.quiz[key];if(!qs||!Array.isArray(qs)){toast('No data!','error');return}var fq=(qs.length>0)?qs[0]:{};var savedSubject=fq.subject||'',savedSubSubject=getSavedSubSubject(fq),savedTopic=getSavedTopic(fq),savedSubTopic=getSavedSubTopic(fq);var gv=document.getElementById('groupView'),mainSubs=getMainSubjects();if(!savedSubject||mainSubs.indexOf(savedSubject)===-1)savedSubject=mainSubs[0];var availableSubs=getSubSubjects(savedSubject);if(availableSubs.length===0)availableSubs=['General'];if(!savedSubSubject||availableSubs.indexOf(savedSubSubject)===-1)savedSubSubject=availableSubs[0];var availableTopics=getTopics(savedSubject,savedSubSubject);if(availableTopics.length===0)availableTopics=['General'];if(!savedTopic||availableTopics.indexOf(savedTopic)===-1)savedTopic=availableTopics[0];var availableSubTopics=getSubTopics(savedSubject,savedSubSubject,savedTopic);if(availableSubTopics.length===0)availableSubTopics=['General'];if(!savedSubTopic||availableSubTopics.indexOf(savedSubTopic)===-1)savedSubTopic=availableSubTopics[0];var h='<div class="card"><h3>✏️ Edit Quiz Group</h3>';h+='<div class="form-group"><label>🔑 Group Key *</label><input type="text" id="qe-title" class="form-inp" value="'+escapeAttr(key)+'"></div>';h+='<div class="form-group"><label>📚 Subject *</label><select id="qe-subject" class="form-inp" onchange="qeUpdateSubSubject()">';for(var si=0;si<mainSubs.length;si++)h+='<option value="'+escapeAttr(mainSubs[si])+'" '+(savedSubject===mainSubs[si]?'selected':'')+'>'+sanitizeHTML(mainSubs[si])+'</option>';h+='</select></div><div class="form-group"><label>📂 Sub-Subject *</label><select id="qe-subsubject" class="form-inp" onchange="qeUpdateTopic()">';for(var qi=0;qi<availableSubs.length;qi++)h+='<option value="'+escapeAttr(availableSubs[qi])+'" '+(savedSubSubject===availableSubs[qi]?'selected':'')+'>'+sanitizeHTML(availableSubs[qi])+'</option>';h+='</select></div><div class="form-group"><label>📌 Topic *</label><select id="qe-topic" class="form-inp" onchange="qeUpdateSubTopic()">';for(var tj=0;tj<availableTopics.length;tj++)h+='<option value="'+escapeAttr(availableTopics[tj])+'" '+(savedTopic===availableTopics[tj]?'selected':'')+'>'+sanitizeHTML(availableTopics[tj])+'</option>';h+='</select></div><div class="form-group"><label>🔹 Sub-Topic <span class="optional-label">(optional)</span></label><select id="qe-subtopic" class="form-inp">';for(var tk=0;tk<availableSubTopics.length;tk++)h+='<option value="'+escapeAttr(availableSubTopics[tk])+'" '+(savedSubTopic===availableSubTopics[tk]?'selected':'')+'>'+sanitizeHTML(availableSubTopics[tk])+'</option>';h+='</select></div><p style="color:var(--mut);font-size:.78rem;">📝 '+qs.length+' Questions | 🖼 HTML supported</p>';h+='<button class="btn btn-dark btn-sm notranslate" onclick="document.getElementById(\'groupView\').style.display=\'none\'">← Back</button><button class="btn btn-green btn-sm notranslate" style="margin-left:8px;" onclick="saveQuizGroupEdits(\''+escapeAttr(key)+'\')">💾 Save All Changes</button><br><br>';for(var i=0;i<qs.length;i++){var q=qs[i];h+='<div class="edit-question-card"><strong style="color:#f59e0b;">📝 Q'+(i+1)+'</strong><div class="form-group"><label>Question</label><textarea class="form-inp qe-q" data-idx="'+i+'">'+escHTML(q.question||'')+'</textarea></div>';h+='<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option A</label><input class="form-inp qe-a" data-idx="'+i+'" value="'+escHTML((q.options&&q.options.A)||'')+'"></div><div class="form-group" style="flex:1;"><label>Option B</label><input class="form-inp qe-b" data-idx="'+i+'" value="'+escHTML((q.options&&q.options.B)||'')+'"></div></div>';h+='<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option C <span class="optional-label">(optional)</span></label><input class="form-inp qe-o" data-idx="'+i+'" placeholder="Optional" value="'+escHTML((q.options&&q.options.C)||'')+'"></div><div class="form-group" style="flex:1;"><label>Option D <span class="optional-label">(optional)</span></label><input class="form-inp qe-p" data-idx="'+i+'" placeholder="Optional" value="'+escHTML((q.options&&q.options.D)||'')+'"></div></div>';h+='<div class="form-group"><label>✅ Correct</label><select class="form-inp qe-c" data-idx="'+i+'"><option value="A" '+(q.correctAnswer==='A'?'selected':'')+'>A</option><option value="B" '+(q.correctAnswer==='B'?'selected':'')+'>B</option><option value="C" '+(q.correctAnswer==='C'?'selected':'')+'>C</option><option value="D" '+(q.correctAnswer==='D'?'selected':'')+'>D</option></select></div>';h+='<div class="form-group"><label>💡 Explanation</label><input class="form-inp qe-e" data-idx="'+i+'" value="'+escHTML(q.explanation||'')+'"></div></div>';}h+='<button class="btn btn-green btn-sm notranslate" onclick="saveQuizGroupEdits(\''+escapeAttr(key)+'\')">💾 Save All Changes</button></div>';gv.innerHTML=h;gv.style.display='block';gv.scrollIntoView({behavior:'smooth'});}
+    window.editQuizGroup = function(key){var qs=allData.quiz[key];if(!qs||!Array.isArray(qs)){toast('No data!','error');return}var fq=(qs.length>0)?qs[0]:{};var savedSubject=fq.subject||'',savedSubSubject=getSavedSubSubject(fq),savedTopic=getSavedTopic(fq),savedSubTopic=getSavedSubTopic(fq);var gv=document.getElementById('groupView'),mainSubs=getMainSubjects();if(!savedSubject||mainSubs.indexOf(savedSubject)===-1)savedSubject=mainSubs[0];var availableSubs=getSubSubjects(savedSubject);if(availableSubs.length===0)availableSubs=['General'];if(!savedSubSubject||availableSubs.indexOf(savedSubSubject)===-1)savedSubSubject=availableSubs[0];var availableTopics=getTopics(savedSubject,savedSubSubject);if(availableTopics.length===0)availableTopics=['General'];if(!savedTopic||availableTopics.indexOf(savedTopic)===-1)savedTopic=availableTopics[0];var availableSubTopics=getSubTopics(savedSubject,savedSubSubject,savedTopic);if(availableSubTopics.length===0)availableSubTopics=['General'];if(!savedSubTopic||availableSubTopics.indexOf(savedSubTopic)===-1)savedSubTopic=availableSubTopics[0];var h='<div class="card"><h3>✏️ Edit Quiz Group</h3>';h+='<div class="form-group"><label>🔑 Group Key *</label><input type="text" id="qe-title" class="form-inp" value="'+escapeAttr(key)+'"></div>';h+='<div class="form-group"><label>📚 Subject *</label><select id="qe-subject" class="form-inp" onchange="window.qeUpdateSubSubject()">';for(var si=0;si<mainSubs.length;si++)h+='<option value="'+escapeAttr(mainSubs[si])+'" '+(savedSubject===mainSubs[si]?'selected':'')+'>'+sanitizeHTML(mainSubs[si])+'</option>';h+='</select></div><div class="form-group"><label>📂 Sub-Subject *</label><select id="qe-subsubject" class="form-inp" onchange="window.qeUpdateTopic()">';for(var qi=0;qi<availableSubs.length;qi++)h+='<option value="'+escapeAttr(availableSubs[qi])+'" '+(savedSubSubject===availableSubs[qi]?'selected':'')+'>'+sanitizeHTML(availableSubs[qi])+'</option>';h+='</select></div><div class="form-group"><label>📌 Topic *</label><select id="qe-topic" class="form-inp" onchange="window.qeUpdateSubTopic()">';for(var tj=0;tj<availableTopics.length;tj++)h+='<option value="'+escapeAttr(availableTopics[tj])+'" '+(savedTopic===availableTopics[tj]?'selected':'')+'>'+sanitizeHTML(availableTopics[tj])+'</option>';h+='</select></div><div class="form-group"><label>🔹 Sub-Topic <span class="optional-label">(optional)</span></label><select id="qe-subtopic" class="form-inp">';for(var tk=0;tk<availableSubTopics.length;tk++)h+='<option value="'+escapeAttr(availableSubTopics[tk])+'" '+(savedSubTopic===availableSubTopics[tk]?'selected':'')+'>'+sanitizeHTML(availableSubTopics[tk])+'</option>';h+='</select></div><p style="color:var(--mut);font-size:.78rem;">📝 '+qs.length+' Questions | 🖼 HTML supported</p>';h+='<button class="btn btn-dark btn-sm notranslate" onclick="document.getElementById(\'groupView\').style.display=\'none\'">← Back</button><button class="btn btn-green btn-sm notranslate" style="margin-left:8px;" onclick="window.saveQuizGroupEdits(\''+escapeAttr(key)+'\')">💾 Save All Changes</button><br><br>';for(var i=0;i<qs.length;i++){var q=qs[i];h+='<div class="edit-question-card"><strong style="color:#f59e0b;">📝 Q'+(i+1)+'</strong><div class="form-group"><label>Question</label><textarea class="form-inp qe-q" data-idx="'+i+'">'+escHTML(q.question||'')+'</textarea></div>';h+='<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option A</label><input class="form-inp qe-a" data-idx="'+i+'" value="'+escHTML((q.options&&q.options.A)||'')+'"></div><div class="form-group" style="flex:1;"><label>Option B</label><input class="form-inp qe-b" data-idx="'+i+'" value="'+escHTML((q.options&&q.options.B)||'')+'"></div></div>';h+='<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option C <span class="optional-label">(optional)</span></label><input class="form-inp qe-o" data-idx="'+i+'" placeholder="Optional" value="'+escHTML((q.options&&q.options.C)||'')+'"></div><div class="form-group" style="flex:1;"><label>Option D <span class="optional-label">(optional)</span></label><input class="form-inp qe-p" data-idx="'+i+'" placeholder="Optional" value="'+escHTML((q.options&&q.options.D)||'')+'"></div></div>';h+='<div class="form-group"><label>✅ Correct</label><select class="form-inp qe-c" data-idx="'+i+'"><option value="A" '+(q.correctAnswer==='A'?'selected':'')+'>A</option><option value="B" '+(q.correctAnswer==='B'?'selected':'')+'>B</option><option value="C" '+(q.correctAnswer==='C'?'selected':'')+'>C</option><option value="D" '+(q.correctAnswer==='D'?'selected':'')+'>D</option></select></div>';h+='<div class="form-group"><label>💡 Explanation</label><input class="form-inp qe-e" data-idx="'+i+'" value="'+escHTML(q.explanation||'')+'"></div></div>';}h+='<button class="btn btn-green btn-sm notranslate" onclick="window.saveQuizGroupEdits(\''+escapeAttr(key)+'\')">💾 Save All Changes</button></div>';gv.innerHTML=h;gv.style.display='block';gv.scrollIntoView({behavior:'smooth'});}
     window.qeUpdateSubSubject = function(){var main=document.getElementById('qe-subject').value,sel=document.getElementById('qe-subsubject');if(!sel)return;var subs=getSubSubjects(main);if(subs.length===0)subs=['General'];sel.innerHTML='';for(var i=0;i<subs.length;i++)sel.innerHTML+='<option value="'+escapeAttr(subs[i])+'">'+sanitizeHTML(subs[i])+'</option>';window.qeUpdateTopic();}
     window.qeUpdateTopic = function(){var main=document.getElementById('qe-subject').value,sub=document.getElementById('qe-subsubject').value,sel=document.getElementById('qe-topic');if(!sel)return;var topics=getTopics(main,sub);if(topics.length===0)topics=['General'];sel.innerHTML='';for(var i=0;i<topics.length;i++)sel.innerHTML+='<option value="'+escapeAttr(topics[i])+'">'+sanitizeHTML(topics[i])+'</option>';window.qeUpdateSubTopic();}
     window.qeUpdateSubTopic = function(){var main=document.getElementById('qe-subject').value,sub=document.getElementById('qe-subsubject').value,topic=document.getElementById('qe-topic').value,sel=document.getElementById('qe-subtopic');if(!sel)return;var sts=getSubTopics(main,sub,topic);if(sts.length===0)sts=['General'];sel.innerHTML='';for(var i=0;i<sts.length;i++)sel.innerHTML+='<option value="'+escapeAttr(sts[i])+'">'+sanitizeHTML(sts[i])+'</option>';}
@@ -736,8 +944,8 @@
       refreshUI();
     }
     
-    window.showAddSyllabusForm = function(){var ef=document.getElementById('editForm');ef.style.display='block';var mainSubs=getMainSubjects(),firstSub=getSubSubjects(mainSubs[0]),firstTopic=getTopics(mainSubs[0],firstSub[0]),firstSubTopic=getSubTopics(mainSubs[0],firstSub[0],firstTopic[0]);ef.innerHTML='<div class="card"><h3>➕ Add Syllabus (4 Levels)</h3><div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp"></div><div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp" onchange="updateEditSub()">'+mainSubs.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Subject *</label><select id="ef-subsubject" class="form-inp" onchange="updateEditTopic()">'+firstSub.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Topic *</label><select id="ef-topic" class="form-inp" onchange="updateEditSubTopic()">'+firstTopic.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Topic <span class="optional-label">(optional)</span></label><select id="ef-subtopic" class="form-inp">'+firstSubTopic.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:150px;"></textarea></div><button class="btn btn-green btn-sm notranslate" onclick="saveSyllabus(null)">💾 Save</button> <button class="btn btn-dark btn-sm notranslate" onclick="cancelEdit()">❌ Cancel</button></div>'}
-    window.editSyllabusItem = function(key){var item=allData.syllabus[key];if(!item)return;var ef=document.getElementById('editForm');ef.style.display='block';var mainSubs=getMainSubjects(),currentSubs=getSubSubjects(item.subject||mainSubs[0]),currentTopics=getTopics(item.subject||mainSubs[0],item.subSubject||currentSubs[0]),currentSubTopics=getSubTopics(item.subject||mainSubs[0],item.subSubject||currentSubs[0],item.topic||currentTopics[0]);ef.innerHTML='<div class="card"><h3>✏️ Edit Syllabus (4 Levels)</h3><div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp" value="'+escHTML(item.title||'')+'"></div><div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp" onchange="updateEditSub()">'+mainSubs.map(function(s){return'<option '+(item.subject===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Subject *</label><select id="ef-subsubject" class="form-inp" onchange="updateEditTopic()">'+currentSubs.map(function(s){return'<option '+(item.subSubject===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Topic *</label><select id="ef-topic" class="form-inp" onchange="updateEditSubTopic()">'+currentTopics.map(function(s){return'<option '+(item.topic===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Topic <span class="optional-label">(optional)</span></label><select id="ef-subtopic" class="form-inp">'+currentSubTopics.map(function(s){return'<option '+(item.subTopic===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:150px;">'+escHTML(item.content||'')+'</textarea></div><button class="btn btn-green btn-sm notranslate" onclick="saveSyllabus(\''+key+'\')">💾 Update</button> <button class="btn btn-dark btn-sm notranslate" onclick="cancelEdit()">❌ Cancel</button></div>'}
+    window.showAddSyllabusForm = function(){var ef=document.getElementById('editForm');ef.style.display='block';var mainSubs=getMainSubjects(),firstSub=getSubSubjects(mainSubs[0]),firstTopic=getTopics(mainSubs[0],firstSub[0]),firstSubTopic=getSubTopics(mainSubs[0],firstSub[0],firstTopic[0]);ef.innerHTML='<div class="card"><h3>➕ Add Syllabus (4 Levels)</h3><div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp"></div><div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp" onchange="window.updateEditSub()">'+mainSubs.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Subject *</label><select id="ef-subsubject" class="form-inp" onchange="window.updateEditTopic()">'+firstSub.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Topic *</label><select id="ef-topic" class="form-inp" onchange="window.updateEditSubTopic()">'+firstTopic.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Topic <span class="optional-label">(optional)</span></label><select id="ef-subtopic" class="form-inp">'+firstSubTopic.map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:150px;"></textarea></div><button class="btn btn-green btn-sm notranslate" onclick="window.saveSyllabus(null)">💾 Save</button> <button class="btn btn-dark btn-sm notranslate" onclick="window.cancelEdit()">❌ Cancel</button></div>'}
+    window.editSyllabusItem = function(key){var item=allData.syllabus[key];if(!item)return;var ef=document.getElementById('editForm');ef.style.display='block';var mainSubs=getMainSubjects(),currentSubs=getSubSubjects(item.subject||mainSubs[0]),currentTopics=getTopics(item.subject||mainSubs[0],item.subSubject||currentSubs[0]),currentSubTopics=getSubTopics(item.subject||mainSubs[0],item.subSubject||currentSubs[0],item.topic||currentTopics[0]);ef.innerHTML='<div class="card"><h3>✏️ Edit Syllabus (4 Levels)</h3><div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp" value="'+escHTML(item.title||'')+'"></div><div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp" onchange="window.updateEditSub()">'+mainSubs.map(function(s){return'<option '+(item.subject===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Subject *</label><select id="ef-subsubject" class="form-inp" onchange="window.updateEditTopic()">'+currentSubs.map(function(s){return'<option '+(item.subSubject===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Topic *</label><select id="ef-topic" class="form-inp" onchange="window.updateEditSubTopic()">'+currentTopics.map(function(s){return'<option '+(item.topic===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Sub-Topic <span class="optional-label">(optional)</span></label><select id="ef-subtopic" class="form-inp">'+currentSubTopics.map(function(s){return'<option '+(item.subTopic===s?'selected':'')+'>'+sanitizeHTML(s)+'</option>'}).join('')+'</select></div><div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:150px;">'+escHTML(item.content||'')+'</textarea></div><button class="btn btn-green btn-sm notranslate" onclick="window.saveSyllabus(\''+key+'\')">💾 Update</button> <button class="btn btn-dark btn-sm notranslate" onclick="window.cancelEdit()">❌ Cancel</button></div>'}
     window.updateEditSub = function(){var main=document.getElementById('ef-subject').value,sel=document.getElementById('ef-subsubject');if(!sel)return;sel.innerHTML=getSubSubjects(main).map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('');window.updateEditTopic();}
     window.updateEditTopic = function(){var main=document.getElementById('ef-subject').value,sub=document.getElementById('ef-subsubject').value,sel=document.getElementById('ef-topic');if(!sel)return;sel.innerHTML=getTopics(main,sub).map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('');window.updateEditSubTopic();}
     window.updateEditSubTopic = function(){var main=document.getElementById('ef-subject').value,sub=document.getElementById('ef-subsubject').value,topic=document.getElementById('ef-topic').value,sel=document.getElementById('ef-subtopic');if(!sel)return;sel.innerHTML=getSubTopics(main,sub,topic).map(function(s){return'<option>'+sanitizeHTML(s)+'</option>'}).join('');}
@@ -751,15 +959,19 @@
       
       if(!key) key = "syl_" + Date.now();
       allData.syllabus[key] = item;
-      await saveDB(`sscTheoryDatabase/${key}`, item);
+      await fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'set', path: `sscTheoryDatabase/${key}`, data: item })
+      });
       toast(key ? 'Updated!' : 'Added!','success');
-      cancelEdit();
+      window.cancelEdit();
       refreshUI();
     }
     
-    function renderUsers(){var ac=document.getElementById('admin-content'),users=settings.users||{},h='<button class="btn btn-green btn-sm notranslate" onclick="showAddUser()">➕ Add User</button><br><br>';var uks=Object.keys(users);if(uks.length===0)h+='<p style="color:var(--mut);">No users yet.</p>';else for(var i=0;i<uks.length;i++){var ph=uks[i],u=users[ph];h+='<div class="card"><strong>📱 '+sanitizeHTML(ph)+'</strong> | Pass: '+(u.pass?'••••':'N/A')+'<br>Subjects: '+(u.subjects||[]).join(', ')+'<br><button class="btn btn-blue btn-xs notranslate" onclick="editUser(\''+escapeAttr(ph)+'\')">✏️</button> <button class="btn btn-red btn-xs notranslate" onclick="deleteUser(\''+escapeAttr(ph)+'\')">🗑</button></div>'}h+='<div id="userEditForm" style="display:none;"></div>';ac.innerHTML=h}
-    window.showAddUser = function(){var ef=document.getElementById('userEditForm');ef.style.display='block';ef.innerHTML='<div class="card"><h3>➕ Add User</h3><div class="form-group"><label>Phone/ID *</label><input id="uf-phone" class="form-inp"></div><div class="form-group"><label>Password *</label><input id="uf-pass" class="form-inp"></div><label>Subjects:</label><div class="checkbox-group">'+getMainSubjects().map(function(s){return'<label class="toggle-checkbox-label"><input type="checkbox" value="'+escapeAttr(s)+'" class="uf-subs"> '+sanitizeHTML(s)+'</label>'}).join('')+'</div><button class="btn btn-green btn-sm notranslate" onclick="saveUser(null)">💾 Save</button> <button class="btn btn-dark btn-sm notranslate" onclick="document.getElementById(\'userEditForm\').style.display=\'none\'">❌ Cancel</button></div>'}
-    window.editUser = function(phone){var u=settings.users[phone];if(!u)return;var ef=document.getElementById('userEditForm');ef.style.display='block';ef.innerHTML='<div class="card"><h3>✏️ Edit '+sanitizeHTML(phone)+'</h3><div class="form-group"><label>Phone</label><input id="uf-phone" class="form-inp" value="'+escapeAttr(phone)+'" readonly></div><div class="form-group"><label>Password *</label><input id="uf-pass" class="form-inp" value="'+escapeAttr(u.pass||'')+'"></div><label>Subjects:</label><div class="checkbox-group">'+getMainSubjects().map(function(s){return'<label class="toggle-checkbox-label"><input type="checkbox" value="'+escapeAttr(s)+'" class="uf-subs" '+(u.subjects&&u.subjects.indexOf(s)!==-1?'checked':'')+'> '+sanitizeHTML(s)+'</label>'}).join('')+'</div><button class="btn btn-green btn-sm notranslate" onclick="saveUser(\''+phone+'\')">💾 Update</button> <button class="btn btn-dark btn-sm notranslate" onclick="document.getElementById(\'userEditForm\').style.display=\'none\'">❌ Cancel</button></div>'}
+    function renderUsers(){var ac=document.getElementById('admin-content'),users=settings.users||{},h='<button class="btn btn-green btn-sm notranslate" onclick="window.showAddUser()">➕ Add User</button><br><br>';var uks=Object.keys(users);if(uks.length===0)h+='<p style="color:var(--mut);">No users yet.</p>';else for(var i=0;i<uks.length;i++){var ph=uks[i],u=users[ph];h+='<div class="card"><strong>📱 '+sanitizeHTML(ph)+'</strong> | Pass: '+(u.pass?'••••':'N/A')+'<br>Subjects: '+(u.subjects||[]).join(', ')+'<br><button class="btn btn-blue btn-xs notranslate" onclick="window.editUser(\''+escapeAttr(ph)+'\')">✏️</button> <button class="btn btn-red btn-xs notranslate" onclick="window.deleteUser(\''+escapeAttr(ph)+'\')">🗑</button></div>'}h+='<div id="userEditForm" style="display:none;"></div>';ac.innerHTML=h}
+    window.showAddUser = function(){var ef=document.getElementById('userEditForm');ef.style.display='block';ef.innerHTML='<div class="card"><h3>➕ Add User</h3><div class="form-group"><label>Phone/ID *</label><input id="uf-phone" class="form-inp"></div><div class="form-group"><label>Password *</label><input id="uf-pass" class="form-inp"></div><label>Subjects:</label><div class="checkbox-group">'+getMainSubjects().map(function(s){return'<label class="toggle-checkbox-label"><input type="checkbox" value="'+escapeAttr(s)+'" class="uf-subs"> '+sanitizeHTML(s)+'</label>'}).join('')+'</div><button class="btn btn-green btn-sm notranslate" onclick="window.saveUser(null)">💾 Save</button> <button class="btn btn-dark btn-sm notranslate" onclick="document.getElementById(\'userEditForm\').style.display=\'none\'">❌ Cancel</button></div>'}
+    window.editUser = function(phone){var u=settings.users[phone];if(!u)return;var ef=document.getElementById('userEditForm');ef.style.display='block';ef.innerHTML='<div class="card"><h3>✏️ Edit '+sanitizeHTML(phone)+'</h3><div class="form-group"><label>Phone</label><input id="uf-phone" class="form-inp" value="'+escapeAttr(phone)+'" readonly></div><div class="form-group"><label>Password *</label><input id="uf-pass" class="form-inp" value="'+escapeAttr(u.pass||'')+'"></div><label>Subjects:</label><div class="checkbox-group">'+getMainSubjects().map(function(s){return'<label class="toggle-checkbox-label"><input type="checkbox" value="'+escapeAttr(s)+'" class="uf-subs" '+(u.subjects&&u.subjects.indexOf(s)!==-1?'checked':'')+'> '+sanitizeHTML(s)+'</label>'}).join('')+'</div><button class="btn btn-green btn-sm notranslate" onclick="window.saveUser(\''+phone+'\')">💾 Update</button> <button class="btn btn-dark btn-sm notranslate" onclick="document.getElementById(\'userEditForm\').style.display=\'none\'">❌ Cancel</button></div>'}
     
     window.saveUser = async function(orig){
       var phone=document.getElementById('uf-phone').value,pass=document.getElementById('uf-pass').value,subs=[];
@@ -780,7 +992,7 @@
       renderUsers();
     }
     
-    function renderSettings(){var ac=document.getElementById('admin-content'),cp=settings.adminPass||DEFAULT_ADMIN_PASS,gid=settings.guestId||DEFAULT_GUEST_ID,gpass=settings.guestPass||DEFAULT_GUEST_PASS;ac.innerHTML='<div class="card"><h3>⚙️ Settings</h3><div class="toggle-setting-row"><span class="toggle-label">🔐 Enable Login</span><div class="toggle-right"><label class="toggle-switch"><input type="checkbox" id="set-login" '+(settings.loginEnabled?'checked':'')+' onchange="updateSettingToggle(\'login\')"><span class="toggle-slider"></span></label><span id="login-status">'+(settings.loginEnabled?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span></div></div><div class="toggle-setting-row"><span class="toggle-label">📋 Enable Copy</span><div class="toggle-right"><label class="toggle-switch"><input type="checkbox" id="set-copy" '+(settings.copyEnabled?'checked':'')+' onchange="updateSettingToggle(\'copy\')"><span class="toggle-slider"></span></label><span id="copy-status">'+(settings.copyEnabled?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span></div></div><div class="toggle-setting-row"><span class="toggle-label">👤 Guest Auto Login</span><div class="toggle-right"><label class="toggle-switch"><input type="checkbox" id="set-guest-auto" '+(settings.guestAutoLogin?'checked':'')+' onchange="updateSettingToggle(\'guestAuto\')"><span class="toggle-slider"></span></label><span id="guestAuto-status">'+(settings.guestAutoLogin?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span></div></div><div class="form-group"><label>Guest ID</label><input id="set-guest-id" class="form-inp" value="'+escapeAttr(gid)+'" style="max-width:250px;"></div><div class="form-group"><label>Guest Password</label><input id="set-guest-pass" class="form-inp" value="'+escapeAttr(gpass)+'" style="max-width:250px;"></div><div class="form-group"><label>Admin Password</label><input id="set-admin-pass" class="form-inp" value="'+escapeAttr(cp)+'" style="max-width:250px;"></div><button class="btn btn-green btn-sm notranslate" onclick="saveSettings()">💾 Save</button> <button class="btn btn-orange btn-sm notranslate" onclick="resetAdmin()">🔄 Reset Admin</button> <button class="btn btn-teal btn-sm notranslate" onclick="resetGuest()">🔄 Reset Guest</button></div>'}
+    function renderSettings(){var ac=document.getElementById('admin-content'),cp=settings.adminPass||DEFAULT_ADMIN_PASS,gid=settings.guestId||DEFAULT_GUEST_ID,gpass=settings.guestPass||DEFAULT_GUEST_PASS;ac.innerHTML='<div class="card"><h3>⚙️ Settings</h3><div class="toggle-setting-row"><span class="toggle-label">🔐 Enable Login</span><div class="toggle-right"><label class="toggle-switch"><input type="checkbox" id="set-login" '+(settings.loginEnabled?'checked':'')+' onchange="window.updateSettingToggle(\'login\')"><span class="toggle-slider"></span></label><span id="login-status">'+(settings.loginEnabled?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span></div></div><div class="toggle-setting-row"><span class="toggle-label">📋 Enable Copy</span><div class="toggle-right"><label class="toggle-switch"><input type="checkbox" id="set-copy" '+(settings.copyEnabled?'checked':'')+' onchange="window.updateSettingToggle(\'copy\')"><span class="toggle-slider"></span></label><span id="copy-status">'+(settings.copyEnabled?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span></div></div><div class="toggle-setting-row"><span class="toggle-label">👤 Guest Auto Login</span><div class="toggle-right"><label class="toggle-switch"><input type="checkbox" id="set-guest-auto" '+(settings.guestAutoLogin?'checked':'')+' onchange="window.updateSettingToggle(\'guestAuto\')"><span class="toggle-slider"></span></label><span id="guestAuto-status">'+(settings.guestAutoLogin?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span></div></div><div class="form-group"><label>Guest ID</label><input id="set-guest-id" class="form-inp" value="'+escapeAttr(gid)+'" style="max-width:250px;"></div><div class="form-group"><label>Guest Password</label><input id="set-guest-pass" class="form-inp" value="'+escapeAttr(gpass)+'" style="max-width:250px;"></div><div class="form-group"><label>Admin Password</label><input id="set-admin-pass" class="form-inp" value="'+escapeAttr(cp)+'" style="max-width:250px;"></div><button class="btn btn-green btn-sm notranslate" onclick="window.saveSettings()">💾 Save</button> <button class="btn btn-orange btn-sm notranslate" onclick="window.resetAdmin()">🔄 Reset Admin</button> <button class="btn btn-teal btn-sm notranslate" onclick="window.resetGuest()">🔄 Reset Guest</button></div>'}
     window.updateSettingToggle = function(type){var cb,se;if(type==='login'){cb=document.getElementById('set-login');se=document.getElementById('login-status')}else if(type==='copy'){cb=document.getElementById('set-copy');se=document.getElementById('copy-status')}else{cb=document.getElementById('set-guest-auto');se=document.getElementById('guestAuto-status')}if(cb&&se)se.innerHTML=cb.checked?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>'}
     
     window.saveSettings = async function(){
