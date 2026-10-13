@@ -68,6 +68,7 @@
   </style>
 </head>
 <body class="protected-mode" oncontextmenu="return false;" oncopy="return false;" oncut="return false;">
+<script src="../supabase-client.js"></script>
 
   <div id="login-overlay">
     <div class="login-box">
@@ -105,7 +106,7 @@
     // ==========================================
     // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
     // ==========================================
-    const db = {
+    /* legacy wrapper removed
       ref: function(path) {
         let parts = path.split('/').filter(Boolean);
         let rootKey = parts[0];
@@ -164,12 +165,12 @@
         };
       }
     };
+    */
+    const db = window.supabaseDb;
 
     var DB = { games: {}, students: {} };
     var settings = { loginEnabled: true, copyEnabled: false };
-    var activeSessions = {};
-    var myPhone = localStorage.getItem('cs_ph') || "";
-    var myToken = localStorage.getItem('cs_tk') || "";
+    var currentProfile = null;
 
     var selectedCategory = 'ALL';
     var GAME_CATEGORIES = ["1. Memory & Recall", "2. Attention & Focus", "3. Logic & Reasoning", "4. Problem Solving", "5. Processing Speed", "6. Cognitive Flexibility", "7. Verbal Intelligence", "8. Mathematical", "9. N-Back Training", "10. Advanced Technology", "11. Creativity"];
@@ -193,26 +194,20 @@
       }
     }
 
-    function checkAuth() {
+    async function checkAuth() {
       var o = document.getElementById('login-overlay');
-      if (!settings.loginEnabled) { o.style.display = 'none'; return; }
-      if (myPhone && myToken && activeSessions[myPhone] === myToken) {
-        o.style.display = 'none';
-      } else {
-        o.style.display = 'flex';
-      }
+      o.style.display = 'flex';
+      try { await window.supabaseAuth.ready; currentProfile = await window.supabaseAuth.profile();
+        if (currentProfile && currentProfile.is_active && currentProfile.auth_user_id) o.style.display = 'none';
+      } catch (err) { document.getElementById('login-error').innerText = err.message || String(err); document.getElementById('login-error').style.display='block'; }
     }
 
-    function logout() {
-      if (myPhone) {
-        db.ref('proGames/activeSessions/' + myPhone).remove().catch(() => {});
-      }
-      localStorage.removeItem('cs_ph');
-      localStorage.removeItem('cs_tk');
-      location.reload();
+    async function logout() {
+      await window.supabaseAuth.logout();
+      currentProfile = null; document.getElementById('login-overlay').style.display='flex';
     }
 
-    function attemptLogin() {
+    async function attemptLogin() {
       var p = document.getElementById('login-phone').value.trim();
       var pa = document.getElementById('login-pass').value.trim();
       var e = document.getElementById('login-error');
@@ -227,26 +222,12 @@
       btn.innerText = 'Authenticating...';
       btn.disabled = true;
       
-      if (DB.students && DB.students[p] && DB.students[p].password === pa) {
-        e.style.display = 'none';
-        var t = "sess_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
-        myPhone = p;
-        myToken = t;
-        localStorage.setItem('cs_ph', p);
-        localStorage.setItem('cs_tk', t);
-        
-        activeSessions[p] = t;
-        db.ref('proGames/activeSessions').set(activeSessions).then(() => {
-          document.getElementById('login-overlay').style.display = 'none';
-          btn.innerText = 'Login';
-          btn.disabled = false;
-        });
-      } else {
-        e.innerText = 'Invalid credentials';
+      try { currentProfile = await window.supabaseAuth.login(p,pa); if(!currentProfile || !currentProfile.is_active || !currentProfile.auth_user_id) throw new Error('Account is not provisioned or active.');
+        e.style.display = 'none'; document.getElementById('login-overlay').style.display='none';
+      } catch (err) {
+        e.innerText = err.message || 'Invalid credentials';
         e.style.display = 'block';
-        btn.innerText = 'Login';
-        btn.disabled = false;
-      }
+      } finally { btn.innerText = 'Login'; btn.disabled = false; }
     }
 
     function getArr(obj) {

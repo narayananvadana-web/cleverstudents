@@ -1136,6 +1136,7 @@ button,
 </head>
 
 <body>
+<script src="../supabase-client.js"></script>
 
 <!-- =========================================================
      MAIN
@@ -1894,7 +1895,7 @@ button,
 /* =========================================================
    SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
 ========================================================= */
-const db = {
+const legacyDb = {
   ref: function(path) {
     let parts = path.split('/').filter(Boolean);
     let rootKey = parts[0];
@@ -1953,6 +1954,7 @@ const db = {
     };
   }
 };
+const db = window.supabaseDb;
 
 
 /* =========================================================

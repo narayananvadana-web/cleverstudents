@@ -103,6 +103,7 @@
   </style>
 </head>
 <body class="protected-mode">
+<script src="../supabase-client.js"></script>
 
   <div id="login-overlay">
     <div class="login-box">
@@ -150,49 +151,11 @@
   <script>
     // ============ VERCEL KV API HELPERS (No Firebase) ============
     async function fetchDB(key) {
-      try {
-        const res = await fetch(`/api/db?path=${encodeURIComponent(key)}`);
-        if (!res.ok) return null;
-        let data = await res.json();
-        
-        if (data && typeof data === 'object') {
-          if ('result' in data) data = data.result;
-          else if ('value' in data) data = data.value;
-        }
-        if (typeof data === 'string') {
-          try { data = JSON.parse(data); } catch (e) { }
-        }
-        if (data && typeof data === 'object' && data[key]) {
-            data = data[key]; 
-        }
-        if (data && typeof data === 'object' && !Array.isArray(data)) {
-           if (key === 'appscQuestionBank') {
-             Object.keys(data).forEach(groupKey => {
-               if (data[groupKey] && typeof data[groupKey] === 'object' && !Array.isArray(data[groupKey])) {
-                 data[groupKey] = Object.values(data[groupKey]); 
-               }
-             });
-           }
-        }
-        return data;
-      } catch (err) {
-        console.error(`❌ DB Fetch Error for ${key}:`, err);
-        return null;
-      }
+      return (await window.supabaseDb.ref(key).once('value')).val();
     }
 
     async function saveDB(key, value) {
-      try {
-        const res = await fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'set', path: key, data: value })
-        });
-        if (!res.ok) throw new Error(`Status ${res.status}`);
-      } catch (err) {
-        console.error(`DB Save Error for ${key}:`, err);
-        throw err;
-      }
+      return window.supabaseDb.ref(key).set(value);
     }
 
     // ============ GLOBAL STATE & CONFIG ============
@@ -575,7 +538,7 @@
       var rp = currentTab === 'quiz' ? 'appscQuestionBank' : (currentTab === 'essay' ? 'appscEssay' : 'appscSyllabus'); 
       for(var i=0; i<sk.length; i++) {
         delete allData[currentTab === 'quiz' ? 'quiz' : (currentTab === 'essay' ? 'essay' : 'syllabus')][sk[i]];
-        await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: `${rp}/${sk[i]}` }) });
+        await window.supabaseDb.ref(`${rp}/${sk[i]}`).remove();
       }
       toast('Deleted '+sk.length+' items!','success'); selectedItems={}; window.refreshUI();
     }
@@ -584,7 +547,7 @@
       if (!confirm('Delete permanently?')) return; 
       var rp = currentTab === 'quiz' ? 'appscQuestionBank' : (currentTab === 'essay' ? 'appscEssay' : 'appscSyllabus'); 
       delete allData[currentTab === 'quiz' ? 'quiz' : (currentTab === 'essay' ? 'essay' : 'syllabus')][id];
-      await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: `${rp}/${id}` }) });
+      await window.supabaseDb.ref(`${rp}/${id}`).remove();
       toast('Deleted!','success'); delete selectedItems[id]; window.refreshUI();
     }
 

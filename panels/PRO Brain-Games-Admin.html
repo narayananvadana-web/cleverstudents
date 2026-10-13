@@ -75,6 +75,7 @@
   </style>
 </head>
 <body>
+<script src="../supabase-client.js"></script>
 
 <div id="login-overlay">
   <div class="login-box">
@@ -125,9 +126,10 @@
 
 <script>
 // ==========================================
-    // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
-    // ==========================================
-    const db = {
+    // Data access is provided by the shared relational adapter.
+    const db = window.supabaseDb;
+    /* legacy wrapper removed */
+    /*
       ref: function(path) {
         let parts = path.split('/').filter(Boolean);
         let rootKey = parts[0]; // e.g., "proGames" or "sscQuestionBank"
@@ -251,6 +253,7 @@
         };
       }
     };
+    */
     // ==========================================
 
 var curAdm=null, allD={games:{},students:{},subs:{},rev:{total:0},pkgs:{},stgs:{}}, curTab='games', edKey=null;

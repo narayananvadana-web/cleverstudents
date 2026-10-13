@@ -97,12 +97,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:10
 </style>
 </head>
 <body>
+<script src="../supabase-client.js"></script>
 
 <div class="top-bar">
   <div class="top-inner">
     <div class="logo">💡 THE IDEA LAB</div>
     <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
-      <span class="user-info">👤 Guest</span>
+      <span class="user-info" id="user-info">Sign in required</span>
+      <a href="/index.html">Sign in</a>
       <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">Light Mode</button>
     </div>
   </div>
@@ -139,15 +141,12 @@ let activeCat = null;
 
 async function fetchIdeaLabData() {
   try {
-    const response = await fetch('/api/db?path=' + encodeURIComponent(DB_NODE));
-    if (!response.ok) throw new Error('Failed to fetch from Vercel KV database');
-    const data = await response.json();
-    
-    // SMART WRAPPER FIX: Handle stringified JSON correctly
-    let fetchedData = data.result || {};
-    if (typeof fetchedData === 'string') {
-        try { fetchedData = JSON.parse(fetchedData); } catch(e) { fetchedData = {}; }
-    }
+    await window.supabaseAuth.ready;
+    const profile = await window.supabaseAuth.profile();
+    if (!profile || !profile.is_active || !profile.auth_user_id) throw new Error('Sign in on the home page with your Supabase Auth email or phone and linked account, then reload this page.');
+    document.getElementById('user-info').textContent = profile.login_id;
+    const snapshot = await window.supabaseDb.ref(DB_NODE).once('value');
+    let fetchedData = snapshot.val() || {};
     
     DATA = fetchedData;
     

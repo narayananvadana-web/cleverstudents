@@ -220,14 +220,12 @@
   <!-- ✅ Image Modal -->
   <div id="img-modal" class="modal" onclick="closeModal()"><span class="modal-close">×</span><img id="modal-img" src=""></div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <script src="../supabase-client.js"></script>
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
   <script>
-    // ==================== FIREBASE CONFIG ====================
-    var fbConfig={apiKey:"AIzaSyCT7qsnsliqWcTKWzMFkWHJwk14SGUycYE",authDomain:"cleverstudents9.firebaseapp.com",databaseURL:"https://cleverstudents9-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"cleverstudents9",storageBucket:"cleverstudents9.firebasestorage.app",messagingSenderId:"113374810814",appId:"1:113374810814:web:e7974653ed4c85919c6e63"};
-    firebase.initializeApp(fbConfig);var db=firebase.database();
+    // ==================== SUPABASE DATABASE ====================
+    var db=window.supabaseDb;
 
     // ==================== GLOBAL STATE ====================
     var DB={syllabus:{},essay:{},quiz:{}};  // ✅ FIX 3: Added essay data store
@@ -539,13 +537,13 @@
       });
     }
     function initApp(){
-      db.ref('appSettings').on('value',function(s){
+      db.ref('appSettings').once('value').then(function(s){
         settings=s.val()||{loginEnabled:true,users:{},copyEnabled:false};
         if(settings.copyEnabled){document.body.classList.remove('protected-mode');document.body.classList.add('copy-allowed');}
         else{document.body.classList.add('protected-mode');document.body.classList.remove('copy-allowed');}
         checkAuth();
-      });
-      db.ref('activeSessions').on('value',function(s){activeSessions=s.val()||{};checkAuth();});
+      }).catch(function(err){console.error('Supabase settings load failed:',err);checkAuth();});
+      db.ref('activeSessions').once('value').then(function(s){activeSessions=s.val()||{};checkAuth();});
       loadAllData(function(){console.log('📊 All APPSC data loaded successfully');refreshUI();});
     }
     window.onload=initApp;

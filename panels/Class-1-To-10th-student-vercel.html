@@ -150,6 +150,7 @@
   </style>
 </head>
 <body class="protected-mode">
+<script src="../supabase-client.js"></script>
 
   <div id="login-overlay">
     <div class="login-box">
@@ -189,7 +190,7 @@
     // ==========================================
     // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
     // ==========================================
-    const db = {
+    const legacyDb = {
       ref: function(path) {
         let parts = path.split('/').filter(Boolean);
         let rootKey = parts[0];
@@ -278,6 +279,7 @@
         };
       }
     };
+    const db = window.supabaseDb;
 
     var newsWithLinks=[{text:'🎓 Class 10 Maths - New Study Materials',action:function(){switchMode('learning');sub='Maths';cls=10;studyType='theory';refreshUI()}},{text:'📚 Science Quiz - 500+ Questions',action:function(){switchMode('learning');sub='Science';studyType='quiz';refreshUI()}},{text:'💡 Explore Skills',action:function(){switchMode('skills');refreshUI()}},{text:'🎮 Play Games',action:function(){switchMode('learning');studyType='games';refreshUI()}},{text:'🔬 Science Projects',action:function(){switchMode('learning');studyType='projects';refreshUI()}}];
 

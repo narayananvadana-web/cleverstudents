@@ -337,9 +337,7 @@
       <h1>Master Admin</h1>
       <p>Secure CMS dashboard access</p>
       <div style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.6);color:var(--txt);border-radius:var(--r-md);padding:14px 16px;text-align:left;line-height:1.7;margin-bottom:18px;font-size:.88rem;">
-        <strong>Default:</strong><br>
-        ID: admin<br>
-        Password: admin123
+        Use the email or phone registered in Supabase Auth. Your active student_users profile must be linked by auth_user_id and have the admin role.
       </div>
       <input class="login-inp" id="login-id" type="text" placeholder="Admin ID" autocomplete="username">
       <input class="login-inp" id="login-pass" type="password" placeholder="Password" autocomplete="current-password">
@@ -401,10 +399,16 @@
 
   <div id="toast"></div>
 
+  <script src="/supabase-client.js"></script>
   <script>
     // ========== AUTHENTICATION ==========
-    function checkAuth() {
-      if (localStorage.getItem('ma_admin') === 'true') {
+    async function checkAuth() {
+      document.getElementById('main-layout').style.display = 'none';
+      document.getElementById('login-overlay').style.display = 'flex';
+      try {
+      await window.supabaseAuth.ready;
+      const profile = await window.supabaseAuth.profile();
+      if (profile && profile.is_active && profile.auth_user_id && profile.role === 'admin') {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('main-layout').style.display = 'flex';
         detectGitHubPanels();
@@ -412,27 +416,29 @@
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('main-layout').style.display = 'none';
       }
+      } catch (err) { showAuthError(err); }
     }
 
-    function attemptLogin() {
-      var id = document.getElementById('login-id').value.trim().toLowerCase();
-      var pass = document.getElementById('login-pass').value.trim();
-      
-      if (id === 'admin' && pass === 'admin123') {
-        document.getElementById('login-error').style.display = 'none';
-        localStorage.setItem('ma_admin', 'true');
-        checkAuth();
-      } else {
-        document.getElementById('login-error').style.display = 'block';
-        document.getElementById('login-error').textContent = 'Invalid Credentials';
-      }
+    function showAuthError(err) {
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('login-error').textContent = err.message || String(err);
+    }
+    async function attemptLogin() {
+      try {
+        const profile = await window.supabaseAuth.login(document.getElementById('login-id').value.trim(), document.getElementById('login-pass').value);
+        if (!profile || !profile.is_active || !profile.auth_user_id || profile.role !== 'admin') {
+          await window.supabaseAuth.logout();
+          throw new Error('An active linked administrator account is required.');
+        }
+        document.getElementById('login-pass').value = '';
+        await checkAuth();
+      } catch (err) { showAuthError(err); }
     }
 
-    function logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('ma_admin');
-        location.reload();
-      }
+    async function logout() {
+      document.getElementById('main-layout').style.display = 'none';
+      document.getElementById('login-overlay').style.display = 'flex';
+      try { await window.supabaseAuth.logout(); } catch (err) { showAuthError(err); }
     }
 
     // ========== THEME TOGGLE ==========

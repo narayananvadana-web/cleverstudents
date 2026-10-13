@@ -136,6 +136,7 @@
   </style>
 </head>
 <body class="protected-mode" oncontextmenu="return false;">
+<script src="../supabase-client.js"></script>
 
   <div id="login-overlay">
     <div class="login-box">
@@ -171,39 +172,14 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
   <script>
-    // ==================== VERCEL KV API HELPERS (No Firebase) ====================
+    // ==================== SUPABASE DATA HELPERS ====================
     async function fetchDB(key) {
-      try {
-        const res = await fetch(`/api/db?path=${encodeURIComponent(key)}`);
-        if (!res.ok) return null;
-        let data = await res.json();
-        if (data && typeof data === 'object') {
-          if ('result' in data) data = data.result;
-          else if ('value' in data) data = data.value;
-        }
-        if (typeof data === 'string') {
-          try { data = JSON.parse(data); } catch (e) { }
-        }
-        if (data && typeof data === 'object' && data[key]) {
-            data = data[key]; 
-        }
-        return data;
-      } catch (err) {
-        console.error(`❌ DB Fetch Error for ${key}:`, err);
-        return null;
-      }
+      const snap = await window.supabaseDb.ref(key).once('value');
+      return snap.val();
     }
 
     async function saveDB(key, value) {
-      try {
-        const res = await fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'set', path: key, data: value })
-        });
-      } catch (err) {
-        console.error(`DB Save Error for ${key}:`, err);
-      }
+      return window.supabaseDb.ref(key).set(value);
     }
 
     var sssColorMap={};var sssColorIndex=0;

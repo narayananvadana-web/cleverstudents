@@ -183,23 +183,16 @@
 
   <div id="img-modal" class="modal" onclick="closeModal()"><span class="modal-close">×</span><img id="modal-img" src=""></div>
 
+  <script src="/supabase-client.js"></script>
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
   <script>
-    // --- NATIVE VERCEL API FUNCTIONS ---
     async function dbGet(path) {
-      try {
-        let res = await fetch('/api/db?path=' + encodeURIComponent(path));
-        let json = await res.json();
-        return json.result;
-      } catch (e) { return null; }
+      const snap = await window.supabaseDb.ref(path).once('value'); return snap.val();
     }
 
     async function dbSet(path, data) {
-      return fetch('/api/db', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'set', path: path, data: data })
-      });
+      return window.supabaseDb.ref(path).set(data);
     }
 
     // --- STUDENT LOGIC ---
@@ -251,10 +244,9 @@
       }
     }
 
-    var DEFAULT_GUEST_ID='guest',DEFAULT_GUEST_PASS='guest123';
     var DB={theory:{},quiz:{},mindmap:{},papers:{},games:{},projects:{},videos:{},skills:{}};
     var settings={loginEnabled:true,users:{},copyEnabled:false,guestAutoLogin:false,guestId:DEFAULT_GUEST_ID,guestPass:DEFAULT_GUEST_PASS};
-    var activeSessions={},currentUser={phone:'',token:'',isGuest:false},userAccess={modes:[],subjects:[],classes:[]};
+    var currentUser={phone:'',token:'',isGuest:false},userAccess={modes:[],subjects:[],classes:[]};
     var mode='learning',sub='Maths',cls=6,skillCat='Competitive skills',studyType='theory';
     var qActive=[],qIdx=0,qTimer=null,qSec=0,qAns=[],qMarked=[],qSaved=[],qVisited=[];
     var SUBJECTS=[{id:'Maths',name:'Maths',grad:'linear-gradient(135deg,#059669,#047857)'},{id:'Science',name:'Science',grad:'linear-gradient(135deg,#2563eb,#1d4ed8)'},{id:'Telugu',name:'Telugu',grad:'linear-gradient(135deg,#d97706,#b45309)'},{id:'English',name:'English',grad:'linear-gradient(135deg,#7c3aed,#5b21b6)'},{id:'Hindi',name:'Hindi',grad:'linear-gradient(135deg,#dc2626,#b91c1c)'},{id:'Social',name:'Social',grad:'linear-gradient(135deg,#ea580c,#c2410c)'}];
@@ -286,67 +278,24 @@
     }
     function closeModal(){document.getElementById('img-modal').classList.remove('show');}
 
-    function checkAuth(){
-      var o=document.getElementById('login-overlay');
-      var ph=localStorage.getItem('cs_st_ph'), tk=localStorage.getItem('cs_st_tk'), ig=localStorage.getItem('cs_st_guest')==='true';
-      updateGuestDisplay();
-      if(settings.guestAutoLogin&&!ph){ autoLoginAsGuest(); return; }
-      if(!settings.loginEnabled){
-        o.style.display='none'; currentUser={phone:'guest',token:'',isGuest:true}; applyPerms(true); updateUserDisplay(); return;
-      }
-      if(ph&&tk&&activeSessions[ph]===tk){
-        currentUser={phone:ph,token:tk,isGuest:ig}; o.style.display='none'; applyPerms(false); updateUserDisplay();
-      }else{ o.style.display='flex'; updateUserDisplay(); }
+    async function checkAuth(){
+      var o=document.getElementById('login-overlay'); o.style.display='flex';
+      try { await window.supabaseAuth.ready; var profile=await window.supabaseAuth.profile();
+        if(profile&&profile.is_active&&profile.auth_user_id){ currentUser={phone:profile.login_id,profile:profile}; o.style.display='none'; userAccess=profile; applyPerms(false); updateUserDisplay(); }
+        else updateUserDisplay();
+      } catch(err){ document.getElementById('login-error').innerText=err.message||String(err); document.getElementById('login-error').style.display='block'; }
     }
 
-    async function autoLoginAsGuest(){
-      var gi=settings.guestId||DEFAULT_GUEST_ID, gp=settings.guestPass||DEFAULT_GUEST_PASS;
-      if(settings.users&&settings.users[gi]&&settings.users[gi].pass===gp){
-        performLogin(gi,true);
-      }else{
-        var t="sess_"+Date.now()+"_"+Math.floor(Math.random()*10000);
-        currentUser={phone:gi,token:t,isGuest:true};
-        localStorage.setItem('cs_st_ph',gi); localStorage.setItem('cs_st_tk',t); localStorage.setItem('cs_st_guest','true');
-        activeSessions[gi]=t;
-        await dbSet('activeSessions', activeSessions);
-        document.getElementById('login-overlay').style.display='none';
-        applyPerms(true); updateUserDisplay();
-      }
-    }
-
-    function attemptLogin(){
+    async function attemptLogin(){
       var p=document.getElementById('login-phone').value.trim(), pa=document.getElementById('login-pass').value.trim();
       var e=document.getElementById('login-error');
       if(!p||!pa){e.innerText='Enter ID and Password';e.style.display='block';return;}
-      var gi=settings.guestId||DEFAULT_GUEST_ID, gp=settings.guestPass||DEFAULT_GUEST_PASS;
-      if(p===gi&&pa===gp){performLogin(p,true);return;}
-      if(settings.users&&settings.users[p]&&settings.users[p].pass===pa){performLogin(p,false);return;}
-      e.innerText='Invalid credentials';e.style.display='block';
-    }
-
-    function loginAsGuest(){
-      document.getElementById('login-phone').value=settings.guestId||DEFAULT_GUEST_ID;
-      document.getElementById('login-pass').value=settings.guestPass||DEFAULT_GUEST_PASS;
-      attemptLogin();
-    }
-
-    async function performLogin(phone,isGuest){
-      document.getElementById('login-error').style.display='none';
-      var t="sess_"+Date.now()+"_"+Math.floor(Math.random()*10000);
-      currentUser={phone:phone,token:t,isGuest:isGuest};
-      localStorage.setItem('cs_st_ph',phone); localStorage.setItem('cs_st_tk',t); localStorage.setItem('cs_st_guest',isGuest?'true':'false');
-      activeSessions[phone]=t;
-      await dbSet('activeSessions', activeSessions);
-      document.getElementById('login-overlay').style.display='none';
-      applyPerms(isGuest); updateUserDisplay();
+      try { var profile=await window.supabaseAuth.login(p,pa); if(!profile||!profile.is_active||!profile.auth_user_id) throw new Error('Account is not provisioned or active.'); currentUser={phone:profile.login_id,profile:profile}; userAccess=profile; document.getElementById('login-overlay').style.display='none'; applyPerms(false); updateUserDisplay(); }
+      catch(err){e.innerText=err.message||'Invalid credentials';e.style.display='block';}
     }
 
     async function logout(){
-      if(currentUser.phone){
-        delete activeSessions[currentUser.phone];
-        await dbSet('activeSessions', activeSessions);
-      }
-      localStorage.removeItem('cs_st_ph'); localStorage.removeItem('cs_st_tk'); localStorage.removeItem('cs_st_guest');
+      await window.supabaseAuth.logout();
       currentUser={phone:'',token:'',isGuest:false};
       document.getElementById('login-overlay').style.display='flex'; updateUserDisplay();
     }
