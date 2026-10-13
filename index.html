@@ -835,11 +835,20 @@
       } catch (e) { }
     }
 
-    function initApp(){
-      pollAppSettings();
-      setInterval(pollAppSettings, 15000); 
+   function initApp(){
+      // 1. లాగిన్ స్క్రీన్ ని పూర్తిగా దాచేస్తుంది
+      var overlay = document.getElementById('login-overlay');
+      if(overlay) overlay.style.display = 'none';
+      
+      // 2. ఆటోమేటిక్ గా గెస్ట్ పవర్స్ ఇస్తుంది
+      currentUser = { phone: 'Guest Student', isGuest: true };
+      settings.loginEnabled = false;
+      userAccess = { modes: ['ALL'], subjects: ['ALL'], classes: ['ALL'] };
+      updateUserDisplay();
+      
+      // 3. ఎలాంటి అడ్డంకి లేకుండా డైరెక్ట్ గా డేటా లోడ్ చేసి చూపిస్తుంది
       loadAllData(function(){
-        if(currentUser.phone||!settings.loginEnabled)refreshUI();
+        refreshUI();
       });
     }
 
