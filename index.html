@@ -279,11 +279,17 @@
     function closeModal(){document.getElementById('img-modal').classList.remove('show');}
 
     async function checkAuth(){
-      var o=document.getElementById('login-overlay'); o.style.display='flex';
-      try { await window.supabaseAuth.ready; var profile=await window.supabaseAuth.profile();
-        if(profile&&profile.is_active&&profile.auth_user_id){ currentUser={phone:profile.login_id,profile:profile}; o.style.display='none'; userAccess=profile; applyPerms(false); updateUserDisplay(); }
-        else updateUserDisplay();
-      } catch(err){ document.getElementById('login-error').innerText=err.message||String(err); document.getElementById('login-error').style.display='block'; }
+      // 1. లాగిన్ అడిగే బాక్స్‌ను పూర్తిగా దాచేస్తుంది
+      document.getElementById('login-overlay').style.display = 'none'; 
+      
+      // 2. ఆటోమేటిక్‌గా పబ్లిక్ గెస్ట్ లాగిన్ క్రియేట్ చేసి యాక్సెస్ ఇస్తుంది
+      currentUser = { phone: 'Guest Student', isGuest: true };
+      settings.loginEnabled = false;
+      userAccess = { modes: ['ALL'], subjects: ['ALL'], classes: ['ALL'] };
+      
+      applyPerms(true);
+      updateUserDisplay();
+      refreshUI();
     }
 
     async function attemptLogin(){
