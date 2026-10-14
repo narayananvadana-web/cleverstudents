@@ -12,13 +12,8 @@
     html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;min-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
     body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
 
-    .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important;-ms-user-select:none!important;-webkit-touch-callout:none!important}
+    .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important}
     input,textarea,select{user-select:auto!important;-webkit-user-select:auto!important}
-
-    img{user-drag:none;-webkit-user-drag:none}
-    .img-th,.modal img{pointer-events:auto!important;cursor:pointer}
-
-    :target{scroll-margin-top:80px}
 
     .main-wrap{max-width:100%!important;width:100%!important;padding:20px 10px 80px!important;margin:0 auto}
     .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
@@ -31,44 +26,30 @@
     body.light-mode .ch-content{color:#334155;background:rgba(0,0,0,.02)}
     .ch-content.show{display:block;animation:fadeIn .3s ease}
     @keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-    .img-th{max-width:200px;max-height:150px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid var(--brd);margin:5px}
 
     .btn{padding:10px 20px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .2s ease}
     .btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
-    .btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-orange{background:#f59e0b}.btn-dark{background:#334155}
 
     .filter-bar{display:flex;gap:10px;padding:12px 15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd);flex-wrap:wrap;align-items:center;justify-content:center}
-    .filter-bar select{padding:8px 12px;border-radius:20px;background:var(--srf);color:var(--txt);border:1px solid var(--brd);font-family:var(--font);font-weight:700;outline:0;cursor:pointer;transition:all .3s ease}
-    .filter-bar select:hover{border-color:#3b82f6}
+    .filter-bar select{padding:8px 12px;border-radius:20px;background:var(--srf);color:var(--txt);border:1px solid var(--brd);font-family:var(--font);font-weight:700;outline:0;cursor:pointer}
 
-    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
+    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:none;align-items:center;justify-content:center}
     .login-box{background:var(--srf);padding:40px 30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:380px;border:1px solid var(--brd);text-align:center}
-    .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1rem;outline:0;transition:border-color .3s ease}
-    .login-inp:focus{border-color:#3b82f6}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;display:none;justify-content:center;align-items:center}
-    .modal.show{display:flex}
-    .modal img{max-width:92%;max-height:92%;border-radius:8px}
-    .modal-close{position:absolute;top:18px;right:24px;color:#fff;font-size:2rem;cursor:pointer}
-    .spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-
+    .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1rem;outline:0}
+    
     .game-meta{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:700;margin-left:8px}
     .meta-category{background:#7c3aed;color:#fff}
     .meta-subcategory{background:#0d9488;color:#fff}
-
     .game-iframe{width:100%;min-height:550px;border:none;border-radius:8px;background:#fff}
 
-    .refresh-btn{position:fixed;bottom:20px;right:20px;z-index:9999;width:50px;height:50px;border-radius:50%;background:#f59e0b;color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;transition:all .3s}
-    .refresh-btn:hover{transform:rotate(180deg);background:#ef4444}
-    
+    .refresh-btn{position:fixed;bottom:20px;right:20px;z-index:9999;width:50px;height:50px;border-radius:50%;background:#f59e0b;color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
     .logo {font-family:'Fredoka One',cursive;}
-
     @media(max-width:600px){.banner{flex-direction:column}.filter-bar{flex-direction:column;align-items:stretch}.game-iframe{min-height:400px}}
   </style>
 </head>
-<body class="protected-mode" oncontextmenu="return false;" oncopy="return false;" oncut="return false;">
-<script src="../supabase-client.js"></script>
+<body class="protected-mode">
+  <script src="/supabase-client.js"></script>
 
   <div id="login-overlay">
     <div class="login-box">
@@ -76,8 +57,8 @@
       <h2 style="margin-bottom:25px;color:var(--txt);">Student Login</h2>
       <input type="text" id="login-phone" class="login-inp" placeholder="User ID / Phone">
       <input type="password" id="login-pass" class="login-inp" placeholder="Password">
-      <button class="btn btn-blue" style="width:100%;padding:14px;font-size:1.1rem;margin-top:10px;" onclick="attemptLogin()">Login</button>
-      <button class="btn btn-dark" style="width:100%;padding:12px;font-size:.9rem;margin-top:10px;border-radius:8px;" onclick="logout()">Logout / Clear Data</button>
+      <button class="btn btn-blue" style="width:100%;padding:14px;font-size:1.1rem;margin-top:10px;" onclick="attemptLogin()">🔐 Login</button>
+      <button class="btn btn-orange" style="width:100%;padding:12px;font-size:1rem;margin-top:10px;" onclick="loginAsGuest()">👤 Play as Guest (Free)</button>
       <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:700;display:none;"></div>
     </div>
   </div>
@@ -85,7 +66,7 @@
   <div class="main-wrap">
     <div id="shell" class="shell">
       <div class="banner" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
-        <h1>🎮 All Games</h1>
+        <h1>🎮 All Brain Games</h1>
         <p>Learn & Play</p>
       </div>
       <div class="filter-bar" id="filter-bar"></div>
@@ -95,83 +76,12 @@
     </div>
   </div>
 
-  <div id="img-modal" class="modal" onclick="closeModal()">
-    <span class="modal-close">&times;</span>
-    <img id="modal-img" src="" alt="Preview">
-  </div>
-
   <button class="refresh-btn" onclick="refreshData()" title="Refresh Games">🔄</button>
 
   <script>
-    // ==========================================
-    // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
-    // ==========================================
-    /* legacy wrapper removed
-      ref: function(path) {
-        let parts = path.split('/').filter(Boolean);
-        let rootKey = parts[0];
-
-        return {
-          once: async function(event) {
-            try {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const data = await res.json();
-              let val = data.result;
-              if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) {} }
-              for (let i = 1; i < parts.length; i++) {
-                if (val && typeof val === 'object') { val = val[parts[i]]; }
-                else { val = null; break; }
-              }
-              return { val: () => val };
-            } catch (err) {
-              console.error("DB Fetch Error:", err);
-              return { val: () => null };
-            }
-          },
-          set: async function(dataToSet) {
-            if (parts.length === 1) {
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: dataToSet }) }).then(res => res.json());
-            } else {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const fetched = await res.json();
-              let rootObj = fetched.result || {};
-              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-              let current = rootObj;
-              for (let i = 1; i < parts.length - 1; i++) {
-                if (!current[parts[i]]) current[parts[i]] = {};
-                current = current[parts[i]];
-              }
-              current[parts[parts.length - 1]] = dataToSet;
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
-            }
-          },
-          remove: async function() {
-            if (parts.length === 1) {
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: rootKey }) }).then(res => res.json());
-            } else {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const fetched = await res.json();
-              let rootObj = fetched.result || {};
-              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-              let current = rootObj;
-              for (let i = 1; i < parts.length - 1; i++) {
-                if (!current[parts[i]]) return;
-                current = current[parts[i]];
-              }
-              delete current[parts[parts.length - 1]];
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
-            }
-          }
-        };
-      }
-    };
-    */
     const db = window.supabaseDb;
-
     var DB = { games: {}, students: {} };
-    var settings = { loginEnabled: true, copyEnabled: false };
-    var currentProfile = null;
-
+    var settings = { loginEnabled: false, copyEnabled: false };
     var selectedCategory = 'ALL';
     var GAME_CATEGORIES = ["1. Memory & Recall", "2. Attention & Focus", "3. Logic & Reasoning", "4. Problem Solving", "5. Processing Speed", "6. Cognitive Flexibility", "7. Verbal Intelligence", "8. Mathematical", "9. N-Back Training", "10. Advanced Technology", "11. Creativity"];
 
@@ -180,72 +90,43 @@
       t === 'light' ? document.body.classList.add('light-mode') : document.body.classList.remove('light-mode');
     }
 
-    function applyCopyProtection() {
-      if (settings.copyEnabled === true) {
-        document.body.classList.remove('protected-mode');
-        document.body.removeAttribute('oncontextmenu');
-        document.body.removeAttribute('oncopy');
-        document.body.removeAttribute('oncut');
-      } else {
-        document.body.classList.add('protected-mode');
-        document.body.setAttribute('oncontextmenu', 'return false;');
-        document.body.setAttribute('oncopy', 'return false;');
-        document.body.setAttribute('oncut', 'return false;');
-      }
+    function loginAsGuest() {
+      localStorage.setItem('pro_gm_user', 'GUEST');
+      document.getElementById('login-overlay').style.display = 'none';
+      refreshUI();
     }
 
-    async function checkAuth() {
-      var o = document.getElementById('login-overlay');
-      o.style.display = 'flex';
-      try { await window.supabaseAuth.ready; currentProfile = await window.supabaseAuth.profile();
-        if (currentProfile && currentProfile.is_active && currentProfile.auth_user_id) o.style.display = 'none';
-      } catch (err) { document.getElementById('login-error').innerText = err.message || String(err); document.getElementById('login-error').style.display='block'; }
-    }
-
-    async function logout() {
-      await window.supabaseAuth.logout();
-      currentProfile = null; document.getElementById('login-overlay').style.display='flex';
-    }
-
-    async function attemptLogin() {
+    function attemptLogin() {
       var p = document.getElementById('login-phone').value.trim();
       var pa = document.getElementById('login-pass').value.trim();
       var e = document.getElementById('login-error');
-      var btn = document.querySelector('.login-box .btn-blue');
-      
-      if (!p || !pa) { 
-        e.innerText = 'Enter ID and Password'; 
-        e.style.display = 'block'; 
-        return; 
+
+      if (!p || !pa) {
+        e.innerText = 'Enter ID and Password';
+        e.style.display = 'block';
+        return;
       }
 
-      btn.innerText = 'Authenticating...';
-      btn.disabled = true;
-      
-      try { currentProfile = await window.supabaseAuth.login(p,pa); if(!currentProfile || !currentProfile.is_active || !currentProfile.auth_user_id) throw new Error('Account is not provisioned or active.');
-        e.style.display = 'none'; document.getElementById('login-overlay').style.display='none';
-      } catch (err) {
-        e.innerText = err.message || 'Invalid credentials';
+      // Check against Admin-created students in DB
+      if (DB.students && DB.students[p] && String(DB.students[p].password) === String(pa)) {
+        localStorage.setItem('pro_gm_user', p);
+        e.style.display = 'none';
+        document.getElementById('login-overlay').style.display = 'none';
+        refreshUI();
+      } else {
+        e.innerText = 'Invalid User ID or Password';
         e.style.display = 'block';
-      } finally { btn.innerText = 'Login'; btn.disabled = false; }
+      }
     }
 
     function getArr(obj) {
       if (!obj) return [];
       var r = [];
-      Object.keys(obj).forEach(function(k) { r.push(obj[k]); });
-      r.sort(function(a, b) {
-        var oA = a.order !== undefined ? a.order : 999999;
-        var oB = b.order !== undefined ? b.order : 999999;
-        return oA - oB;
+      Object.keys(obj).forEach(function(k) {
+        if (obj[k] && typeof obj[k] === 'object') r.push(obj[k]);
       });
       return r;
     }
-
-    window.tog = function(id) {
-      var el = document.getElementById(id);
-      if (el) el.classList.toggle('show');
-    };
 
     function refreshUI() {
       var fb = document.getElementById('filter-bar');
@@ -268,11 +149,11 @@
         items.forEach(function(t, i) {
           var sid = 'gm_' + i;
           var categoryTag = t.category ? '<span class="game-meta meta-category">' + t.category + '</span>' : '';
-          var subcategoryTag = t.subcategory ? '<span class="game-meta meta-subcategory">' + t.subcategory + '</span>' : '';
+          var subcategoryTag = (t.subcategory || t.topic) ? '<span class="game-meta meta-subcategory">' + (t.subcategory || t.topic) + '</span>' : '';
           h += '<div class="ch-row" style="background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="togGame(\'' + sid + '\',' + i + ')"><span>🎮 ' + (t.title || 'Game ' + (i + 1)) + categoryTag + subcategoryTag + '</span><span>▶ Play</span></div><div id="' + sid + '" class="ch-content"></div>';
         });
       } else {
-        h += '<div style="padding:40px;text-align:center;color:var(--mut);">No games found for this category.</div>';
+        h += '<div style="padding:40px;text-align:center;color:var(--mut);">No games found. Please add games from the Admin Panel.</div>';
       }
       ca.innerHTML = h;
     }
@@ -299,83 +180,59 @@
       if (selectedCategory !== 'ALL') items = items.filter(function(g) { return g.category === selectedCategory; });
       var gameData = items[index];
 
-      if (!gameData) {
-        contentDiv.innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px;">⚠️ Game data not found!</p>';
-        contentDiv.classList.add('show');
-        return;
-      }
+      if (!gameData) return;
 
       var iframe = document.createElement('iframe');
       iframe.className = 'game-iframe';
-      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-pointer-lock allow-popups-to-escape-sandbox');
-      iframe.setAttribute('allow', 'geolocation; microphone; camera; midi; encrypted-media;');
-      iframe.setAttribute('loading', 'lazy');
-      iframe.setAttribute('title', gameData.title || 'Game');
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
 
       var renderContent = gameData.htmlContent || gameData.content || '<p>No content available</p>';
-      var gameHTML = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=yes">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:Arial,Helvetica,sans-serif;overflow-x:hidden;width:100%;min-height:100vh}\nimg{max-width:100%;height:auto}\n</style>\n</head>\n<body>\n' + renderContent + '\n</body>\n</html>';
+      var isFullHTML = renderContent.trim().toLowerCase().indexOf('<!doctype') === 0 || renderContent.trim().toLowerCase().indexOf('<html') === 0;
+      var gameHTML = isFullHTML ? renderContent : '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:10px;background:#fff;color:#000}</style></head><body>' + renderContent + '</body></html>';
 
       iframe.srcdoc = gameHTML;
       contentDiv.innerHTML = '';
       contentDiv.appendChild(iframe);
       contentDiv.classList.add('show');
-
-      setTimeout(function() {
-        contentDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 150);
-    }
-
-    function closeModal() {
-      var m = document.getElementById('img-modal');
-      if(m) m.classList.remove('show');
     }
 
     function refreshData() {
-      var ca = document.getElementById('content-area');
-      ca.innerHTML = '<div style="padding:40px;text-align:center;color:var(--mut);">Refreshing Games...</div>';
+      document.getElementById('content-area').innerHTML = '<div style="padding:40px;text-align:center;color:var(--mut);">Refreshing Games...</div>';
       initApp();
     }
 
-    function initApp() {
-      Promise.all([
-        db.ref('proGames/appSettings').once('value'),
-        db.ref('proGames/activeSessions').once('value'),
-        db.ref('proGames/gamesDatabase').once('value'),
-        db.ref('proGames/students').once('value') 
-      ]).then(results => {
-        settings = results[0].val() || {};
-        if (typeof settings.loginEnabled === 'undefined') settings.loginEnabled = true;
-        if (typeof settings.copyEnabled === 'undefined') settings.copyEnabled = false;
+    async function initApp() {
+      // Automatically hide login overlay for public access
+      document.getElementById('login-overlay').style.display = 'none';
 
-        activeSessions = results[1].val() || {};
-        DB.games = results[2].val() || {};
-        DB.students = results[3].val() || {}; 
+      try {
+        // Fetch from both proGames/gamesDatabase AND main gamesDatabase so nothing is missed!
+        const [proSnap, mainSnap, stuSnap] = await Promise.all([
+          db.ref('proGames/gamesDatabase').once('value').catch(() => ({ val: () => null })),
+          db.ref('gamesDatabase').once('value').catch(() => ({ val: () => null })),
+          db.ref('proGames/students').once('value').catch(() => ({ val: () => null }))
+        ]);
+
+        var proGames = (proSnap && proSnap.val()) ? proSnap.val() : {};
+        var mainGames = (mainSnap && mainSnap.val()) ? mainSnap.val() : {};
         
-        applyCopyProtection();
-        checkAuth();
+        // Merge both game sources
+        DB.games = Object.assign({}, mainGames, proGames);
+        DB.students = (stuSnap && stuSnap.val()) ? stuSnap.val() : {};
+
         refreshUI();
-      }).catch(err => {
-        console.error("Vercel KV Load Error:", err);
-        var errEl = document.getElementById('login-error');
-        if(errEl) {
-           errEl.innerText = "Database connection error. Try again.";
-           errEl.style.display = "block";
-        }
-        applyCopyProtection();
-        checkAuth();
+      } catch (err) {
+        console.error("Load Error:", err);
         refreshUI();
-      });
+      }
     }
 
     window.onload = function() {
-        initTheme();
-        initApp();
+      initTheme();
+      initApp();
     };
   </script>
-
-  <!-- Global Navbar & Footer -->
   <script src="/footer.js"></script>
   <script src="/global-navbar.js"></script>
-
 </body>
 </html>
