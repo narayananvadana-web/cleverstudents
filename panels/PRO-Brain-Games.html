@@ -3,49 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Only Games | Student Panel</title>
+  <title>PRO Brain Games | Student Panel</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
   <style>
     :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px}
     body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
     *,::before,::after{margin:0;padding:0;box-sizing:border-box}
-    html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;min-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
-    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+    html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
+    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:background .3s,color .3s}
 
     .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important}
     input,textarea,select{user-select:auto!important;-webkit-user-select:auto!important}
 
     .main-wrap{max-width:100%!important;width:100%!important;padding:20px 10px 80px!important;margin:0 auto}
     .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
-    .banner{padding:12px 20px!important;display:flex;align-items:center;justify-content:center;gap:15px;box-shadow:0 4px 10px rgba(0,0,0,.2);flex-wrap:wrap;text-align:center}
+    .banner{padding:12px 20px!important;display:flex;align-items:center;justify-content:space-between;gap:15px;box-shadow:0 4px 10px rgba(0,0,0,.2);flex-wrap:wrap}
     .banner h1{font-size:1.4rem!important;font-weight:900!important;color:#fff!important}
-    .banner p{font-size:.95rem!important;font-weight:700!important;color:#fff!important}
     .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:12px 15px 0;color:#fff;font-weight:800;font-size:1rem;border-radius:6px;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.2);transition:all .3s ease}
     .ch-row:hover{filter:brightness(1.15);transform:translateY(-2px)}
-    .ch-content{display:none;background:rgba(0,0,0,.25);border:1px solid var(--brd);margin:0 15px 15px;padding:20px;border-radius:0 0 6px 6px;line-height:1.8;font-size:1rem;color:#f8fafc}
-    body.light-mode .ch-content{color:#334155;background:rgba(0,0,0,.02)}
+    .ch-content{display:none;background:rgba(0,0,0,.25);border:1px solid var(--brd);margin:0 15px 15px;padding:10px;border-radius:0 0 6px 6px}
     .ch-content.show{display:block;animation:fadeIn .3s ease}
     @keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 
     .btn{padding:10px 20px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .2s ease}
-    .btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
-    .btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-orange{background:#f59e0b}.btn-dark{background:#334155}
+    .btn:hover{filter:brightness(1.15)}
+    .btn-blue{background:#3b82f6}.btn-orange{background:#f59e0b}.btn-dark{background:#334155}.btn-red{background:#ef4444}
+    .btn-sm{padding:6px 14px;font-size:.8rem}
 
     .filter-bar{display:flex;gap:10px;padding:12px 15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd);flex-wrap:wrap;align-items:center;justify-content:center}
-    .filter-bar select{padding:8px 12px;border-radius:20px;background:var(--srf);color:var(--txt);border:1px solid var(--brd);font-family:var(--font);font-weight:700;outline:0;cursor:pointer}
+    .filter-bar select{padding:8px 14px;border-radius:20px;background:var(--srf);color:var(--txt);border:1px solid var(--brd);font-family:var(--font);font-weight:700;outline:0;cursor:pointer}
 
     #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:none;align-items:center;justify-content:center}
     .login-box{background:var(--srf);padding:40px 30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:380px;border:1px solid var(--brd);text-align:center}
     .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1rem;outline:0}
-    
+
     .game-meta{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:700;margin-left:8px}
     .meta-category{background:#7c3aed;color:#fff}
     .meta-subcategory{background:#0d9488;color:#fff}
-    .game-iframe{width:100%;min-height:550px;border:none;border-radius:8px;background:#fff}
+    .game-iframe{width:100%;min-height:600px;border:none;border-radius:8px;background:#fff}
 
     .refresh-btn{position:fixed;bottom:20px;right:20px;z-index:9999;width:50px;height:50px;border-radius:50%;background:#f59e0b;color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
-    .logo {font-family:'Fredoka One',cursive;}
-    @media(max-width:600px){.banner{flex-direction:column}.filter-bar{flex-direction:column;align-items:stretch}.game-iframe{min-height:400px}}
+    .logo{font-family:'Fredoka One',cursive;}
+    @media(max-width:600px){.banner{flex-direction:column}.game-iframe{min-height:450px}}
   </style>
 </head>
 <body class="protected-mode">
@@ -53,12 +52,12 @@
 
   <div id="login-overlay">
     <div class="login-box">
-      <div class="logo" style="margin-bottom:20px; font-size: 1.5rem; background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🎮 Only Games</div>
+      <div class="logo" style="margin-bottom:20px;font-size:1.5rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🎮 PRO Brain Games</div>
       <h2 style="margin-bottom:25px;color:var(--txt);">Student Login</h2>
       <input type="text" id="login-phone" class="login-inp" placeholder="User ID / Phone">
       <input type="password" id="login-pass" class="login-inp" placeholder="Password">
       <button class="btn btn-blue" style="width:100%;padding:14px;font-size:1.1rem;margin-top:10px;" onclick="attemptLogin()">🔐 Login</button>
-      <button class="btn btn-orange" style="width:100%;padding:12px;font-size:1rem;margin-top:10px;" onclick="loginAsGuest()">👤 Play as Guest (Free)</button>
+      <button class="btn btn-orange" style="width:100%;padding:12px;font-size:.95rem;margin-top:10px;" onclick="loginAsGuest()">👤 Play as Guest</button>
       <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:700;display:none;"></div>
     </div>
   </div>
@@ -66,64 +65,92 @@
   <div class="main-wrap">
     <div id="shell" class="shell">
       <div class="banner" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
-        <h1>🎮 All Brain Games</h1>
-        <p>Learn & Play</p>
+        <h1>🧠 PRO Brain Games (11 Categories)</h1>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="user-badge" style="color:#fff;font-weight:800;font-size:.85rem;"></span>
+          <button class="btn btn-dark btn-sm" onclick="showLoginBox()">🔐 Switch User</button>
+        </div>
       </div>
       <div class="filter-bar" id="filter-bar"></div>
       <div class="content" id="content-area">
-        <div style="padding:40px;text-align:center;color:var(--mut);">Loading games...</div>
+        <div style="padding:40px;text-align:center;color:var(--mut);">Loading 32+ PRO Brain Games...</div>
       </div>
     </div>
   </div>
 
-  <button class="refresh-btn" onclick="refreshData()" title="Refresh Games">🔄</button>
+  <button class="refresh-btn" onclick="initApp()" title="Refresh Games">🔄</button>
 
   <script>
     const db = window.supabaseDb;
     var DB = { games: {}, students: {} };
-    var settings = { loginEnabled: false, copyEnabled: false };
     var selectedCategory = 'ALL';
-    var GAME_CATEGORIES = ["1. Memory & Recall", "2. Attention & Focus", "3. Logic & Reasoning", "4. Problem Solving", "5. Processing Speed", "6. Cognitive Flexibility", "7. Verbal Intelligence", "8. Mathematical", "9. N-Back Training", "10. Advanced Technology", "11. Creativity"];
+    var GAME_CATEGORIES = [
+      "1. Memory & Recall", "2. Attention & Focus", "3. Logic & Reasoning",
+      "4. Problem Solving", "5. Processing Speed", "6. Cognitive Flexibility",
+      "7. Verbal Intelligence", "8. Mathematical", "9. N-Back Training",
+      "10. Advanced Technology", "11. Creativity"
+    ];
 
-    function initTheme() {
-      var t = localStorage.getItem('cs_th') || 'dark';
-      t === 'light' ? document.body.classList.add('light-mode') : document.body.classList.remove('light-mode');
+    function showLoginBox() {
+      document.getElementById('login-overlay').style.display = 'flex';
     }
 
     function loginAsGuest() {
-      localStorage.setItem('pro_gm_user', 'GUEST');
+      localStorage.setItem('pro_gm_user', 'Guest');
       document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('user-badge').innerText = '👤 Guest';
       refreshUI();
     }
 
-    function attemptLogin() {
+    async function attemptLogin() {
       var p = document.getElementById('login-phone').value.trim();
       var pa = document.getElementById('login-pass').value.trim();
       var e = document.getElementById('login-error');
 
       if (!p || !pa) {
-        e.innerText = 'Enter ID and Password';
+        e.innerText = 'Enter User ID and Password';
         e.style.display = 'block';
         return;
       }
 
-      // Check against Admin-created students in DB
+      // 1. Check in proGames_students dictionary
       if (DB.students && DB.students[p] && String(DB.students[p].password) === String(pa)) {
-        localStorage.setItem('pro_gm_user', p);
+        localStorage.setItem('pro_gm_user', DB.students[p].name || p);
         e.style.display = 'none';
         document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('user-badge').innerText = '👤 ' + (DB.students[p].name || p);
         refreshUI();
-      } else {
-        e.innerText = 'Invalid User ID or Password';
-        e.style.display = 'block';
+        return;
       }
+
+      // 2. Fallback: Check Supabase Auth
+      try {
+        var profile = await window.supabaseAuth.login(p, pa);
+        if (profile) {
+          localStorage.setItem('pro_gm_user', profile.display_name || p);
+          e.style.display = 'none';
+          document.getElementById('login-overlay').style.display = 'none';
+          document.getElementById('user-badge').innerText = '👤 ' + (profile.display_name || p);
+          refreshUI();
+          return;
+        }
+      } catch (err) {}
+
+      e.innerText = 'Invalid User ID or Password';
+      e.style.display = 'block';
     }
 
-    function getArr(obj) {
-      if (!obj) return [];
+    function getProGamesList() {
       var r = [];
-      Object.keys(obj).forEach(function(k) {
-        if (obj[k] && typeof obj[k] === 'object') r.push(obj[k]);
+      Object.keys(DB.games || {}).forEach(function(k) {
+        var g = DB.games[k];
+        if (!g || typeof g !== 'object') return;
+        // Include if it has a PRO category or is marked isPro or key starts with pro_
+        if (g.category || g.isPro || k.indexOf('pro_') === 0 || (g.metadata && g.metadata.isPro)) {
+          var item = Object.assign({}, g.metadata || {}, g);
+          item._key = k;
+          r.push(item);
+        }
       });
       return r;
     }
@@ -132,14 +159,14 @@
       var fb = document.getElementById('filter-bar');
       var ca = document.getElementById('content-area');
 
-      var co = '<option value="ALL">🎮 All Categories</option>';
+      var co = '<option value="ALL">🎮 All 11 Categories</option>';
       for (var ci = 0; ci < GAME_CATEGORIES.length; ci++) {
         var sc = selectedCategory === GAME_CATEGORIES[ci] ? 'selected' : '';
         co += '<option value="' + GAME_CATEGORIES[ci] + '" ' + sc + '>' + GAME_CATEGORIES[ci] + '</option>';
       }
       fb.innerHTML = '<select onchange="updateCategory(this.value)">' + co + '</select>';
 
-      var items = getArr(DB.games);
+      var items = getProGamesList();
       if (selectedCategory !== 'ALL') {
         items = items.filter(function(g) { return g.category === selectedCategory; });
       }
@@ -149,11 +176,12 @@
         items.forEach(function(t, i) {
           var sid = 'gm_' + i;
           var categoryTag = t.category ? '<span class="game-meta meta-category">' + t.category + '</span>' : '';
-          var subcategoryTag = (t.subcategory || t.topic) ? '<span class="game-meta meta-subcategory">' + (t.subcategory || t.topic) + '</span>' : '';
+          var sub = t.subcategory || t.sub_subject || t.topic || '';
+          var subcategoryTag = sub ? '<span class="game-meta meta-subcategory">' + sub + '</span>' : '';
           h += '<div class="ch-row" style="background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="togGame(\'' + sid + '\',' + i + ')"><span>🎮 ' + (t.title || 'Game ' + (i + 1)) + categoryTag + subcategoryTag + '</span><span>▶ Play</span></div><div id="' + sid + '" class="ch-content"></div>';
         });
       } else {
-        h += '<div style="padding:40px;text-align:center;color:var(--mut);">No games found. Please add games from the Admin Panel.</div>';
+        h += '<div style="padding:40px;text-align:center;color:var(--mut);">No games found in this category.</div>';
       }
       ca.innerHTML = h;
     }
@@ -173,64 +201,50 @@
         return;
       }
 
-      var allGames = document.querySelectorAll('.ch-content.show');
-      allGames.forEach(function(g) { g.classList.remove('show'); g.innerHTML = ''; });
+      document.querySelectorAll('.ch-content.show').forEach(function(g) {
+        g.classList.remove('show');
+        g.innerHTML = '';
+      });
 
-      var items = getArr(DB.games);
+      var items = getProGamesList();
       if (selectedCategory !== 'ALL') items = items.filter(function(g) { return g.category === selectedCategory; });
       var gameData = items[index];
-
       if (!gameData) return;
 
       var iframe = document.createElement('iframe');
       iframe.className = 'game-iframe';
-      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-pointer-lock');
 
-      var renderContent = gameData.htmlContent || gameData.content || '<p>No content available</p>';
+      var renderContent = gameData.htmlContent || gameData.content_html || gameData.content || '<p>No content available</p>';
       var isFullHTML = renderContent.trim().toLowerCase().indexOf('<!doctype') === 0 || renderContent.trim().toLowerCase().indexOf('<html') === 0;
-      var gameHTML = isFullHTML ? renderContent : '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:10px;background:#fff;color:#000}</style></head><body>' + renderContent + '</body></html>';
+      var gameHTML = isFullHTML ? renderContent : '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;width:100%;min-height:100vh}</style></head><body>' + renderContent + '</body></html>';
 
       iframe.srcdoc = gameHTML;
       contentDiv.innerHTML = '';
       contentDiv.appendChild(iframe);
       contentDiv.classList.add('show');
-    }
-
-    function refreshData() {
-      document.getElementById('content-area').innerHTML = '<div style="padding:40px;text-align:center;color:var(--mut);">Refreshing Games...</div>';
-      initApp();
+      setTimeout(function() { contentDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
     }
 
     async function initApp() {
-      // Automatically hide login overlay for public access
+      var savedUser = localStorage.getItem('pro_gm_user') || 'Guest';
+      document.getElementById('user-badge').innerText = '👤 ' + savedUser;
       document.getElementById('login-overlay').style.display = 'none';
 
       try {
-        // Fetch from both proGames/gamesDatabase AND main gamesDatabase so nothing is missed!
-        const [proSnap, mainSnap, stuSnap] = await Promise.all([
-          db.ref('proGames/gamesDatabase').once('value').catch(() => ({ val: () => null })),
-          db.ref('gamesDatabase').once('value').catch(() => ({ val: () => null })),
-          db.ref('proGames/students').once('value').catch(() => ({ val: () => null }))
-        ]);
+        var gamesSnap = await db.ref('gamesDatabase').once('value');
+        DB.games = (gamesSnap && gamesSnap.val()) ? gamesSnap.val() : {};
 
-        var proGames = (proSnap && proSnap.val()) ? proSnap.val() : {};
-        var mainGames = (mainSnap && mainSnap.val()) ? mainSnap.val() : {};
-        
-        // Merge both game sources
-        DB.games = Object.assign({}, mainGames, proGames);
-        DB.students = (stuSnap && stuSnap.val()) ? stuSnap.val() : {};
-
-        refreshUI();
-      } catch (err) {
-        console.error("Load Error:", err);
-        refreshUI();
+        var settingsSnap = await db.ref('appSettings').once('value');
+        var allSettings = (settingsSnap && settingsSnap.val()) ? settingsSnap.val() : {};
+        DB.students = allSettings.proGames_students || {};
+      } catch (e) {
+        console.error('Error loading PRO games:', e);
       }
+      refreshUI();
     }
 
-    window.onload = function() {
-      initTheme();
-      initApp();
-    };
+    window.onload = initApp;
   </script>
   <script src="/footer.js"></script>
   <script src="/global-navbar.js"></script>
