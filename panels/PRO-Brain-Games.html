@@ -6,45 +6,57 @@
   <title>PRO Brain Games | Student Panel</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px}
+    :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:10px}
     body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
     *,::before,::after{margin:0;padding:0;box-sizing:border-box}
     html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
-    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:background .3s,color .3s}
+    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh}
 
     .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important}
     input,textarea,select{user-select:auto!important;-webkit-user-select:auto!important}
 
-    .main-wrap{max-width:100%!important;width:100%!important;padding:20px 10px 80px!important;margin:0 auto}
-    .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
-    .banner{padding:12px 20px!important;display:flex;align-items:center;justify-content:space-between;gap:15px;box-shadow:0 4px 10px rgba(0,0,0,.2);flex-wrap:wrap}
-    .banner h1{font-size:1.4rem!important;font-weight:900!important;color:#fff!important}
-    .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:12px 15px 0;color:#fff;font-weight:800;font-size:1rem;border-radius:6px;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.2);transition:all .3s ease}
-    .ch-row:hover{filter:brightness(1.15);transform:translateY(-2px)}
-    .ch-content{display:none;background:rgba(0,0,0,.25);border:1px solid var(--brd);margin:0 15px 15px;padding:10px;border-radius:0 0 6px 6px}
-    .ch-content.show{display:block;animation:fadeIn .3s ease}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .main-wrap{max-width:1400px;width:100%;padding:15px 12px 60px;margin:0 auto}
+    .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%}
+    .banner{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:15px;background:linear-gradient(135deg,#f59e0b,#d97706);flex-wrap:wrap}
+    .banner h1{font-size:1.35rem;font-weight:900;color:#fff}
 
-    .btn{padding:10px 20px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .2s ease}
-    .btn:hover{filter:brightness(1.15)}
-    .btn-blue{background:#3b82f6}.btn-orange{background:#f59e0b}.btn-dark{background:#334155}.btn-red{background:#ef4444}
-    .btn-sm{padding:6px 14px;font-size:.8rem}
+    /* Category Pills Bar */
+    .cat-pills{display:flex;gap:8px;padding:12px 15px;background:rgba(0,0,0,.25);border-bottom:1px solid var(--brd);overflow-x:auto;scrollbar-width:thin}
+    .cat-pill{padding:8px 14px;border-radius:50px;border:1px solid var(--brd);background:var(--srf);color:var(--mut);font-weight:800;font-size:.8rem;cursor:pointer;white-space:nowrap;transition:.2s}
+    .cat-pill:hover{border-color:#f59e0b;color:var(--txt)}
+    .cat-pill.active{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(245,158,11,.35)}
 
-    .filter-bar{display:flex;gap:10px;padding:12px 15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd);flex-wrap:wrap;align-items:center;justify-content:center}
-    .filter-bar select{padding:8px 14px;border-radius:20px;background:var(--srf);color:var(--txt);border:1px solid var(--brd);font-family:var(--font);font-weight:700;outline:0;cursor:pointer}
-
-    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:none;align-items:center;justify-content:center}
-    .login-box{background:var(--srf);padding:40px 30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:380px;border:1px solid var(--brd);text-align:center}
-    .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1rem;outline:0}
-
-    .game-meta{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:700;margin-left:8px}
+    /* Compact Game Cards Grid */
+    .games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:18px}
+    .game-card{background:rgba(255,255,255,.03);border:1px solid var(--brd);border-radius:12px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;cursor:pointer;transition:all .2s ease;position:relative;overflow:hidden}
+    .game-card:hover{transform:translateY(-4px);border-color:#f59e0b;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+    .game-card-title{font-size:1.02rem;font-weight:800;color:var(--txt);line-height:1.35}
+    .game-tags{display:flex;flex-wrap:wrap;gap:6px}
+    .game-meta{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700}
     .meta-category{background:#7c3aed;color:#fff}
     .meta-subcategory{background:#0d9488;color:#fff}
-    .game-iframe{width:100%;min-height:600px;border:none;border-radius:8px;background:#fff}
+    .play-chip{align-self:flex-start;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:7px 16px;border-radius:50px;font-weight:800;font-size:.8rem;border:none;cursor:pointer}
 
-    .refresh-btn{position:fixed;bottom:20px;right:20px;z-index:9999;width:50px;height:50px;border-radius:50%;background:#f59e0b;color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
-    .logo{font-family:'Fredoka One',cursive;}
-    @media(max-width:600px){.banner{flex-direction:column}.game-iframe{min-height:450px}}
+    /* Dedicated Zero-Scroll Game Player View */
+    #player-view{display:none;background:var(--srf);border-radius:var(--r-md);border:1px solid var(--brd);overflow:hidden}
+    .player-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:#0f172a;border-bottom:1px solid var(--brd);flex-wrap:wrap}
+    .player-title{font-weight:900;font-size:1rem;color:#f59e0b;display:flex;align-items:center;gap:8px}
+    .player-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .game-stage{width:100%;background:#080c14;position:relative;overflow:hidden}
+    .game-iframe{width:100%;border:none;display:block;background:transparent;overflow:hidden}
+
+    /* Fullscreen Mode */
+    #player-view.fullscreen-mode{position:fixed;inset:0;z-index:99999;border-radius:0;display:flex!important;flex-direction:column;height:100vh}
+    #player-view.fullscreen-mode .game-stage{flex:1;overflow-y:auto}
+
+    .btn{padding:8px 16px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:.82rem;transition:.2s}
+    .btn:hover{filter:brightness(1.15)}
+    .btn-blue{background:#3b82f6}.btn-orange{background:#f59e0b}.btn-dark{background:#334155}.btn-green{background:#10b981}.btn-purple{background:#7c3aed}
+
+    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:none;align-items:center;justify-content:center}
+    .login-box{background:var(--srf);padding:36px 28px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:380px;border:1px solid var(--brd);text-align:center}
+    .login-inp{width:100%;padding:13px;margin-bottom:14px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:.95rem;outline:0}
+    .logo{font-family:'Fredoka One',cursive}
   </style>
 </head>
 <body class="protected-mode">
@@ -52,38 +64,57 @@
 
   <div id="login-overlay">
     <div class="login-box">
-      <div class="logo" style="margin-bottom:20px;font-size:1.5rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🎮 PRO Brain Games</div>
-      <h2 style="margin-bottom:25px;color:var(--txt);">Student Login</h2>
+      <div class="logo" style="margin-bottom:18px;font-size:1.5rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🎮 PRO Brain Games</div>
+      <h2 style="margin-bottom:20px;color:var(--txt);">Student Login</h2>
       <input type="text" id="login-phone" class="login-inp" placeholder="User ID / Phone">
       <input type="password" id="login-pass" class="login-inp" placeholder="Password">
-      <button class="btn btn-blue" style="width:100%;padding:14px;font-size:1.1rem;margin-top:10px;" onclick="attemptLogin()">🔐 Login</button>
-      <button class="btn btn-orange" style="width:100%;padding:12px;font-size:.95rem;margin-top:10px;" onclick="loginAsGuest()">👤 Play as Guest</button>
-      <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:700;display:none;"></div>
+      <button class="btn btn-blue" style="width:100%;padding:13px;font-size:1rem;margin-top:6px;" onclick="attemptLogin()">🔐 Login</button>
+      <button class="btn btn-orange" style="width:100%;padding:11px;font-size:.9rem;margin-top:10px;" onclick="loginAsGuest()">👤 Play as Guest</button>
+      <div id="login-error" style="color:#ef4444;margin-top:12px;font-weight:700;display:none;"></div>
     </div>
   </div>
 
   <div class="main-wrap">
+    <!-- 1. BROWSE GAMES VIEW -->
     <div id="shell" class="shell">
-      <div class="banner" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
-        <h1>🧠 PRO Brain Games (11 Categories)</h1>
-        <div style="display:flex;align-items:center;gap:10px;">
+      <div class="banner">
+        <h1>🧠 PRO Brain Games <span id="total-count" style="font-size:.9rem;opacity:.9;"></span></h1>
+        <div style="display:flex;align-items:center;gap:8px;">
           <span id="user-badge" style="color:#fff;font-weight:800;font-size:.85rem;"></span>
-          <button class="btn btn-dark btn-sm" onclick="showLoginBox()">🔐 Switch User</button>
+          <button class="btn btn-dark" onclick="showLoginBox()">🔐 Switch User</button>
         </div>
       </div>
-      <div class="filter-bar" id="filter-bar"></div>
-      <div class="content" id="content-area">
-        <div style="padding:40px;text-align:center;color:var(--mut);">Loading 32+ PRO Brain Games...</div>
+      <div class="cat-pills" id="cat-pills"></div>
+      <div id="content-area">
+        <div style="padding:40px;text-align:center;color:var(--mut);">Loading 51 PRO Brain Games...</div>
       </div>
     </div>
-  </div>
 
-  <button class="refresh-btn" onclick="initApp()" title="Refresh Games">🔄</button>
+    <!-- 2. DEDICATED GAME PLAYER VIEW (NO INNER SCROLLBAR) -->
+    <div id="player-view">
+      <div class="player-toolbar">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-dark" onclick="closePlayer()">← Back to All Games</button>
+          <div class="player-title" id="player-title">🎮 Game</div>
+        </div>
+        <div class="player-controls">
+          <button class="btn btn-dark" id="btn-prev" onclick="stepGame(-1)">◀ Prev Game</button>
+          <span id="game-counter" style="font-size:.8rem;font-weight:800;color:var(--mut);padding:0 6px;"></span>
+          <button class="btn btn-dark" id="btn-next" onclick="stepGame(1)">Next Game ▶</button>
+          <button class="btn btn-purple" onclick="toggleFullScreen()" id="fs-btn">⛶ Full Screen</button>
+        </div>
+      </div>
+      <div class="game-stage" id="game-stage"></div>
+    </div>
+  </div>
 
   <script>
     const db = window.supabaseDb;
     var DB = { games: {}, students: {} };
     var selectedCategory = 'ALL';
+    var currentFilteredGames = [];
+    var activeGameIndex = 0;
+
     var GAME_CATEGORIES = [
       "1. Memory & Recall", "2. Attention & Focus", "3. Logic & Reasoning",
       "4. Problem Solving", "5. Processing Speed", "6. Cognitive Flexibility",
@@ -113,7 +144,6 @@
         return;
       }
 
-      // 1. Check in proGames_students dictionary
       if (DB.students && DB.students[p] && String(DB.students[p].password) === String(pa)) {
         localStorage.setItem('pro_gm_user', DB.students[p].name || p);
         e.style.display = 'none';
@@ -123,7 +153,6 @@
         return;
       }
 
-      // 2. Fallback: Check Supabase Auth
       try {
         var profile = await window.supabaseAuth.login(p, pa);
         if (profile) {
@@ -145,7 +174,6 @@
       Object.keys(DB.games || {}).forEach(function(k) {
         var g = DB.games[k];
         if (!g || typeof g !== 'object') return;
-        // Include if it has a PRO category or is marked isPro or key starts with pro_
         if (g.category || g.isPro || k.indexOf('pro_') === 0 || (g.metadata && g.metadata.isPro)) {
           var item = Object.assign({}, g.metadata || {}, g);
           item._key = k;
@@ -156,33 +184,45 @@
     }
 
     function refreshUI() {
-      var fb = document.getElementById('filter-bar');
+      var pills = document.getElementById('cat-pills');
       var ca = document.getElementById('content-area');
+      var allItems = getProGamesList();
 
-      var co = '<option value="ALL">🎮 All 11 Categories</option>';
-      for (var ci = 0; ci < GAME_CATEGORIES.length; ci++) {
-        var sc = selectedCategory === GAME_CATEGORIES[ci] ? 'selected' : '';
-        co += '<option value="' + GAME_CATEGORIES[ci] + '" ' + sc + '>' + GAME_CATEGORIES[ci] + '</option>';
-      }
-      fb.innerHTML = '<select onchange="updateCategory(this.value)">' + co + '</select>';
+      document.getElementById('total-count').innerText = '(' + allItems.length + ' Games)';
 
-      var items = getProGamesList();
-      if (selectedCategory !== 'ALL') {
-        items = items.filter(function(g) { return g.category === selectedCategory; });
+      // Render Category Pills with counts
+      var pHTML = '<button class="cat-pill ' + (selectedCategory === 'ALL' ? 'active' : '') + '" onclick="updateCategory(\'ALL\')">🎮 All (' + allItems.length + ')</button>';
+      GAME_CATEGORIES.forEach(function(cat) {
+        var cnt = allItems.filter(function(g) { return g.category === cat; }).length;
+        var active = selectedCategory === cat ? 'active' : '';
+        pHTML += '<button class="cat-pill ' + active + '" onclick="updateCategory(\'' + cat.replace(/'/g, "\\'") + '\')">' + cat + ' (' + cnt + ')</button>';
+      });
+      pills.innerHTML = pHTML;
+
+      currentFilteredGames = selectedCategory === 'ALL'
+        ? allItems
+        : allItems.filter(function(g) { return g.category === selectedCategory; });
+
+      if (!currentFilteredGames.length) {
+        ca.innerHTML = '<div style="padding:40px;text-align:center;color:var(--mut);">No games found in this category.</div>';
+        return;
       }
 
-      var h = '';
-      if (items.length) {
-        items.forEach(function(t, i) {
-          var sid = 'gm_' + i;
-          var categoryTag = t.category ? '<span class="game-meta meta-category">' + t.category + '</span>' : '';
-          var sub = t.subcategory || t.sub_subject || t.topic || '';
-          var subcategoryTag = sub ? '<span class="game-meta meta-subcategory">' + sub + '</span>' : '';
-          h += '<div class="ch-row" style="background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="togGame(\'' + sid + '\',' + i + ')"><span>🎮 ' + (t.title || 'Game ' + (i + 1)) + categoryTag + subcategoryTag + '</span><span>▶ Play</span></div><div id="' + sid + '" class="ch-content"></div>';
-        });
-      } else {
-        h += '<div style="padding:40px;text-align:center;color:var(--mut);">No games found in this category.</div>';
-      }
+      var h = '<div class="games-grid">';
+      currentFilteredGames.forEach(function(t, i) {
+        var sub = t.subcategory || t.sub_subject || t.topic || '';
+        h += '<div class="game-card" onclick="openGamePlayer(' + i + ')">' +
+          '<div>' +
+            '<div class="game-card-title">🎮 ' + (t.title || 'Game ' + (i + 1)) + '</div>' +
+            '<div class="game-tags" style="margin-top:8px;">' +
+              (t.category ? '<span class="game-meta meta-category">' + t.category + '</span>' : '') +
+              (sub && sub !== t.title ? '<span class="game-meta meta-subcategory">' + sub + '</span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<button class="play-chip">▶ Play Now</button>' +
+        '</div>';
+      });
+      h += '</div>';
       ca.innerHTML = h;
     }
 
@@ -191,39 +231,68 @@
       refreshUI();
     }
 
-    function togGame(sid, index) {
-      var contentDiv = document.getElementById(sid);
-      if (!contentDiv) return;
+    function openGamePlayer(index) {
+      if (index < 0 || index >= currentFilteredGames.length) return;
+      activeGameIndex = index;
+      var gameData = currentFilteredGames[index];
 
-      if (contentDiv.classList.contains('show')) {
-        contentDiv.classList.remove('show');
-        contentDiv.innerHTML = '';
-        return;
-      }
+      document.getElementById('shell').style.display = 'none';
+      var pv = document.getElementById('player-view');
+      pv.style.display = 'block';
 
-      document.querySelectorAll('.ch-content.show').forEach(function(g) {
-        g.classList.remove('show');
-        g.innerHTML = '';
-      });
+      document.getElementById('player-title').innerText = '🎮 ' + (gameData.title || 'Brain Game');
+      document.getElementById('game-counter').innerText = (index + 1) + ' / ' + currentFilteredGames.length;
+      document.getElementById('btn-prev').disabled = (index === 0);
+      document.getElementById('btn-next').disabled = (index === currentFilteredGames.length - 1);
 
-      var items = getProGamesList();
-      if (selectedCategory !== 'ALL') items = items.filter(function(g) { return g.category === selectedCategory; });
-      var gameData = items[index];
-      if (!gameData) return;
+      var stage = document.getElementById('game-stage');
+      stage.innerHTML = '';
 
       var iframe = document.createElement('iframe');
       iframe.className = 'game-iframe';
+      iframe.id = 'active-game-iframe';
+      iframe.setAttribute('scrolling', 'no');
       iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-pointer-lock');
 
       var renderContent = gameData.htmlContent || gameData.content_html || gameData.content || '<p>No content available</p>';
       var isFullHTML = renderContent.trim().toLowerCase().indexOf('<!doctype') === 0 || renderContent.trim().toLowerCase().indexOf('<html') === 0;
-      var gameHTML = isFullHTML ? renderContent : '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;width:100%;min-height:100vh}</style></head><body>' + renderContent + '</body></html>';
 
+      // Inject CSS & JS inside the game so it never shows an inner scrollbar and auto-reports its exact height
+      var autoFitHelper = '<style>html,body{overflow-x:hidden!important;margin:0;padding:0;}</style>' +
+        '<script>' +
+        'function syncH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,650);if(window.frameElement)window.frameElement.style.height=(h+30)+"px";}catch(e){}}' +
+        'window.addEventListener("load",syncH);window.addEventListener("resize",syncH);setInterval(syncH,500);' +
+        '<\/script>';
+
+      var gameHTML = isFullHTML
+        ? renderContent + autoFitHelper
+        : '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' + autoFitHelper + '</head><body>' + renderContent + '</body></html>';
+
+      iframe.style.height = '750px';
       iframe.srcdoc = gameHTML;
-      contentDiv.innerHTML = '';
-      contentDiv.appendChild(iframe);
-      contentDiv.classList.add('show');
-      setTimeout(function() { contentDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
+      stage.appendChild(iframe);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function stepGame(dir) {
+      var nextIdx = activeGameIndex + dir;
+      if (nextIdx >= 0 && nextIdx < currentFilteredGames.length) {
+        openGamePlayer(nextIdx);
+      }
+    }
+
+    function closePlayer() {
+      var pv = document.getElementById('player-view');
+      pv.classList.remove('fullscreen-mode');
+      pv.style.display = 'none';
+      document.getElementById('game-stage').innerHTML = '';
+      document.getElementById('shell').style.display = 'block';
+    }
+
+    function toggleFullScreen() {
+      var pv = document.getElementById('player-view');
+      var isFS = pv.classList.toggle('fullscreen-mode');
+      document.getElementById('fs-btn').innerText = isFS ? '✕ Exit Full Screen' : '⛶ Full Screen';
     }
 
     async function initApp() {
