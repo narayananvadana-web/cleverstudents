@@ -37,21 +37,23 @@
     .meta-subcategory{background:#0d9488;color:#fff}
     .play-chip{align-self:flex-start;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:7px 16px;border-radius:50px;font-weight:800;font-size:.8rem;border:none;cursor:pointer}
 
-    /* Dedicated Zero-Scroll Game Player View */
+    /* Stable Zero-Jump Game Player View */
     #player-view{display:none;background:var(--srf);border-radius:var(--r-md);border:1px solid var(--brd);overflow:hidden}
     .player-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:#0f172a;border-bottom:1px solid var(--brd);flex-wrap:wrap}
     .player-title{font-weight:900;font-size:1rem;color:#f59e0b;display:flex;align-items:center;gap:8px}
-    .player-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .player-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
     .game-stage{width:100%;background:#080c14;position:relative;overflow:hidden}
-    .game-iframe{width:100%;border:none;display:block;background:transparent;overflow:hidden}
+    .game-iframe{width:100%;height:780px;border:none;display:block;background:#080c14;transition:height .15s ease}
 
     /* Fullscreen Mode */
     #player-view.fullscreen-mode{position:fixed;inset:0;z-index:99999;border-radius:0;display:flex!important;flex-direction:column;height:100vh}
-    #player-view.fullscreen-mode .game-stage{flex:1;overflow-y:auto}
+    #player-view.fullscreen-mode .game-stage{flex:1;height:calc(100vh - 56px);overflow:auto}
+    #player-view.fullscreen-mode .game-iframe{min-height:100%!important}
 
-    .btn{padding:8px 16px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:.82rem;transition:.2s}
+    .btn{padding:7px 14px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:.8rem;transition:.2s}
     .btn:hover{filter:brightness(1.15)}
-    .btn-blue{background:#3b82f6}.btn-orange{background:#f59e0b}.btn-dark{background:#334155}.btn-green{background:#10b981}.btn-purple{background:#7c3aed}
+    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .btn-blue{background:#3b82f6}.btn-orange{background:#f59e0b}.btn-dark{background:#334155}.btn-green{background:#10b981}.btn-purple{background:#7c3aed}.btn-teal{background:#0d9488}
 
     #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:none;align-items:center;justify-content:center}
     .login-box{background:var(--srf);padding:36px 28px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:380px;border:1px solid var(--brd);text-align:center}
@@ -90,17 +92,20 @@
       </div>
     </div>
 
-    <!-- 2. DEDICATED GAME PLAYER VIEW (NO INNER SCROLLBAR) -->
+    <!-- 2. STABLE GAME PLAYER VIEW (NO INFINITE SCROLL LOOP) -->
     <div id="player-view">
       <div class="player-toolbar">
         <div style="display:flex;align-items:center;gap:10px;">
-          <button class="btn btn-dark" onclick="closePlayer()">← Back to All Games</button>
+          <button class="btn btn-dark" onclick="closePlayer()">← Back to Games</button>
           <div class="player-title" id="player-title">🎮 Game</div>
         </div>
         <div class="player-controls">
-          <button class="btn btn-dark" id="btn-prev" onclick="stepGame(-1)">◀ Prev Game</button>
-          <span id="game-counter" style="font-size:.8rem;font-weight:800;color:var(--mut);padding:0 6px;"></span>
-          <button class="btn btn-dark" id="btn-next" onclick="stepGame(1)">Next Game ▶</button>
+          <button class="btn btn-teal" onclick="adjustZoom(-0.1)" title="Zoom Out">➖ Zoom Out</button>
+          <button class="btn btn-teal" onclick="adjustZoom(0)" title="Reset Zoom">100%</button>
+          <button class="btn btn-teal" onclick="adjustZoom(0.1)" title="Zoom In">➕ Zoom In</button>
+          <button class="btn btn-dark" id="btn-prev" onclick="stepGame(-1)">◀ Prev</button>
+          <span id="game-counter" style="font-size:.8rem;font-weight:800;color:var(--mut);padding:0 4px;"></span>
+          <button class="btn btn-dark" id="btn-next" onclick="stepGame(1)">Next ▶</button>
           <button class="btn btn-purple" onclick="toggleFullScreen()" id="fs-btn">⛶ Full Screen</button>
         </div>
       </div>
@@ -114,6 +119,7 @@
     var selectedCategory = 'ALL';
     var currentFilteredGames = [];
     var activeGameIndex = 0;
+    var currentZoom = 1;
 
     var GAME_CATEGORIES = [
       "1. Memory & Recall", "2. Attention & Focus", "3. Logic & Reasoning",
@@ -190,7 +196,6 @@
 
       document.getElementById('total-count').innerText = '(' + allItems.length + ' Games)';
 
-      // Render Category Pills with counts
       var pHTML = '<button class="cat-pill ' + (selectedCategory === 'ALL' ? 'active' : '') + '" onclick="updateCategory(\'ALL\')">🎮 All (' + allItems.length + ')</button>';
       GAME_CATEGORIES.forEach(function(cat) {
         var cnt = allItems.filter(function(g) { return g.category === cat; }).length;
@@ -231,9 +236,42 @@
       refreshUI();
     }
 
+    function adjustZoom(delta) {
+      if (delta === 0) currentZoom = 1;
+      else currentZoom = Math.min(1.4, Math.max(0.6, +(currentZoom + delta).toFixed(2)));
+      var iframe = document.getElementById('active-game-iframe');
+      if (iframe && iframe.contentDocument && iframe.contentDocument.body) {
+        iframe.contentDocument.body.style.zoom = currentZoom;
+        setTimeout(measureIframeOnce, 100);
+      }
+    }
+
+    function measureIframeOnce() {
+      var iframe = document.getElementById('active-game-iframe');
+      if (!iframe || !iframe.contentDocument || !iframe.contentDocument.body) return;
+      try {
+        var doc = iframe.contentDocument;
+        var body = doc.body;
+        // Measure actual children bounding boxes instead of 100vh feedback loop
+        var maxBottom = 0;
+        var children = body.children;
+        for (var i = 0; i < children.length; i++) {
+          var el = children[i];
+          if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') continue;
+          var rect = el.getBoundingClientRect();
+          if (rect.bottom > maxBottom) maxBottom = rect.bottom;
+        }
+        var targetH = Math.max(maxBottom + 40, body.offsetHeight + 20, 680);
+        // Cap absurd heights caused by 100vh CSS rules
+        if (targetH > 2200) targetH = 850;
+        iframe.style.height = targetH + 'px';
+      } catch (e) {}
+    }
+
     function openGamePlayer(index) {
       if (index < 0 || index >= currentFilteredGames.length) return;
       activeGameIndex = index;
+      currentZoom = 1;
       var gameData = currentFilteredGames[index];
 
       document.getElementById('shell').style.display = 'none';
@@ -251,27 +289,34 @@
       var iframe = document.createElement('iframe');
       iframe.className = 'game-iframe';
       iframe.id = 'active-game-iframe';
-      iframe.setAttribute('scrolling', 'no');
       iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-pointer-lock');
 
       var renderContent = gameData.htmlContent || gameData.content_html || gameData.content || '<p>No content available</p>';
       var isFullHTML = renderContent.trim().toLowerCase().indexOf('<!doctype') === 0 || renderContent.trim().toLowerCase().indexOf('<html') === 0;
 
-      // Inject CSS & JS inside the game so it never shows an inner scrollbar and auto-reports its exact height
-      var autoFitHelper = '<style>html,body{overflow-x:hidden!important;margin:0;padding:0;}</style>' +
+      // Fix CSS inside games that use height:100vh or vertical centering which causes infinite scroll jump!
+      var stabilityFix = '<style>' +
+        'html, body { min-height: auto !important; height: auto !important; overflow-x: hidden !important; margin: 0 auto !important; padding-top: 10px !important; padding-bottom: 20px !important; justify-content: flex-start !important; }' +
+        '</style>' +
         '<script>' +
-        'function syncH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,650);if(window.frameElement)window.frameElement.style.height=(h+30)+"px";}catch(e){}}' +
-        'window.addEventListener("load",syncH);window.addEventListener("resize",syncH);setInterval(syncH,500);' +
+        'window.addEventListener("load", function() {' +
+        '  if (window.parent && window.parent.measureIframeOnce) {' +
+        '    setTimeout(window.parent.measureIframeOnce, 100);' +
+        '    setTimeout(window.parent.measureIframeOnce, 600);' +
+        '  }' +
+        '  document.addEventListener("click", function() {' +
+        '    if (window.parent && window.parent.measureIframeOnce) setTimeout(window.parent.measureIframeOnce, 120);' +
+        '  });' +
+        '});' +
         '<\/script>';
 
       var gameHTML = isFullHTML
-        ? renderContent + autoFitHelper
-        : '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' + autoFitHelper + '</head><body>' + renderContent + '</body></html>';
+        ? renderContent + stabilityFix
+        : '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' + stabilityFix + '</head><body>' + renderContent + '</body></html>';
 
-      iframe.style.height = '750px';
       iframe.srcdoc = gameHTML;
       stage.appendChild(iframe);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'auto' });
     }
 
     function stepGame(dir) {
