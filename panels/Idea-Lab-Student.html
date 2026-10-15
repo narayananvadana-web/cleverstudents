@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
 <title>💡 The Idea Lab | Clever Students</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 <style>
@@ -11,22 +12,27 @@
   --bg: #0b0f19;
   --srf: #131a2a;
   --srf2: #1e293b;
-  --brd: rgba(255, 255, 255, 0.1);
+  --brd: rgba(255, 255, 255, 0.12);
   --txt: #f8fafc;
-  --mut: #94a3b8;
+  --mut: #cbd5e1;
   --accent: #f59e0b;
   --font: 'Nunito', sans-serif;
+  color-scheme: dark;
 }
 body.light-mode {
   --bg: #f1f5f9;
   --srf: #ffffff;
-  --srf2: #e2e8f0;
+  --srf2: #f8fafc;
   --txt: #0f172a;
   --brd: rgba(0, 0, 0, 0.12);
   --mut: #475569;
+  color-scheme: light;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: var(--font); background: var(--bg); color: var(--txt); min-height: 100vh; transition: 0.3s; line-height: 1.7; top: 0px !important; }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--font); background: var(--bg); color: var(--txt); min-height: 100vh; transition: 0.3s; line-height: 1.7; top: 0px !important; forced-color-adjust: none; }
+
+/* Ensure Google Translate font tags never hide text on mobile */
+font { color: inherit !important; background: transparent !important; }
 
 /* --- TOP BAR ENHANCEMENTS --- */
 .top-bar { background: var(--srf); border-bottom: 1px solid var(--brd); padding: 0 20px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
@@ -105,7 +111,7 @@ iframe.skiptranslate { display: none !important; }
 .action-btn.playing { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; animation: pulseGlow 1.5s infinite; }
 @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); } 70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
 
-/* --- EYE-COMFORT READING TOOLBAR (Inside Every Open Article) --- */
+/* --- EYE-COMFORT READING TOOLBAR --- */
 .eye-comfort-bar {
   display: flex;
   align-items: center;
@@ -114,24 +120,25 @@ iframe.skiptranslate { display: none !important; }
   gap: 12px;
   padding: 12px 18px;
   margin-bottom: 16px;
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
-  color: #f8fafc;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  color: #f8fafc !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
-.ec-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.92rem; font-weight: 800; }
+.ec-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.92rem; font-weight: 800; color: #f8fafc !important; }
 .ec-swatch {
   width: 28px;
   height: 28px;
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid rgba(255,255,255,0.4);
+  border: 2px solid rgba(255,255,255,0.5);
   transition: transform 0.2s, border-color 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 900;
 }
 .ec-swatch:hover { transform: scale(1.18); border-color: #f59e0b; }
 .ec-color-picker {
@@ -144,7 +151,7 @@ iframe.skiptranslate { display: none !important; }
 }
 .ec-warm-btn {
   background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
+  color: #fbbf24 !important;
   border: 1px solid #f59e0b;
   padding: 5px 12px;
   border-radius: 20px;
@@ -154,11 +161,11 @@ iframe.skiptranslate { display: none !important; }
   font-family: var(--font);
   transition: 0.2s;
 }
-.ec-warm-btn.active { background: #f59e0b; color: #000; }
+.ec-warm-btn.active { background: #f59e0b !important; color: #000 !important; }
 
 /* IN-ARTICLE TOPIC PLAY BUTTONS */
 .in-topic-tts-btn {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
   color: #ffffff !important;
   border: 1px solid rgba(255,255,255,0.3);
   padding: 5px 14px;
@@ -176,11 +183,52 @@ iframe.skiptranslate { display: none !important; }
   vertical-align: middle;
   flex-shrink: 0;
 }
-.in-topic-tts-btn:hover { transform: scale(1.05); background: linear-gradient(135deg, #1d4ed8, #1e40af); }
-.in-topic-tts-btn.active-Read { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 12px rgba(16,185,129,0.6); }
+.in-topic-tts-btn:hover { transform: scale(1.05); background: linear-gradient(135deg, #1d4ed8, #1e40af) !important; }
+.in-topic-tts-btn.active-Read { background: linear-gradient(135deg, #10b981, #059669) !important; box-shadow: 0 0 12px rgba(16,185,129,0.6); }
 
-/* Content Body */
-.subtopic-body { background: var(--srf2); border: 1px solid var(--brd); border-radius: 0 0 10px 10px; padding: 24px; margin-top: -6px; font-size: 1.1rem; color: var(--txt); animation: fadeIn 0.4s ease; overflow-x: auto; box-shadow: inset 0 4px 6px rgba(0,0,0,0.05); transition: background 0.35s ease, color 0.35s ease, filter 0.35s ease; }
+/* --- CONTENT BODY & MOBILE BLACK SCREEN HIGH-CONTRAST FIX --- */
+.subtopic-body { 
+  background: var(--srf2); 
+  border: 1px solid var(--brd); 
+  border-radius: 0 0 10px 10px; 
+  padding: 24px; 
+  margin-top: -6px; 
+  font-size: 1.1rem; 
+  color: var(--txt); 
+  animation: fadeIn 0.4s ease; 
+  overflow-x: auto; 
+  box-shadow: inset 0 4px 6px rgba(0,0,0,0.05); 
+  transition: background 0.35s ease, color 0.35s ease, filter 0.35s ease; 
+}
+/* Force high-visibility text on Dark/Black Screen for Direct HTML articles */
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+}
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) p,
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) li,
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) h1,
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) h2,
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) h3,
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) h4,
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) span:not(.ec-swatch):not(.highlight-real):not(.highlight-app),
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) td,
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) .concept-title,
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) .concept-rule {
+  color: #f8fafc !important;
+}
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) .concept-card,
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) .example-box,
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) .deep-explanation {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: rgba(255,255,255,0.15) !important;
+}
+body:not(.light-mode) .subtopic-body:not([data-custom-theme="true"]) .execution-tag {
+  background: rgba(37, 99, 235, 0.25) !important;
+  color: #93c5fd !important;
+}
+
 .subtopic-body.eye-warm-shield { filter: sepia(0.22) contrast(0.95) brightness(0.97); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 .idea-iframe { width: 100%; min-height: 700px; border: none; border-radius: 8px; background: transparent; display: block; transition: filter 0.35s ease; }
@@ -256,15 +304,18 @@ iframe.skiptranslate { display: none !important; }
 
 /* Mobile Responsiveness */
 @media(max-width: 768px) {
+  .main-wrap { padding: 0 10px 120px; margin: 15px auto; }
+  .content { padding: 15px 10px; }
   .logo { font-size: 1.5rem; }
   .banner h1 { font-size: 1.8rem; }
-  .cat-row { padding: 15px; gap: 10px; }
-  .cat-btn { padding: 10px 16px; font-size: 0.95rem; }
-  .topic-head { padding: 15px 18px; font-size: 1.1rem; }
-  .subtopic-head { padding: 12px 16px; font-size: 1rem; flex-direction: column; align-items: flex-start; }
+  .cat-row { padding: 15px 10px; gap: 8px; }
+  .cat-btn { padding: 10px 14px; font-size: 0.92rem; }
+  .topic-head { padding: 14px 16px; font-size: 1.08rem; }
+  .subtopic-head { padding: 12px 14px; font-size: 1rem; flex-direction: column; align-items: flex-start; }
   .action-grp { width: 100%; justify-content: flex-start; margin-top: 8px; }
-  .subtopic-container { padding-left: 10px; }
-  .floating-tts-bar { bottom: 12px; right: 12px; left: 12px; justify-content: space-between; padding: 10px 14px; border-radius: 20px; }
+  .subtopic-container { padding-left: 6px; }
+  .subtopic-body { padding: 14px 10px; font-size: 1.05rem; }
+  .floating-tts-bar { bottom: 10px; right: 10px; left: 10px; justify-content: space-between; padding: 10px 14px; border-radius: 18px; }
   .f-tts-status { max-width: 140px; }
 }
 </style>
@@ -334,12 +385,11 @@ iframe.skiptranslate { display: none !important; }
   </div>
 </div>
 
-<!-- Sticky Floating Audio & Eye-Comfort Bar (Follows User on 10-20 Pages Scroll) -->
+<!-- Sticky Floating Audio & Eye-Comfort Bar -->
 <div class="floating-tts-bar notranslate" id="floatingTtsBar" translate="no">
   <span class="f-tts-status" id="floatTtsStatus">🎧 Listen Mode Ready</span>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <!-- Quick Page Color Picker on Floating Bar -->
-    <span title="Pick Custom Reading Background Color" style="display:inline-flex;align-items:center;gap:4px;background:#1e293b;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);font-size:0.8rem;font-weight:800;">
+    <span title="Pick Custom Reading Background Color" style="display:inline-flex;align-items:center;gap:4px;background:#1e293b;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);font-size:0.8rem;font-weight:800;color:#fff;">
       🎨 Page Color:
       <input type="color" class="ec-color-picker" value="#fdf6e3" onchange="applyCustomReadingColor(window.ttsActiveId, this.value)" title="Choose any background color">
     </span>
@@ -361,14 +411,14 @@ let savedHacks = JSON.parse(localStorage.getItem('idealab_saved_hacks')) || [];
 let readHacks = JSON.parse(localStorage.getItem('idealab_read_hacks')) || [];
 let savedCanvasBg = localStorage.getItem('idealab_canvas_bg') || '';
 
-// Eye-Comfort Reading Presets
+// Eye-Comfort Reading Presets (Guaranteed High Contrast on Mobile & PC)
 const EYE_PRESETS = [
-  { name: 'Default', bg: '', text: '', card: '' },
-  { name: 'Warm Sepia (Book)', bg: '#f4ecd8', text: '#2c221e', card: '#fdf8ed' },
-  { name: 'Sage Mint (Eye Relax)', bg: '#e3f2e8', text: '#112a1c', card: '#f1f9f4' },
-  { name: 'Soft Peach', bg: '#fcefe6', text: '#2e1d12', card: '#fff8f4' },
-  { name: 'Midnight Blue', bg: '#0f172a', text: '#e2e8f0', card: '#1e293b' },
-  { name: 'AMOLED Dark', bg: '#050505', text: '#d4d4d8', card: '#121212' }
+  { name: 'Theme Default (Auto Dark/Light)', bg: '', text: '', card: '' },
+  { name: 'Warm Sepia (Book Mode)', bg: '#f4ecd8', text: '#1c1917', card: '#fdf8ed' },
+  { name: 'Sage Mint (Eye Relax)', bg: '#dcfce7', text: '#052e16', card: '#f0fdf4' },
+  { name: 'Soft Peach', bg: '#ffedd5', text: '#2a1205', card: '#fff7ed' },
+  { name: 'Midnight Slate (Dark)', bg: '#0f172a', text: '#f8fafc', card: '#1e293b' },
+  { name: 'AMOLED Pitch Black', bg: '#050505', text: '#f4f4f5', card: '#141418' }
 ];
 
 // Distinct Creative Color Themes for Each Category
@@ -384,7 +434,7 @@ const CAT_THEMES = [
 const SAVED_THEME = { bg: 'linear-gradient(135deg, #f43f5e, #be123c)', shadow: 'rgba(244, 63, 94, 0.45)' };
 
 // =========================================================
-//   EYE-COMFORT CANVAS COLOR ENGINE (Zero Eye Strain)
+//   EYE-COMFORT & MOBILE BLACK-SCREEN VISIBILITY ENGINE
 // =========================================================
 function getLuminance(hex) {
   hex = hex.replace('#', '');
@@ -395,6 +445,16 @@ function getLuminance(hex) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+function getDefaultThemeColors() {
+  let isLightMode = document.body.classList.contains('light-mode');
+  if (isLightMode) {
+    return { bg: '#f8fafc', text: '#0f172a', card: '#ffffff', tagBg: '#eff6ff', tagTxt: '#1e40af' };
+  } else {
+    // High-contrast crisp white/silver text for Black/Dark Mobile Screens
+    return { bg: '#0b0f19', text: '#f8fafc', card: '#161f33', tagBg: 'rgba(37, 99, 235, 0.25)', tagTxt: '#93c5fd' };
+  }
+}
+
 function applyCustomReadingColor(domId, bgHex, textHex = '', cardHex = '') {
   if (!domId) return;
   let contentWrap = document.getElementById(domId + '_content');
@@ -402,33 +462,55 @@ function applyCustomReadingColor(domId, bgHex, textHex = '', cardHex = '') {
   if (!mainBox) return;
 
   if (!bgHex) {
-    // Reset to default theme
-    if (contentWrap) { contentWrap.style.background = ''; contentWrap.style.color = ''; }
-    mainBox.style.background = '';
-    mainBox.style.color = '';
-    sendMessageToIframe(domId, { action: 'setCanvasTheme', bg: '', text: '', card: '' });
+    // Revert to current Default Dark/Light High-Contrast Mode
+    mainBox.removeAttribute('data-custom-theme');
+    let def = getDefaultThemeColors();
+    mainBox.style.background = def.bg;
+    mainBox.style.color = def.text;
+    if (contentWrap) {
+      contentWrap.style.background = def.bg;
+      contentWrap.style.color = def.text;
+      styleDirectDomElements(contentWrap, def.text, def.card, def.tagBg, def.tagTxt);
+    }
+    sendMessageToIframe(domId, { action: 'setCanvasTheme', bg: def.bg, text: def.text, card: def.card, tagBg: def.tagBg, tagTxt: def.tagTxt });
     localStorage.removeItem('idealab_canvas_bg');
     return;
   }
 
-  // Auto-calculate crisp contrast text & card shades if user picked custom color
-  let isLight = getLuminance(bgHex) > 0.52;
-  if (!textHex) textHex = isLight ? '#111827' : '#f8fafc';
-  if (!cardHex) cardHex = isLight ? 'rgba(255,255,255,0.78)' : 'rgba(255,255,255,0.06)';
+  mainBox.setAttribute('data-custom-theme', 'true');
+  let isLight = getLuminance(bgHex) > 0.45;
+  if (!textHex) textHex = isLight ? '#0f172a' : '#f8fafc';
+  if (!cardHex) cardHex = isLight ? '#ffffff' : '#1e293b';
+  let tagBg = isLight ? '#eff6ff' : 'rgba(37, 99, 235, 0.28)';
+  let tagTxt = isLight ? '#1e40af' : '#93c5fd';
 
   mainBox.style.background = bgHex;
   mainBox.style.color = textHex;
   if (contentWrap) {
     contentWrap.style.background = bgHex;
     contentWrap.style.color = textHex;
-    contentWrap.querySelectorAll('.concept-card, .example-box, .deep-explanation').forEach(el => {
-      el.style.background = cardHex;
-      el.style.color = textHex;
-    });
+    styleDirectDomElements(contentWrap, textHex, cardHex, tagBg, tagTxt);
   }
 
-  sendMessageToIframe(domId, { action: 'setCanvasTheme', bg: bgHex, text: textHex, card: cardHex });
+  sendMessageToIframe(domId, { action: 'setCanvasTheme', bg: bgHex, text: textHex, card: cardHex, tagBg: tagBg, tagTxt: tagTxt });
   localStorage.setItem('idealab_canvas_bg', bgHex);
+}
+
+function styleDirectDomElements(container, textHex, cardHex, tagBg, tagTxt) {
+  container.querySelectorAll('.concept-card, .example-box, .deep-explanation').forEach(el => {
+    el.style.setProperty('background', cardHex, 'important');
+    el.style.setProperty('color', textHex, 'important');
+    el.style.setProperty('border-color', 'rgba(148, 163, 184, 0.25)', 'important');
+  });
+  container.querySelectorAll('h1, h2, h3, h4, p, li, td, th, .concept-title, .concept-rule, strong, b').forEach(el => {
+    if (!el.classList.contains('highlight-real') && !el.classList.contains('highlight-app') && !el.classList.contains('card-number')) {
+      el.style.setProperty('color', textHex, 'important');
+    }
+  });
+  container.querySelectorAll('.execution-tag').forEach(el => {
+    el.style.setProperty('background', tagBg, 'important');
+    el.style.setProperty('color', tagTxt, 'important');
+  });
 }
 
 function toggleEyeWarmth(domId, btn) {
@@ -440,17 +522,17 @@ function toggleEyeWarmth(domId, btn) {
 
 function buildEyeComfortToolbarHtml(domId) {
   let swatches = EYE_PRESETS.map(p => {
-    let bgStyle = p.bg ? p.bg : 'linear-gradient(135deg,#1e293b,#0f172a)';
-    let label = p.bg ? '' : '↺';
+    let bgStyle = p.bg ? p.bg : 'linear-gradient(135deg,#3b82f6,#1d4ed8)';
+    let label = p.bg ? '' : 'A';
     return `<span class="ec-swatch" title="${p.name}" style="background:${bgStyle};color:#fff;" onclick="applyCustomReadingColor('${domId}','${p.bg}','${p.text}','${p.card}')">${label}</span>`;
   }).join('');
 
   return `
     <div class="eye-comfort-bar notranslate" translate="no">
       <div class="ec-left">
-        <span>👁️ Eye-Comfort Page Color:</span>
+        <span>👁️ Reading Screen Color:</span>
         ${swatches}
-        <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px;">
+        <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;background:rgba(255,255,255,0.12);padding:4px 10px;border-radius:20px;color:#fff;">
           <span>🎨 Custom:</span>
           <input type="color" class="ec-color-picker" value="#f4ecd8" onchange="applyCustomReadingColor('${domId}', this.value)">
         </label>
@@ -663,7 +745,6 @@ function speakNextChunk(idx, token) {
   
   updateFloatingBarUI(text);
 
-  // Spotlight & Auto-Scroll for Direct DOM or Iframe
   if (item.el && item.box) {
     item.box.classList.add('tts-reading-now');
     item.box.querySelectorAll('.tts-hl').forEach(n => n.classList.remove('tts-hl'));
@@ -1077,7 +1158,6 @@ function sendMessageToIframe(domId, msgObj) {
     }
 }
 
-// Receive sentence queue OR Smooth Parent Scroll Coordinates from Iframe
 window.addEventListener('message', function(e) {
     if (!e.data) return;
     if (e.data.type === 'speakQueue') {
@@ -1093,7 +1173,6 @@ window.addEventListener('message', function(e) {
     } else if (e.data.type === 'stopSpeechFromIframe') {
         stopAllSpeech();
     } else if (e.data.type === 'scrollParentToIframeY') {
-        // True Parent-Window Auto-Center Scroll for Iframe Elements!
         let box = document.getElementById(e.data.domId);
         let ifr = box ? box.querySelector('iframe') : null;
         if (ifr) {
@@ -1104,7 +1183,6 @@ window.addEventListener('message', function(e) {
     }
 });
 
-// Direct DOM Click-to-Read
 document.addEventListener('click', function(e) {
     if(!window.ttsActiveId) return;
     if (e.target.closest('.in-topic-tts-btn') || e.target.closest('.floating-tts-bar') || e.target.closest('.eye-comfort-bar')) return;
@@ -1172,6 +1250,7 @@ function handleSubToggle(detailsEl, domId, sid) {
 
   var comfortBarHtml = buildEyeComfortToolbarHtml(domId);
   var needsIframe = /<!doctype|<html|<head|<style|<script/i.test(raw);
+  var defColors = getDefaultThemeColors();
 
   if (needsIframe) {
     box.innerHTML = comfortBarHtml + '<div id="' + domId + '_ifr_wrap"></div>';
@@ -1180,19 +1259,20 @@ function handleSubToggle(detailsEl, domId, sid) {
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
     var curLang = document.getElementById('customLangSelect').value || 'en';
     
-    // Injected Iframe Helper: Spotlight Dimming + Animated Speaker Badge + Parent Scroll Sync + Canvas Color Engine
-    var helper = '<style>' +
-      'html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;font-size:1.1rem;top:0px!important;line-height:1.7;transition:background 0.35s ease, color 0.35s ease;}' +
+    // Injected Iframe Helper with Dynamic CSS Variable Override (Guarantees Visible Text on Mobile Black Screen!)
+    var helper = '<style id="base_ifr_style">' +
+      'html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;font-size:1.1rem;top:0px!important;line-height:1.7;transition:background 0.3s ease, color 0.3s ease; forced-color-adjust:none;}' +
+      'font{color:inherit!important;background:transparent!important;}' +
       '.goog-te-banner-frame,.goog-te-gadget-icon,#goog-gt-tt{display:none!important}' +
       'body.tts-reading-now h1, body.tts-reading-now h2, body.tts-reading-now h3, body.tts-reading-now h4, body.tts-reading-now p, body.tts-reading-now li, body.tts-reading-now .concept-rule, body.tts-reading-now .deep-explanation, body.tts-reading-now .execution-tag { opacity: 0.42; transition: all 0.28s ease; }' +
       '.tts-hl {' +
       '  opacity: 1 !important;' +
       '  position: relative;' +
-      '  background: linear-gradient(90deg, rgba(245, 158, 11, 0.32), rgba(16, 185, 129, 0.18)) !important;' +
+      '  background: linear-gradient(90deg, rgba(245, 158, 11, 0.35), rgba(16, 185, 129, 0.2)) !important;' +
       '  border-left: 6px solid #f59e0b !important;' +
       '  padding: 12px 16px 12px 44px !important;' +
       '  border-radius: 10px !important;' +
-      '  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.28), 0 0 0 2px rgba(245, 158, 11, 0.55) !important;' +
+      '  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3), 0 0 0 2px rgba(245, 158, 11, 0.6) !important;' +
       '  transform: scale(1.012);' +
       '  z-index: 20;' +
       '  transition: all 0.25s ease !important;' +
@@ -1209,15 +1289,31 @@ function handleSubToggle(detailsEl, domId, sid) {
       '@keyframes spkPulse { from { transform: translateY(-50%) scale(0.9); } to { transform: translateY(-50%) scale(1.22); } }' +
       'body.tts-active p, body.tts-active div, body.tts-active li, body.tts-active h1, body.tts-active h2, body.tts-active h3, body.tts-active h4 { cursor: pointer; }' +
       'body.tts-active p:hover, body.tts-active li:hover { background: rgba(245, 158, 11, 0.08); border-radius: 4px; }' +
-      '.ifr-topic-play-btn { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff !important; border: none; padding: 6px 14px; border-radius: 50px; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-left: auto; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 8px rgba(37,99,235,0.3); transition: 0.2s; flex-shrink: 0; }' +
-      '.ifr-topic-play-btn:hover { transform: scale(1.05); background: linear-gradient(135deg, #1d4ed8, #1e40af); }' +
-      '.ifr-topic-play-btn.playing { background: linear-gradient(135deg, #ef4444, #dc2626); }' +
+      '.ifr-topic-play-btn { background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; color: #fff !important; border: none; padding: 6px 14px; border-radius: 50px; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-left: auto; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 8px rgba(37,99,235,0.3); transition: 0.2s; flex-shrink: 0; }' +
+      '.ifr-topic-play-btn:hover { transform: scale(1.05); background: linear-gradient(135deg, #1d4ed8, #1e40af) !important; }' +
+      '.ifr-topic-play-btn.playing { background: linear-gradient(135deg, #ef4444, #dc2626) !important; }' +
       '</style>' +
+      '<style id="dynamic_theme_style"></style>' +
       '<div id="gt_ifr" style="display:none"></div>' +
       '<script>' +
       'const DOM_ID = "' + domId + '";' +
       'let ttsActive = true; document.body.classList.add("tts-active"); let ttsBlocks = [];' +
       'function fitH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,500);if(window.frameElement)window.frameElement.style.height=(h+55)+"px";}catch(e){}}' +
+      'function applyIframeThemeCSS(bg, text, card, tagBg, tagTxt){' +
+      '  let st = document.getElementById("dynamic_theme_style");' +
+      '  if(!st) return;' +
+      '  if(!bg){ st.innerHTML = ""; return; }' +
+      '  st.innerHTML = `' +
+      '    :root, html, body { background-color: ${bg} !important; color: ${text} !important; }' +
+      '    .concept-card, .example-box, .deep-explanation, .card { background-color: ${card} !important; color: ${text} !important; border-color: rgba(148,163,184,0.28) !important; }' +
+      '    h1, h2, h3, h4, h5, h6, p, li, td, th, div:not(.card-number):not(.banner), .concept-title, .concept-rule, strong, b { color: ${text} !important; }' +
+      '    header h1, header p { color: #ffffff !important; }' +
+      '    .card-number { background-color: #2563eb !important; color: #ffffff !important; }' +
+      '    .execution-tag { background-color: ${tagBg || "rgba(37,99,235,0.2)"} !important; color: ${tagTxt || text} !important; }' +
+      '    .highlight-real { color: #f97316 !important; }' +
+      '    .highlight-app { color: #22c55e !important; }' +
+      '  `;' +
+      '}' +
       'function injectTopicButtons(){' +
       '  ttsBlocks = Array.from(document.querySelectorAll("h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag"));' +
       '  if(!ttsBlocks.length) ttsBlocks = [document.body];' +
@@ -1272,7 +1368,10 @@ function handleSubToggle(detailsEl, domId, sid) {
       '  }' +
       '  if(queue.length) window.parent.postMessage({type:"speakQueue", domId: DOM_ID, queue:queue}, "*");' +
       '}' +
-      'window.addEventListener("load",function(){ injectTopicButtons(); setTimeout(fitH,100); setTimeout(fitH,600); });' +
+      'window.addEventListener("load",function(){' +
+      '  applyIframeThemeCSS("' + defColors.bg + '", "' + defColors.text + '", "' + defColors.card + '", "' + defColors.tagBg + '", "' + defColors.tagTxt + '");' +
+      '  injectTopicButtons(); setTimeout(fitH,100); setTimeout(fitH,600);' +
+      '});' +
       'document.addEventListener("click",function(){setTimeout(fitH,150);});' +
       'function triggerIframeLang(l){document.cookie="googtrans=/en/"+l+"; path=/";var c=document.querySelector(".goog-te-combo");if(c){c.value=l;c.dispatchEvent(new Event("change"));setTimeout(fitH,500);}}' +
       'function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,te,hi,ta,ml,kn",autoDisplay:false},"gt_ifr");setTimeout(function(){triggerIframeLang("' + curLang + '");},600);}' +
@@ -1290,16 +1389,7 @@ function handleSubToggle(detailsEl, domId, sid) {
       '    window.parent.postMessage({ type: "scrollParentToIframeY", domId: DOM_ID, offsetY: rect.top + window.scrollY }, "*");' +
       '  }' +
       '  if(e.data.action==="setCanvasTheme"){' +
-      '    let { bg, text, card } = e.data;' +
-      '    document.body.style.background = bg || "";' +
-      '    document.body.style.color = text || "";' +
-      '    document.querySelectorAll(".concept-card, .example-box, .deep-explanation").forEach(el => {' +
-      '      el.style.background = card || "";' +
-      '      el.style.color = text || "";' +
-      '    });' +
-      '    document.querySelectorAll(".concept-title, .concept-rule, li, p, h4").forEach(el => {' +
-      '      el.style.color = text || "";' +
-      '    });' +
+      '    applyIframeThemeCSS(e.data.bg, e.data.text, e.data.card, e.data.tagBg, e.data.tagTxt);' +
       '  }' +
       '});' +
       'document.addEventListener("click", function(e){' +
@@ -1311,16 +1401,18 @@ function handleSubToggle(detailsEl, domId, sid) {
       '<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"><\/script>';
       
     var isFull = /<!doctype|<html/i.test(raw);
-    iframe.srcdoc = isFull ? (raw + helper) : ('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' + helper + '</head><body style="color:#e2e8f0;background:#0f172a;">' + raw + '</body></html>');
+    iframe.srcdoc = isFull ? (raw + helper) : ('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' + helper + '</head><body>' + raw + '</body></html>');
     document.getElementById(domId + '_ifr_wrap').appendChild(iframe);
     if (savedCanvasBg) {
-      setTimeout(() => applyCustomReadingColor(domId, savedCanvasBg), 500);
+      setTimeout(() => applyCustomReadingColor(domId, savedCanvasBg), 450);
     }
   } else {
     box.innerHTML = comfortBarHtml + '<div id="' + domId + '_content">' + raw + '</div>';
     injectDirectDOMTopicButtons(box, domId);
     if (savedCanvasBg) {
       applyCustomReadingColor(domId, savedCanvasBg);
+    } else {
+      applyCustomReadingColor(domId, '');
     }
   }
 }
@@ -1397,10 +1489,18 @@ function setCat(id) {
 function escHtml(s) { if (!s) return ''; var d = document.createElement('div'); d.appendChild(document.createTextNode(String(s))); return d.innerHTML; }
 function escAttr(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// Syncs Dark/Light Mode across both Main Page and all Open Articles on Mobile & PC
 function toggleTheme() {
   var isLight = document.body.classList.toggle('light-mode');
   localStorage.setItem('idealab_student_theme', isLight ? 'light' : 'dark');
   document.getElementById('themeBtn').innerText = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
+
+  // Immediately update any open articles that aren't using a custom user color
+  document.querySelectorAll('.subtopic-body').forEach(box => {
+    if (box.id && !box.hasAttribute('data-custom-theme') && box.innerHTML.trim() !== '') {
+      applyCustomReadingColor(box.id, '');
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
