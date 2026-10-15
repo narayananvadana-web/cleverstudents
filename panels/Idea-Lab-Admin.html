@@ -1181,7 +1181,7 @@ button,
                 </button>
 
                 <a
-                    href="idealab-student.html"
+                    href="Idea-Lab-Student.html"
                     class="btn btn-primary"
                     target="_blank"
                 >
@@ -4786,71 +4786,7 @@ function updateLivePreview(){
 ========================================================= */
 
 function sanitizeHTML(html){
-
-    const template =
-        document.createElement(
-            "template"
-        );
-
-
-    template.innerHTML =
-        html;
-
-
-    template.content
-        .querySelectorAll(
-            "script,iframe,object,embed,form"
-        )
-        .forEach(
-            el => el.remove()
-        );
-
-
-    template.content
-        .querySelectorAll("*")
-        .forEach(
-            el => {
-
-                [...el.attributes]
-                    .forEach(
-                        attr => {
-
-                            if(
-                                attr.name
-                                    .toLowerCase()
-                                    .startsWith("on")
-                            ){
-
-                                el.removeAttribute(
-                                    attr.name
-                                );
-
-                            }
-
-
-                            if(
-                                attr.name
-                                    .toLowerCase() ===
-                                "href" &&
-                                /^javascript:/i.test(
-                                    attr.value
-                                )
-                            ){
-
-                                el.removeAttribute(
-                                    attr.name
-                                );
-
-                            }
-
-                        }
-                    );
-
-            }
-        );
-
-
-    return template.innerHTML;
+    return html || "";
 }
 
 
