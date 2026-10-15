@@ -1132,6 +1132,31 @@ button,
         display:none;
     }
 }
+   /* Fix for invisible dark titles on dark cards */
+body:not(.light) {
+    --text: #f8fafc !important;
+    --muted: #94a3b8 !important;
+}
+
+body:not(.light) .category-title,
+body:not(.light) .topic-title,
+body:not(.light) .subtopic-title,
+body:not(.light) .tree-title,
+body:not(.light) .stat-value,
+body:not(.light) .hero h2,
+body:not(.light) .modal-title {
+    color: #ffffff !important;
+}
+
+body.light .category-title,
+body.light .topic-title,
+body.light .subtopic-title,
+body.light .tree-title,
+body.light .stat-value,
+body.light .hero h2,
+body.light .modal-title {
+    color: #0f172a !important;
+}
 </style>
 </head>
 
