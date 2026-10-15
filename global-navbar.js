@@ -42,7 +42,7 @@ const menuData = [
     ]
   },
      {
-    title: "All Competations",
+    title: "All Competitions",
     links: [
       { name: "APPSC", url: "https://www.cleverstudents.in/panels/APSPSC-Student.html" },
       { name: "SSC", url: "https://www.cleverstudents.in/panels/SSC-Mastery-Student.html" },
