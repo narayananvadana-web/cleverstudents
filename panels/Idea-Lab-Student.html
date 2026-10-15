@@ -48,7 +48,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--txt); min-h
 iframe.skiptranslate { display: none !important; }
 
 /* --- MAIN CONTAINER & BANNER --- */
-.main-wrap { max-width: 1400px; margin: 30px auto; padding: 0 20px 100px; }
+.main-wrap { max-width: 1400px; margin: 30px auto; padding: 0 20px 110px; }
 .shell { background: var(--srf); border-radius: 12px; overflow: hidden; border: 1px solid var(--brd); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
 
 .banner { padding: 35px 20px; text-align: center; background: linear-gradient(135deg, #f59e0b, #db2777); border-bottom: 4px solid #fbbf24; }
@@ -105,6 +105,57 @@ iframe.skiptranslate { display: none !important; }
 .action-btn.playing { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; animation: pulseGlow 1.5s infinite; }
 @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); } 70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
 
+/* --- EYE-COMFORT READING TOOLBAR (Inside Every Open Article) --- */
+.eye-comfort-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: #f8fafc;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.ec-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.92rem; font-weight: 800; }
+.ec-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.4);
+  transition: transform 0.2s, border-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+.ec-swatch:hover { transform: scale(1.18); border-color: #f59e0b; }
+.ec-color-picker {
+  width: 32px;
+  height: 30px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+.ec-warm-btn {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid #f59e0b;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: 0.2s;
+}
+.ec-warm-btn.active { background: #f59e0b; color: #000; }
+
 /* IN-ARTICLE TOPIC PLAY BUTTONS */
 .in-topic-tts-btn {
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
@@ -129,12 +180,44 @@ iframe.skiptranslate { display: none !important; }
 .in-topic-tts-btn.active-Read { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 12px rgba(16,185,129,0.6); }
 
 /* Content Body */
-.subtopic-body { background: var(--srf2); border: 1px solid var(--brd); border-radius: 0 0 10px 10px; padding: 24px; margin-top: -6px; font-size: 1.1rem; color: var(--txt); animation: fadeIn 0.4s ease; overflow-x: auto; box-shadow: inset 0 4px 6px rgba(0,0,0,0.05); }
+.subtopic-body { background: var(--srf2); border: 1px solid var(--brd); border-radius: 0 0 10px 10px; padding: 24px; margin-top: -6px; font-size: 1.1rem; color: var(--txt); animation: fadeIn 0.4s ease; overflow-x: auto; box-shadow: inset 0 4px 6px rgba(0,0,0,0.05); transition: background 0.35s ease, color 0.35s ease, filter 0.35s ease; }
+.subtopic-body.eye-warm-shield { filter: sepia(0.22) contrast(0.95) brightness(0.97); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-.idea-iframe { width: 100%; min-height: 700px; border: none; border-radius: 8px; background: transparent; display: block; }
+.idea-iframe { width: 100%; min-height: 700px; border: none; border-radius: 8px; background: transparent; display: block; transition: filter 0.35s ease; }
 
-/* Text To Speech Highlighter */
-.tts-hl { background: rgba(245, 158, 11, 0.25) !important; border-left: 4px solid #f59e0b !important; padding-left: 8px !important; border-radius: 4px; transition: 0.2s; }
+/* --- SUPER SPOTLIGHT FOR CURRENTLY READING LINE --- */
+.tts-reading-now h1, .tts-reading-now h2, .tts-reading-now h3, .tts-reading-now h4, 
+.tts-reading-now p, .tts-reading-now li, .tts-reading-now .concept-rule, 
+.tts-reading-now .deep-explanation, .tts-reading-now .execution-tag {
+  opacity: 0.42;
+  transition: all 0.3s ease;
+}
+.tts-hl {
+  opacity: 1 !important;
+  position: relative;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.32), rgba(16, 185, 129, 0.18)) !important;
+  border-left: 6px solid #f59e0b !important;
+  padding: 12px 16px 12px 42px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.28), 0 0 0 2px rgba(245, 158, 11, 0.5) !important;
+  transform: scale(1.012);
+  z-index: 10;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.tts-hl::before {
+  content: '🔊';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  animation: speakerBounce 0.8s infinite alternate;
+}
+@keyframes speakerBounce {
+  from { transform: translateY(-50%) scale(0.9); }
+  to { transform: translateY(-50%) scale(1.2); }
+}
+
 .tts-active-box p, .tts-active-box div, .tts-active-box li, .tts-active-box h1, .tts-active-box h2, .tts-active-box h3, .tts-active-box h4 { cursor: pointer; }
 .tts-active-box p:hover, .tts-active-box li:hover { background: rgba(255,255,255,0.06); border-radius: 4px; }
 
@@ -145,26 +228,27 @@ iframe.skiptranslate { display: none !important; }
 .empty { text-align: center; padding: 60px 20px; color: var(--mut); font-size: 1.2rem; font-weight: 700; }
 .empty .icon { font-size: 3.5rem; margin-bottom: 15px; opacity: 0.6; }
 
-/* --- FLOATING STICKY AUDIO CONTROLLER (Always Accessible When Scrolling) --- */
+/* --- FLOATING STICKY AUDIO & COLOR CONTROLLER --- */
 .floating-tts-bar {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(10px);
-  border: 2px solid #3b82f6;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(12px);
+  border: 2px solid #f59e0b;
   padding: 10px 18px;
   border-radius: 50px;
   display: none;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.6);
   z-index: 99999;
   color: #fff;
   animation: fadeIn 0.3s ease;
+  flex-wrap: wrap;
 }
 .floating-tts-bar.show { display: flex; }
-.f-tts-status { font-size: 0.9rem; font-weight: 800; color: #60a5fa; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f-tts-status { font-size: 0.9rem; font-weight: 800; color: #fbbf24; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .f-tts-btn { background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 25px; font-weight: 800; font-size: 0.85rem; cursor: pointer; font-family: var(--font); transition: 0.2s; }
 .f-tts-btn:hover { background: #334155; transform: translateY(-1px); }
 .f-tts-btn.stop { background: #ef4444; border-color: #f87171; }
@@ -180,8 +264,8 @@ iframe.skiptranslate { display: none !important; }
   .subtopic-head { padding: 12px 16px; font-size: 1rem; flex-direction: column; align-items: flex-start; }
   .action-grp { width: 100%; justify-content: flex-start; margin-top: 8px; }
   .subtopic-container { padding-left: 10px; }
-  .floating-tts-bar { bottom: 15px; right: 15px; left: 15px; justify-content: space-between; padding: 10px 14px; }
-  .f-tts-status { max-width: 120px; }
+  .floating-tts-bar { bottom: 12px; right: 12px; left: 12px; justify-content: space-between; padding: 10px 14px; border-radius: 20px; }
+  .f-tts-status { max-width: 140px; }
 }
 </style>
 </head>
@@ -250,10 +334,15 @@ iframe.skiptranslate { display: none !important; }
   </div>
 </div>
 
-<!-- Sticky Floating Audio Bar (Follows User on 10-20 Pages Scroll) -->
+<!-- Sticky Floating Audio & Eye-Comfort Bar (Follows User on 10-20 Pages Scroll) -->
 <div class="floating-tts-bar notranslate" id="floatingTtsBar" translate="no">
   <span class="f-tts-status" id="floatTtsStatus">🎧 Listen Mode Ready</span>
-  <div style="display:flex;gap:8px;align-items:center;">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <!-- Quick Page Color Picker on Floating Bar -->
+    <span title="Pick Custom Reading Background Color" style="display:inline-flex;align-items:center;gap:4px;background:#1e293b;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);font-size:0.8rem;font-weight:800;">
+      🎨 Page Color:
+      <input type="color" class="ec-color-picker" value="#fdf6e3" onchange="applyCustomReadingColor(window.ttsActiveId, this.value)" title="Choose any background color">
+    </span>
     <button class="f-tts-btn mode-on" id="floatModeBtn" onclick="toggleFloatingListenMode()">🔊 Click-to-Read: ON</button>
     <button class="f-tts-btn" id="floatPauseBtn" onclick="pauseResumeSpeech()" style="display:none;">⏸ Pause</button>
     <button class="f-tts-btn stop" id="floatStopBtn" onclick="stopAllSpeech()" style="display:none;">⏹ Stop</button>
@@ -267,9 +356,20 @@ let activeCat = null;
 let subCounter = 0;
 let SUB_CONTENT_MAP = {};
 
-// Local Storage for Bookmarks & Progress
+// Local Storage for Bookmarks, Progress & Preferred Reading Canvas Color
 let savedHacks = JSON.parse(localStorage.getItem('idealab_saved_hacks')) || [];
 let readHacks = JSON.parse(localStorage.getItem('idealab_read_hacks')) || [];
+let savedCanvasBg = localStorage.getItem('idealab_canvas_bg') || '';
+
+// Eye-Comfort Reading Presets
+const EYE_PRESETS = [
+  { name: 'Default', bg: '', text: '', card: '' },
+  { name: 'Warm Sepia (Book)', bg: '#f4ecd8', text: '#2c221e', card: '#fdf8ed' },
+  { name: 'Sage Mint (Eye Relax)', bg: '#e3f2e8', text: '#112a1c', card: '#f1f9f4' },
+  { name: 'Soft Peach', bg: '#fcefe6', text: '#2e1d12', card: '#fff8f4' },
+  { name: 'Midnight Blue', bg: '#0f172a', text: '#e2e8f0', card: '#1e293b' },
+  { name: 'AMOLED Dark', bg: '#050505', text: '#d4d4d8', card: '#121212' }
+];
 
 // Distinct Creative Color Themes for Each Category
 const CAT_THEMES = [
@@ -284,11 +384,90 @@ const CAT_THEMES = [
 const SAVED_THEME = { bg: 'linear-gradient(135deg, #f43f5e, #be123c)', shadow: 'rgba(244, 63, 94, 0.45)' };
 
 // =========================================================
-//   ZERO-DROPOUT TTS ENGINE (Fixes 15-Second Cutoff Bug)
+//   EYE-COMFORT CANVAS COLOR ENGINE (Zero Eye Strain)
+// =========================================================
+function getLuminance(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  let r = parseInt(hex.substr(0,2),16) / 255;
+  let g = parseInt(hex.substr(2,2),16) / 255;
+  let b = parseInt(hex.substr(4,2),16) / 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function applyCustomReadingColor(domId, bgHex, textHex = '', cardHex = '') {
+  if (!domId) return;
+  let contentWrap = document.getElementById(domId + '_content');
+  let mainBox = document.getElementById(domId);
+  if (!mainBox) return;
+
+  if (!bgHex) {
+    // Reset to default theme
+    if (contentWrap) { contentWrap.style.background = ''; contentWrap.style.color = ''; }
+    mainBox.style.background = '';
+    mainBox.style.color = '';
+    sendMessageToIframe(domId, { action: 'setCanvasTheme', bg: '', text: '', card: '' });
+    localStorage.removeItem('idealab_canvas_bg');
+    return;
+  }
+
+  // Auto-calculate crisp contrast text & card shades if user picked custom color
+  let isLight = getLuminance(bgHex) > 0.52;
+  if (!textHex) textHex = isLight ? '#111827' : '#f8fafc';
+  if (!cardHex) cardHex = isLight ? 'rgba(255,255,255,0.78)' : 'rgba(255,255,255,0.06)';
+
+  mainBox.style.background = bgHex;
+  mainBox.style.color = textHex;
+  if (contentWrap) {
+    contentWrap.style.background = bgHex;
+    contentWrap.style.color = textHex;
+    contentWrap.querySelectorAll('.concept-card, .example-box, .deep-explanation').forEach(el => {
+      el.style.background = cardHex;
+      el.style.color = textHex;
+    });
+  }
+
+  sendMessageToIframe(domId, { action: 'setCanvasTheme', bg: bgHex, text: textHex, card: cardHex });
+  localStorage.setItem('idealab_canvas_bg', bgHex);
+}
+
+function toggleEyeWarmth(domId, btn) {
+  let mainBox = document.getElementById(domId);
+  if (!mainBox) return;
+  let isWarm = mainBox.classList.toggle('eye-warm-shield');
+  btn.classList.toggle('active', isWarm);
+}
+
+function buildEyeComfortToolbarHtml(domId) {
+  let swatches = EYE_PRESETS.map(p => {
+    let bgStyle = p.bg ? p.bg : 'linear-gradient(135deg,#1e293b,#0f172a)';
+    let label = p.bg ? '' : '↺';
+    return `<span class="ec-swatch" title="${p.name}" style="background:${bgStyle};color:#fff;" onclick="applyCustomReadingColor('${domId}','${p.bg}','${p.text}','${p.card}')">${label}</span>`;
+  }).join('');
+
+  return `
+    <div class="eye-comfort-bar notranslate" translate="no">
+      <div class="ec-left">
+        <span>👁️ Eye-Comfort Page Color:</span>
+        ${swatches}
+        <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px;">
+          <span>🎨 Custom:</span>
+          <input type="color" class="ec-color-picker" value="#f4ecd8" onchange="applyCustomReadingColor('${domId}', this.value)">
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="ec-warm-btn" onclick="toggleEyeWarmth('${domId}', this)">🌙 Eye-Warmth Shield</button>
+      </div>
+    </div>
+  `;
+}
+
+// =========================================================
+//   ZERO-DROPOUT TTS ENGINE + AUTO-CENTER SPOTLIGHT TRACKER
 // =========================================================
 let synth = window.speechSynthesis;
 window.ttsActiveId = null; 
-window._activeUtterance = null; // Prevents JS Garbage Collection mid-speech!
+window._activeUtterance = null;
 let availableVoices = [];
 let ttsQueue = [];
 let currentChunkIdx = 0;
@@ -332,8 +511,6 @@ function getBestVoice(langCode) {
   return matching[0] || availableVoices[0] || null;
 }
 
-// Breaks long text into < 120 character micro-chunks so each chunk takes ~6 seconds.
-// This completely bypasses Chrome's 15-second network TTS cutoff bug!
 function splitIntoMicroChunks(text, maxLen = 120) {
   let clean = text.replace(/\s+/g, ' ').trim();
   if (!clean) return [];
@@ -351,7 +528,6 @@ function splitIntoMicroChunks(text, maxLen = 120) {
       if (part.length <= maxLen) {
         current = part;
       } else {
-        // Force split by words if a single clause is still > 120 chars
         let words = part.split(' ');
         current = "";
         words.forEach(w => {
@@ -391,7 +567,7 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-function updateFloatingBarUI() {
+function updateFloatingBarUI(currentSnippet = '') {
   const bar = document.getElementById('floatingTtsBar');
   const statusEl = document.getElementById('floatTtsStatus');
   const modeBtn = document.getElementById('floatModeBtn');
@@ -416,11 +592,11 @@ function updateFloatingBarUI() {
     pauseBtn.style.display = 'inline-block';
     stopBtn.style.display = 'inline-block';
     pauseBtn.innerHTML = isPausedQueue ? '▶ Resume' : '⏸ Pause';
-    statusEl.innerText = isPausedQueue ? '⏸ Audio Paused' : '🔊 Speaking Article...';
+    statusEl.innerText = isPausedQueue ? '⏸ Paused' : ('🔊 ' + (currentSnippet || 'Reading...'));
   } else {
     pauseBtn.style.display = 'none';
     stopBtn.style.display = 'none';
-    statusEl.innerText = '👆 Click any line or Play button';
+    statusEl.innerText = '👆 Click any paragraph to read';
   }
 }
 
@@ -428,7 +604,7 @@ function pauseResumeSpeech() {
   if (!isPlayingQueue) return;
   if (!isPausedQueue) {
     isPausedQueue = true;
-    synth.cancel(); // Safely stops current micro-chunk; will resume from exact chunk index
+    synth.cancel();
     updateFloatingBarUI();
   } else {
     isPausedQueue = false;
@@ -447,8 +623,8 @@ function stopAllSpeech() {
   synth.cancel();
   releaseWakeLock();
 
-  // Clear highlights in DOM & Iframes
   document.querySelectorAll('.tts-hl').forEach(n => n.classList.remove('tts-hl'));
+  document.querySelectorAll('.tts-reading-now').forEach(n => n.classList.remove('tts-reading-now'));
   document.querySelectorAll('.in-topic-tts-btn').forEach(b => {
     b.innerHTML = '🔊 Play Topic';
     b.classList.remove('active-Read');
@@ -485,8 +661,11 @@ function speakNextChunk(idx, token) {
   let item = ttsQueue[idx];
   let text = (typeof item === 'string') ? item : item.text;
   
-  // Highlight current block in direct DOM or Iframe
+  updateFloatingBarUI(text);
+
+  // Spotlight & Auto-Scroll for Direct DOM or Iframe
   if (item.el && item.box) {
+    item.box.classList.add('tts-reading-now');
     item.box.querySelectorAll('.tts-hl').forEach(n => n.classList.remove('tts-hl'));
     item.el.classList.add('tts-hl');
     item.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -495,7 +674,7 @@ function speakNextChunk(idx, token) {
   }
 
   let u = new SpeechSynthesisUtterance(text);
-  window._activeUtterance = u; // Crucial: Prevent GC!
+  window._activeUtterance = u;
 
   let curLang = document.getElementById('customLangSelect').value || 'en';
   let bestVoice = getBestVoice(curLang);
@@ -523,7 +702,6 @@ function speakNextChunk(idx, token) {
   synth.speak(u);
 }
 
-// Toggle Listen Mode from the Sticky Floating Bar
 function toggleFloatingListenMode() {
   if (!window.ttsActiveId) return;
   let detailsEl = document.getElementById(window.ttsActiveId)?.closest('details.subtopic-item');
@@ -827,7 +1005,6 @@ function playFromDOMElement(box, startContainer) {
 
   for (let i = startIdx; i < blocks.length; i++) {
     let b = blocks[i];
-    // Clone node without the play button text so it doesn't read "Play Topic"
     let clone = b.cloneNode(true);
     clone.querySelectorAll('.in-topic-tts-btn').forEach(btn => btn.remove());
     let txt = (clone.innerText || clone.textContent || '').trim();
@@ -855,7 +1032,7 @@ function toggleAudioMode(e, domId, btn) {
       
       let box = document.getElementById(domId);
       if(box) {
-        box.classList.remove('tts-active-box');
+        box.classList.remove('tts-active-box', 'tts-reading-now');
         box.querySelectorAll('.tts-hl').forEach(n => n.classList.remove('tts-hl'));
       }
       sendMessageToIframe(domId, { action: 'disableTTS' });
@@ -900,28 +1077,37 @@ function sendMessageToIframe(domId, msgObj) {
     }
 }
 
-// Receive sentence queue from Iframe (either via Play Topic button or Paragraph Click)
+// Receive sentence queue OR Smooth Parent Scroll Coordinates from Iframe
 window.addEventListener('message', function(e) {
-    if(e.data && e.data.type === 'speakQueue') {
+    if (!e.data) return;
+    if (e.data.type === 'speakQueue') {
         if (e.data.domId) {
           window.ttsActiveId = e.data.domId;
         }
-        // Further split any incoming sentences into <120 char micro-chunks
         let safeQueue = [];
         (e.data.queue || []).forEach(item => {
           let subParts = splitIntoMicroChunks(item.text, 120);
           subParts.forEach(sp => safeQueue.push({ text: sp, blockIndex: item.blockIndex }));
         });
         playTextQueue(safeQueue, 0);
-    } else if (e.data && e.data.type === 'stopSpeechFromIframe') {
+    } else if (e.data.type === 'stopSpeechFromIframe') {
         stopAllSpeech();
+    } else if (e.data.type === 'scrollParentToIframeY') {
+        // True Parent-Window Auto-Center Scroll for Iframe Elements!
+        let box = document.getElementById(e.data.domId);
+        let ifr = box ? box.querySelector('iframe') : null;
+        if (ifr) {
+            let ifrRect = ifr.getBoundingClientRect();
+            let targetScreenY = window.scrollY + ifrRect.top + e.data.offsetY - (window.innerHeight * 0.42);
+            window.scrollTo({ top: Math.max(0, targetScreenY), behavior: 'smooth' });
+        }
     }
 });
 
 // Direct DOM Click-to-Read
 document.addEventListener('click', function(e) {
     if(!window.ttsActiveId) return;
-    if (e.target.closest('.in-topic-tts-btn') || e.target.closest('.floating-tts-bar')) return;
+    if (e.target.closest('.in-topic-tts-btn') || e.target.closest('.floating-tts-bar') || e.target.closest('.eye-comfort-bar')) return;
     let box = document.getElementById(window.ttsActiveId);
     if(!box || box.querySelector('iframe') || !box.contains(e.target)) return;
     
@@ -963,7 +1149,6 @@ function handleSubToggle(detailsEl, domId, sid) {
     return;
   }
   
-  // Auto-activate floating audio bar for this open article so user has controls on scroll
   window.ttsActiveId = domId;
   box.classList.add('tts-active-box');
   let topBtn = detailsEl.querySelector('.listen-btn');
@@ -985,18 +1170,43 @@ function handleSubToggle(detailsEl, domId, sid) {
     return;
   }
 
+  var comfortBarHtml = buildEyeComfortToolbarHtml(domId);
   var needsIframe = /<!doctype|<html|<head|<style|<script/i.test(raw);
+
   if (needsIframe) {
+    box.innerHTML = comfortBarHtml + '<div id="' + domId + '_ifr_wrap"></div>';
     var iframe = document.createElement('iframe');
     iframe.className = 'idea-iframe';
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
     var curLang = document.getElementById('customLangSelect').value || 'en';
     
-    // Injected Iframe Helper: Automatically adds "🔊 Play Topic" button to EVERY Concept Card / Heading inside Iframe!
+    // Injected Iframe Helper: Spotlight Dimming + Animated Speaker Badge + Parent Scroll Sync + Canvas Color Engine
     var helper = '<style>' +
-      'html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;font-size:1.1rem;top:0px!important;line-height:1.7}' +
+      'html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;font-size:1.1rem;top:0px!important;line-height:1.7;transition:background 0.35s ease, color 0.35s ease;}' +
       '.goog-te-banner-frame,.goog-te-gadget-icon,#goog-gt-tt{display:none!important}' +
-      '.tts-hl{background: rgba(245, 158, 11, 0.25) !important; border-left: 4px solid #f59e0b !important; padding-left: 8px !important; border-radius: 4px; transition:0.2s;}' +
+      'body.tts-reading-now h1, body.tts-reading-now h2, body.tts-reading-now h3, body.tts-reading-now h4, body.tts-reading-now p, body.tts-reading-now li, body.tts-reading-now .concept-rule, body.tts-reading-now .deep-explanation, body.tts-reading-now .execution-tag { opacity: 0.42; transition: all 0.28s ease; }' +
+      '.tts-hl {' +
+      '  opacity: 1 !important;' +
+      '  position: relative;' +
+      '  background: linear-gradient(90deg, rgba(245, 158, 11, 0.32), rgba(16, 185, 129, 0.18)) !important;' +
+      '  border-left: 6px solid #f59e0b !important;' +
+      '  padding: 12px 16px 12px 44px !important;' +
+      '  border-radius: 10px !important;' +
+      '  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.28), 0 0 0 2px rgba(245, 158, 11, 0.55) !important;' +
+      '  transform: scale(1.012);' +
+      '  z-index: 20;' +
+      '  transition: all 0.25s ease !important;' +
+      '}' +
+      '.tts-hl::before {' +
+      '  content: "🔊";' +
+      '  position: absolute;' +
+      '  left: 12px;' +
+      '  top: 50%;' +
+      '  transform: translateY(-50%);' +
+      '  font-size: 1.2rem;' +
+      '  animation: spkPulse 0.7s infinite alternate;' +
+      '}' +
+      '@keyframes spkPulse { from { transform: translateY(-50%) scale(0.9); } to { transform: translateY(-50%) scale(1.22); } }' +
       'body.tts-active p, body.tts-active div, body.tts-active li, body.tts-active h1, body.tts-active h2, body.tts-active h3, body.tts-active h4 { cursor: pointer; }' +
       'body.tts-active p:hover, body.tts-active li:hover { background: rgba(245, 158, 11, 0.08); border-radius: 4px; }' +
       '.ifr-topic-play-btn { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff !important; border: none; padding: 6px 14px; border-radius: 50px; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-left: auto; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 8px rgba(37,99,235,0.3); transition: 0.2s; flex-shrink: 0; }' +
@@ -1007,7 +1217,7 @@ function handleSubToggle(detailsEl, domId, sid) {
       '<script>' +
       'const DOM_ID = "' + domId + '";' +
       'let ttsActive = true; document.body.classList.add("tts-active"); let ttsBlocks = [];' +
-      'function fitH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,500);if(window.frameElement)window.frameElement.style.height=(h+45)+"px";}catch(e){}}' +
+      'function fitH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,500);if(window.frameElement)window.frameElement.style.height=(h+55)+"px";}catch(e){}}' +
       'function injectTopicButtons(){' +
       '  ttsBlocks = Array.from(document.querySelectorAll("h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag"));' +
       '  if(!ttsBlocks.length) ttsBlocks = [document.body];' +
@@ -1067,13 +1277,29 @@ function handleSubToggle(detailsEl, domId, sid) {
       'function triggerIframeLang(l){document.cookie="googtrans=/en/"+l+"; path=/";var c=document.querySelector(".goog-te-combo");if(c){c.value=l;c.dispatchEvent(new Event("change"));setTimeout(fitH,500);}}' +
       'function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,te,hi,ta,ml,kn",autoDisplay:false},"gt_ifr");setTimeout(function(){triggerIframeLang("' + curLang + '");},600);}' +
       'window.addEventListener("message", function(e) {' +
+      '  if(!e.data) return;' +
       '  if(e.data.action==="enableTTS"){ttsActive=true;document.body.classList.add("tts-active");}' +
-      '  if(e.data.action==="disableTTS"){ttsActive=false;document.body.classList.remove("tts-active");document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));}' +
-      '  if(e.data.action==="clearHighlights"){document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));document.querySelectorAll(".ifr-topic-play-btn").forEach(b=>{b.classList.remove("playing");b.innerHTML="🔊 Play Topic";});}' +
+      '  if(e.data.action==="disableTTS"){ttsActive=false;document.body.classList.remove("tts-active","tts-reading-now");document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));}' +
+      '  if(e.data.action==="clearHighlights"){document.body.classList.remove("tts-reading-now");document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));document.querySelectorAll(".ifr-topic-play-btn").forEach(b=>{b.classList.remove("playing");b.innerHTML="🔊 Play Topic";});}' +
       '  if(e.data.action==="highlightBlock" && ttsBlocks[e.data.index]){' +
+      '    document.body.classList.add("tts-reading-now");' +
       '    document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));' +
-      '    ttsBlocks[e.data.index].classList.add("tts-hl");' +
-      '    ttsBlocks[e.data.index].scrollIntoView({behavior:"smooth", block:"center"});' +
+      '    let targetEl = ttsBlocks[e.data.index];' +
+      '    targetEl.classList.add("tts-hl");' +
+      '    let rect = targetEl.getBoundingClientRect();' +
+      '    window.parent.postMessage({ type: "scrollParentToIframeY", domId: DOM_ID, offsetY: rect.top + window.scrollY }, "*");' +
+      '  }' +
+      '  if(e.data.action==="setCanvasTheme"){' +
+      '    let { bg, text, card } = e.data;' +
+      '    document.body.style.background = bg || "";' +
+      '    document.body.style.color = text || "";' +
+      '    document.querySelectorAll(".concept-card, .example-box, .deep-explanation").forEach(el => {' +
+      '      el.style.background = card || "";' +
+      '      el.style.color = text || "";' +
+      '    });' +
+      '    document.querySelectorAll(".concept-title, .concept-rule, li, p, h4").forEach(el => {' +
+      '      el.style.color = text || "";' +
+      '    });' +
       '  }' +
       '});' +
       'document.addEventListener("click", function(e){' +
@@ -1086,11 +1312,16 @@ function handleSubToggle(detailsEl, domId, sid) {
       
     var isFull = /<!doctype|<html/i.test(raw);
     iframe.srcdoc = isFull ? (raw + helper) : ('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' + helper + '</head><body style="color:#e2e8f0;background:#0f172a;">' + raw + '</body></html>');
-    box.innerHTML = '';
-    box.appendChild(iframe);
+    document.getElementById(domId + '_ifr_wrap').appendChild(iframe);
+    if (savedCanvasBg) {
+      setTimeout(() => applyCustomReadingColor(domId, savedCanvasBg), 500);
+    }
   } else {
-    box.innerHTML = raw;
+    box.innerHTML = comfortBarHtml + '<div id="' + domId + '_content">' + raw + '</div>';
     injectDirectDOMTopicButtons(box, domId);
+    if (savedCanvasBg) {
+      applyCustomReadingColor(domId, savedCanvasBg);
+    }
   }
 }
 
