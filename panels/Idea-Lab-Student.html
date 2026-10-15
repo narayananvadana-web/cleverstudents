@@ -104,12 +104,18 @@ iframe.skiptranslate { display: none !important; }
 .action-btn { background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; color: #fff; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; transition: 0.2s; font-family: var(--font); }
 .action-btn:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.4); transform: translateY(-1px); }
 .action-btn.saved { background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #fbbf24; color: #000; }
-.action-btn.playing { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; }
+.action-btn.playing { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; animation: pulseGlow 1.5s infinite; }
+@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); } 70% { box-shadow: 0 0 0 8px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
 
 /* Content Body */
 .subtopic-body { background: var(--srf2); border: 1px solid var(--brd); border-radius: 0 0 10px 10px; padding: 24px; margin-top: -6px; font-size: 1.1rem; color: var(--txt); animation: fadeIn 0.4s ease; overflow-x: auto; box-shadow: inset 0 4px 6px rgba(0,0,0,0.05); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 .idea-iframe { width: 100%; min-height: 700px; border: none; border-radius: 8px; background: transparent; display: block; }
+
+/* Text To Speech Highlighter for non-iframe content */
+.tts-hl { background: rgba(245, 158, 11, 0.3) !important; border-radius: 4px; box-shadow: 0 0 0 2px #f59e0b; transition: 0.3s; }
+.tts-active-box p, .tts-active-box div, .tts-active-box li { cursor: pointer; }
+.tts-active-box p:hover, .tts-active-box li:hover { background: rgba(255,255,255,0.05); border-radius: 4px; }
 
 /* --- SKELETON LOADERS --- */
 .skeleton-box { height: 70px; border-radius: 10px; margin-bottom: 15px; background: linear-gradient(90deg, var(--srf2) 25%, var(--srf) 50%, var(--srf2) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite linear; border: 1px solid var(--brd); }
@@ -165,7 +171,7 @@ iframe.skiptranslate { display: none !important; }
     <div class="tool-bar">
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Search ideas, models, hacks..." onkeyup="filterContent()">
+        <input type="text" id="searchInput" placeholder="Search entire articles, concepts, topics..." onkeyup="filterContent()">
       </div>
       <div class="prog-container">
         <div class="prog-header">
@@ -186,7 +192,6 @@ iframe.skiptranslate { display: none !important; }
 
     <div class="content">
       <div id="treeArea">
-        <!-- Skeleton Loaders -->
         <div class="skeleton-box"></div>
         <div class="skeleton-box"></div>
         <div class="skeleton-box"></div>
@@ -206,9 +211,9 @@ let SUB_CONTENT_MAP = {};
 let savedHacks = JSON.parse(localStorage.getItem('idealab_saved_hacks')) || [];
 let readHacks = JSON.parse(localStorage.getItem('idealab_read_hacks')) || [];
 
-// Speech Synthesis State
+// Speech Synthesis State (TTS)
 let synth = window.speechSynthesis;
-let currentSpeakingId = null;
+window.ttsActiveId = null; 
 
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
@@ -269,8 +274,10 @@ async function fetchIdeaLabData() {
 function render() {
   SUB_CONTENT_MAP = {};
   subCounter = 0;
-  synth.cancel(); // Stop audio on re-render
-  currentSpeakingId = null;
+  
+  // Stop any playing audio on category change
+  synth.cancel(); 
+  window.ttsActiveId = null;
   
   renderCategoryButtons();
   renderBanner();
@@ -283,11 +290,7 @@ function renderCategoryButtons() {
   var ids = Object.keys(DATA).sort(function(a, b) { return (Number(DATA[a].order) || 0) - (Number(DATA[b].order) || 0); });
   
   var h = '';
-  // Saved Hacks Special Button
-  var isSavedActive = (activeCat === '__saved__');
-  h += '<button class="cat-btn saved-btn' + (isSavedActive ? ' active' : '') + '" onclick="setCat(\'__saved__\')">';
-  h += (isSavedActive ? '✓ ' : '') + '⭐ My Saved Hacks</button>';
-
+  // Normal Categories
   ids.forEach(function(id) {
     var c = DATA[id];
     var isActive = (id === activeCat);
@@ -295,6 +298,12 @@ function renderCategoryButtons() {
     h += (isActive ? '✓ ' : '') + (c.icon || '📂') + ' ' + escHtml(c.title || id);
     h += '</button>';
   });
+
+  // Added "Saved Hacks" specifically at the LAST position
+  var isSavedActive = (activeCat === '__saved__');
+  h += '<button class="cat-btn saved-btn' + (isSavedActive ? ' active' : '') + '" onclick="setCat(\'__saved__\')">';
+  h += (isSavedActive ? '✓ ' : '') + '⭐ My Saved Hacks</button>';
+
   row.innerHTML = h;
 }
 
@@ -322,7 +331,6 @@ function renderTree() {
      let h = '';
      let hasSaved = false;
      let colorIndex = 0;
-     // Loop through all categories to find saved subtopics
      Object.keys(DATA).forEach(catId => {
         let cat = DATA[catId];
         if(!cat.topics) return;
@@ -399,7 +407,8 @@ function renderSubTopicDetails(sid, sub, parentGrad) {
   var saveIcon = isSaved ? '★ Saved' : '⭐ Save';
   var saveClass = isSaved ? 'action-btn saved' : 'action-btn';
 
-  var h = '<details class="subtopic-item search-target" data-title="'+ escAttr((sub.title || '').toLowerCase()) +'" ontoggle="handleSubToggle(this, \'' + domId + '\', \'' + escAttr(sid) + '\')">';
+  // Note: data-id is added here so search filter can fetch raw content
+  var h = '<details class="subtopic-item search-target" data-id="'+domId+'" data-title="'+ escAttr((sub.title || '').toLowerCase()) +'" ontoggle="handleSubToggle(this, \'' + domId + '\', \'' + escAttr(sid) + '\')">';
   h += '<summary>';
   h += '<div class="subtopic-head" style="background:' + parentGrad + ';opacity:0.95">';
   h += '<div class="sh-left">';
@@ -409,7 +418,7 @@ function renderSubTopicDetails(sid, sub, parentGrad) {
   
   // ACTION BUTTONS
   h += '<div class="action-grp">';
-  h += '<button class="action-btn listen-btn" onclick="toggleAudio(event, \'' + domId + '\', this)">🎧 Listen</button>';
+  h += '<button class="action-btn listen-btn" onclick="toggleAudioMode(event, \'' + domId + '\', this)">🎧 Listen</button>';
   h += '<button class="' + saveClass + '" onclick="toggleSave(event, \'' + escAttr(sid) + '\', this)">' + saveIcon + '</button>';
   h += '<span class="action-btn">View [+]</span>';
   h += '</div>';
@@ -420,7 +429,104 @@ function renderSubTopicDetails(sid, sub, parentGrad) {
   return h;
 }
 
-// TOGGLE BOOKMARK (Save/Unsave)
+// ==========================================
+// 1. CLICK-TO-PLAY TEXT TO SPEECH LOGIC
+// ==========================================
+function toggleAudioMode(e, domId, btn) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (window.ttsActiveId === domId) {
+      // Turn Off
+      window.ttsActiveId = null;
+      synth.cancel();
+      btn.innerHTML = '🎧 Listen';
+      btn.classList.remove('playing');
+      
+      // Remove visual active class
+      let box = document.getElementById(domId);
+      if(box) box.classList.remove('tts-active-box');
+      
+      // If it's an iframe, send disable message
+      sendMessageToIframe(domId, { action: 'disableTTS' });
+  } else {
+      // Turn On
+      window.ttsActiveId = domId;
+      synth.cancel();
+      
+      // Reset all other listen buttons
+      document.querySelectorAll('.listen-btn').forEach(b => {
+          b.innerHTML = '🎧 Listen';
+          b.classList.remove('playing');
+      });
+      document.querySelectorAll('.subtopic-body').forEach(box => {
+          box.classList.remove('tts-active-box');
+      });
+      
+      btn.innerHTML = '⏹ Listening...';
+      btn.classList.add('playing');
+      
+      let box = document.getElementById(domId);
+      if(box) box.classList.add('tts-active-box');
+      
+      // If it's an iframe, send enable message
+      sendMessageToIframe(domId, { action: 'enableTTS' });
+      
+      // Little alert notification
+      alert("🔊 Listen Mode ON: Click on any paragraph inside the article to read it out loud.");
+  }
+}
+
+// Helper to communicate with iframe for TTS
+function sendMessageToIframe(domId, msgObj) {
+    let box = document.getElementById(domId);
+    if(box) {
+        let iframe = box.querySelector('iframe');
+        if(iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(msgObj, '*');
+        }
+    }
+}
+
+// Receive messages from iframe to play TTS
+window.addEventListener('message', function(e) {
+    if(e.data && e.data.type === 'speakText' && window.ttsActiveId) {
+        synth.cancel();
+        let u = new SpeechSynthesisUtterance(e.data.text);
+        // Automatically determine language/accent if needed, or leave to default
+        synth.speak(u);
+    }
+});
+
+// Listener for Non-iframe direct content
+document.addEventListener('click', function(e) {
+    if(!window.ttsActiveId) return;
+    let box = document.getElementById(window.ttsActiveId);
+    // Ignore if click is outside the box or if box contains iframe (iframe handles its own clicks)
+    if(!box || box.querySelector('iframe') || !box.contains(e.target)) return;
+    
+    let el = e.target;
+    // Find closest block element
+    while(el && el !== box && ['P','DIV','LI','H1','H2','H3','H4','TD'].indexOf(el.tagName) === -1) { 
+        el = el.parentElement; 
+    }
+    if(!el) el = e.target;
+    
+    let text = el.innerText || el.textContent;
+    if(text) {
+        synth.cancel();
+        let u = new SpeechSynthesisUtterance(text);
+        synth.speak(u);
+        
+        // Visual Highlight
+        box.querySelectorAll('.tts-hl').forEach(n => n.classList.remove('tts-hl'));
+        el.classList.add('tts-hl');
+    }
+});
+
+// ==========================================
+// 2. TOGGLE BOOKMARK (Save/Unsave)
+// ==========================================
 function toggleSave(e, sid, btn) {
   e.preventDefault();
   e.stopPropagation();
@@ -438,62 +544,23 @@ function toggleSave(e, sid, btn) {
   localStorage.setItem('idealab_saved_hacks', JSON.stringify(savedHacks));
 }
 
-// TEXT TO SPEECH AUDIO TOGGLE
-function toggleAudio(e, domId, btn) {
-  e.preventDefault();
-  e.stopPropagation();
 
-  if (currentSpeakingId === domId && synth.speaking) {
-      synth.cancel();
-      currentSpeakingId = null;
-      btn.innerHTML = '🎧 Listen';
-      btn.classList.remove('playing');
-      return;
-  }
-  
-  synth.cancel(); // Stop any other audio
-  
-  let rawHtml = SUB_CONTENT_MAP[domId] || '';
-  let textToRead = rawHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); // Strip HTML tags
-  
-  if (!textToRead) {
-      alert("No content available to read.");
-      return;
-  }
-
-  let utterance = new SpeechSynthesisUtterance(textToRead);
-  // Optional: utterance.lang = 'en-US'; // Set according to language if needed
-
-  utterance.onend = () => {
-      currentSpeakingId = null;
-      document.querySelectorAll('.listen-btn').forEach(b => {
-         b.innerHTML = '🎧 Listen';
-         b.classList.remove('playing');
-      });
-  };
-
-  synth.speak(utterance);
-  currentSpeakingId = domId;
-  
-  // Reset all buttons, then activate this one
-  document.querySelectorAll('.listen-btn').forEach(b => {
-      b.innerHTML = '🎧 Listen';
-      b.classList.remove('playing');
-  });
-  btn.innerHTML = '⏹ Stop';
-  btn.classList.add('playing');
-}
-
-// OPEN/CLOSE CONTENT & PROGRESS TRACKING
 function handleSubToggle(detailsEl, domId, sid) {
   var box = document.getElementById(domId);
   if (!box) return;
   if (!detailsEl.open) {
     box.innerHTML = '';
+    // If closed while speaking this article, stop it.
+    if(window.ttsActiveId === domId) {
+        window.ttsActiveId = null;
+        synth.cancel();
+        let btn = detailsEl.querySelector('.listen-btn');
+        if(btn) { btn.innerHTML = '🎧 Listen'; btn.classList.remove('playing'); }
+    }
     return;
   }
   
-  // Mark as Read for Progress tracking (Zeigarnik Effect)
+  // Progress tracking (Zeigarnik Effect)
   if (!readHacks.includes(sid)) {
       readHacks.push(sid);
       localStorage.setItem('idealab_read_hacks', JSON.stringify(readHacks));
@@ -512,7 +579,9 @@ function handleSubToggle(detailsEl, domId, sid) {
     iframe.className = 'idea-iframe';
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
     var curLang = document.getElementById('customLangSelect').value || 'en';
-    var helper = '<style>html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;font-size:1.1rem;top:0px!important;line-height:1.7}.goog-te-banner-frame,.goog-te-gadget-icon,#goog-gt-tt{display:none!important}</style>' +
+    
+    // Injected Helper Script for IFRAME TTS & Translation
+    var helper = '<style>html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;font-size:1.1rem;top:0px!important;line-height:1.7}.goog-te-banner-frame,.goog-te-gadget-icon,#goog-gt-tt{display:none!important} .tts-hl{background: rgba(245, 158, 11, 0.3) !important; border-radius: 4px; box-shadow: 0 0 0 2px #f59e0b;} body.tts-active p, body.tts-active div, body.tts-active li { cursor: pointer; } body.tts-active p:hover, body.tts-active li:hover { background: rgba(255,255,255,0.05); }</style>' +
       '<div id="gt_ifr" style="display:none"></div>' +
       '<script>' +
       'function fitH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,500);if(window.frameElement)window.frameElement.style.height=(h+40)+"px";}catch(e){}}' +
@@ -520,8 +589,11 @@ function handleSubToggle(detailsEl, domId, sid) {
       'document.addEventListener("click",function(){setTimeout(fitH,150);});' +
       'function triggerIframeLang(l){document.cookie="googtrans=/en/"+l+"; path=/";var c=document.querySelector(".goog-te-combo");if(c){c.value=l;c.dispatchEvent(new Event("change"));setTimeout(fitH,500);}}' +
       'function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,te,hi,ta,ml,kn",autoDisplay:false},"gt_ifr");setTimeout(function(){triggerIframeLang("' + curLang + '");},600);}' +
+      'let ttsActive = false; window.addEventListener("message", function(e) { if(e.data.action==="enableTTS"){ttsActive=true;document.body.classList.add("tts-active");} if(e.data.action==="disableTTS"){ttsActive=false;document.body.classList.remove("tts-active");document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));} });' +
+      'document.body.addEventListener("click", function(e){ if(!ttsActive)return; let el=e.target; while(el && el!==document.body && ["P","DIV","LI","H1","H2","H3","H4","TD"].indexOf(el.tagName)===-1){el=el.parentElement;} if(!el)el=e.target; let text=el.innerText||el.textContent; if(text){ window.parent.postMessage({type:"speakText", text:text}, "*"); document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl")); el.classList.add("tts-hl"); } });' +
       '<\/script>' +
       '<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"><\/script>';
+      
     var isFull = /<!doctype|<html/i.test(raw);
     iframe.srcdoc = isFull ? (raw + helper) : ('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' + helper + '</head><body style="color:#e2e8f0;background:#0f172a;">' + raw + '</body></html>');
     box.innerHTML = '';
@@ -564,7 +636,9 @@ function updateProgressBar() {
     document.getElementById('progFill').style.width = percent + '%';
 }
 
-// SEARCH / FILTER LOGIC
+// ==========================================
+// 3. FULL-TEXT DEEP SEARCH LOGIC
+// ==========================================
 function filterContent() {
     let input = document.getElementById('searchInput').value.toLowerCase();
     let topics = document.querySelectorAll('.topic-item');
@@ -575,7 +649,14 @@ function filterContent() {
         
         subs.forEach(sub => {
             let title = sub.getAttribute('data-title');
-            if (title.includes(input)) {
+            let domId = sub.getAttribute('data-id');
+            let rawContent = SUB_CONTENT_MAP[domId] || '';
+            
+            // Strip HTML tags for clean text searching
+            let plainTextContent = rawContent.replace(/<[^>]+>/g, ' ').toLowerCase();
+            
+            // Search in Title OR inside the actual Content
+            if (title.includes(input) || plainTextContent.includes(input)) {
                 sub.style.display = 'block';
                 hasMatch = true;
             } else {
@@ -583,10 +664,10 @@ function filterContent() {
             }
         });
 
-        // Hide main topic wrapper if no subtopics match
+        // Auto open/close topics based on search results
         if (hasMatch) {
             topic.style.display = 'block';
-            if (input.length > 0) topic.setAttribute('open', 'true'); // Auto open matching topics
+            if (input.length > 1) topic.setAttribute('open', 'true'); 
         } else {
             topic.style.display = 'none';
         }
@@ -594,7 +675,7 @@ function filterContent() {
 }
 
 function setCat(id) { 
-  document.getElementById('searchInput').value = ''; // Reset search on category change
+  document.getElementById('searchInput').value = ''; // Reset search
   activeCat = id; 
   render(); 
 }
