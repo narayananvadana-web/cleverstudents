@@ -48,7 +48,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--txt); min-h
 iframe.skiptranslate { display: none !important; }
 
 /* --- MAIN CONTAINER & BANNER --- */
-.main-wrap { max-width: 1400px; margin: 30px auto; padding: 0 20px 80px; }
+.main-wrap { max-width: 1400px; margin: 30px auto; padding: 0 20px 100px; }
 .shell { background: var(--srf); border-radius: 12px; overflow: hidden; border: 1px solid var(--brd); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
 
 .banner { padding: 35px 20px; text-align: center; background: linear-gradient(135deg, #f59e0b, #db2777); border-bottom: 4px solid #fbbf24; }
@@ -105,6 +105,29 @@ iframe.skiptranslate { display: none !important; }
 .action-btn.playing { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; animation: pulseGlow 1.5s infinite; }
 @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); } 70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
 
+/* IN-ARTICLE TOPIC PLAY BUTTONS */
+.in-topic-tts-btn {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff !important;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 5px 14px;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 8px rgba(37,99,235,0.35);
+  transition: all 0.2s ease;
+  font-family: var(--font);
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.in-topic-tts-btn:hover { transform: scale(1.05); background: linear-gradient(135deg, #1d4ed8, #1e40af); }
+.in-topic-tts-btn.active-Read { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 12px rgba(16,185,129,0.6); }
+
 /* Content Body */
 .subtopic-body { background: var(--srf2); border: 1px solid var(--brd); border-radius: 0 0 10px 10px; padding: 24px; margin-top: -6px; font-size: 1.1rem; color: var(--txt); animation: fadeIn 0.4s ease; overflow-x: auto; box-shadow: inset 0 4px 6px rgba(0,0,0,0.05); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
@@ -122,8 +145,30 @@ iframe.skiptranslate { display: none !important; }
 .empty { text-align: center; padding: 60px 20px; color: var(--mut); font-size: 1.2rem; font-weight: 700; }
 .empty .icon { font-size: 3.5rem; margin-bottom: 15px; opacity: 0.6; }
 
-/* Toast Notification for Audio */
-.tts-toast { position: fixed; bottom: 25px; right: 25px; background: #10b981; color: #fff; padding: 12px 22px; border-radius: 50px; font-weight: 800; box-shadow: 0 8px 25px rgba(0,0,0,0.4); z-index: 9999; display: none; align-items: center; gap: 10px; animation: fadeIn 0.3s; font-size: 0.95rem; border: 2px solid #34d399; }
+/* --- FLOATING STICKY AUDIO CONTROLLER (Always Accessible When Scrolling) --- */
+.floating-tts-bar {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border: 2px solid #3b82f6;
+  padding: 10px 18px;
+  border-radius: 50px;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  z-index: 99999;
+  color: #fff;
+  animation: fadeIn 0.3s ease;
+}
+.floating-tts-bar.show { display: flex; }
+.f-tts-status { font-size: 0.9rem; font-weight: 800; color: #60a5fa; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f-tts-btn { background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 25px; font-weight: 800; font-size: 0.85rem; cursor: pointer; font-family: var(--font); transition: 0.2s; }
+.f-tts-btn:hover { background: #334155; transform: translateY(-1px); }
+.f-tts-btn.stop { background: #ef4444; border-color: #f87171; }
+.f-tts-btn.mode-on { background: #10b981; border-color: #34d399; }
 
 /* Mobile Responsiveness */
 @media(max-width: 768px) {
@@ -135,6 +180,8 @@ iframe.skiptranslate { display: none !important; }
   .subtopic-head { padding: 12px 16px; font-size: 1rem; flex-direction: column; align-items: flex-start; }
   .action-grp { width: 100%; justify-content: flex-start; margin-top: 8px; }
   .subtopic-container { padding-left: 10px; }
+  .floating-tts-bar { bottom: 15px; right: 15px; left: 15px; justify-content: space-between; padding: 10px 14px; }
+  .f-tts-status { max-width: 120px; }
 }
 </style>
 </head>
@@ -203,7 +250,15 @@ iframe.skiptranslate { display: none !important; }
   </div>
 </div>
 
-<div class="tts-toast" id="ttsToast">🔊 Listen Mode ON: Click any line inside the article to play!</div>
+<!-- Sticky Floating Audio Bar (Follows User on 10-20 Pages Scroll) -->
+<div class="floating-tts-bar notranslate" id="floatingTtsBar" translate="no">
+  <span class="f-tts-status" id="floatTtsStatus">🎧 Listen Mode Ready</span>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="f-tts-btn mode-on" id="floatModeBtn" onclick="toggleFloatingListenMode()">🔊 Click-to-Read: ON</button>
+    <button class="f-tts-btn" id="floatPauseBtn" onclick="pauseResumeSpeech()" style="display:none;">⏸ Pause</button>
+    <button class="f-tts-btn stop" id="floatStopBtn" onclick="stopAllSpeech()" style="display:none;">⏹ Stop</button>
+  </div>
+</div>
 
 <script>
 const DB_NODE = 'ideaLabDatabase';
@@ -218,26 +273,29 @@ let readHacks = JSON.parse(localStorage.getItem('idealab_read_hacks')) || [];
 
 // Distinct Creative Color Themes for Each Category
 const CAT_THEMES = [
-  { bg: 'linear-gradient(135deg, #f59e0b, #d97706)', shadow: 'rgba(245, 158, 11, 0.45)' }, // Amber/Gold (Tips & Tricks)
-  { bg: 'linear-gradient(135deg, #ec4899, #be185d)', shadow: 'rgba(236, 72, 153, 0.45)' }, // Pink/Rose (Innovative Thinking)
-  { bg: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', shadow: 'rgba(139, 92, 246, 0.45)' }, // Purple/Violet (Unconventional Methods)
-  { bg: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', shadow: 'rgba(59, 130, 246, 0.45)' }, // Electric Blue (Mental Models)
-  { bg: 'linear-gradient(135deg, #10b981, #047857)', shadow: 'rgba(16, 185, 129, 0.45)' }, // Emerald Green (Science Tricks)
+  { bg: 'linear-gradient(135deg, #f59e0b, #d97706)', shadow: 'rgba(245, 158, 11, 0.45)' }, // Amber/Gold
+  { bg: 'linear-gradient(135deg, #ec4899, #be185d)', shadow: 'rgba(236, 72, 153, 0.45)' }, // Pink/Rose
+  { bg: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', shadow: 'rgba(139, 92, 246, 0.45)' }, // Purple/Violet
+  { bg: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', shadow: 'rgba(59, 130, 246, 0.45)' }, // Electric Blue
+  { bg: 'linear-gradient(135deg, #10b981, #047857)', shadow: 'rgba(16, 185, 129, 0.45)' }, // Emerald Green
   { bg: 'linear-gradient(135deg, #06b6d4, #0e7490)', shadow: 'rgba(6, 182, 212, 0.45)' },  // Cyan/Teal
   { bg: 'linear-gradient(135deg, #f97316, #c2410c)', shadow: 'rgba(249, 115, 22, 0.45)' }  // Deep Orange
 ];
-const SAVED_THEME = { bg: 'linear-gradient(135deg, #f43f5e, #be123c)', shadow: 'rgba(244, 63, 94, 0.45)' }; // Crimson Red for Saved Hacks
+const SAVED_THEME = { bg: 'linear-gradient(135deg, #f43f5e, #be123c)', shadow: 'rgba(244, 63, 94, 0.45)' };
 
 // =========================================================
-//   HIGH-QUALITY TTS & WAKE LOCK ENGINE (Screen Never Sleeps)
+//   ZERO-DROPOUT TTS ENGINE (Fixes 15-Second Cutoff Bug)
 // =========================================================
 let synth = window.speechSynthesis;
 window.ttsActiveId = null; 
+window._activeUtterance = null; // Prevents JS Garbage Collection mid-speech!
 let availableVoices = [];
 let ttsQueue = [];
+let currentChunkIdx = 0;
 let isPlayingQueue = false;
+let isPausedQueue = false;
 let wakeLock = null;
-let keepAliveTimer = null;
+let sessionToken = 0;
 
 function loadVoices() {
   availableVoices = synth.getVoices();
@@ -247,7 +305,6 @@ if (speechSynthesis.onvoiceschanged !== undefined) {
   speechSynthesis.onvoiceschanged = loadVoices;
 }
 
-// Selects the highest quality Neural / Natural voice
 function getBestVoice(langCode) {
   if (!availableVoices.length) availableVoices = synth.getVoices();
   const langMap = { 'en': 'en', 'te': 'te', 'hi': 'hi', 'ta': 'ta', 'ml': 'ml', 'kn': 'kn' };
@@ -261,7 +318,6 @@ function getBestVoice(langCode) {
     matching = availableVoices.filter(v => v.lang.toLowerCase().startsWith('en'));
   }
 
-  // Prioritize Natural, Online, Google Neural voices for HD Quality
   matching.sort((a, b) => {
     let scoreA = 0, scoreB = 0;
     if (a.name.includes('Natural') || a.name.includes('Online')) scoreA += 5;
@@ -276,7 +332,43 @@ function getBestVoice(langCode) {
   return matching[0] || availableVoices[0] || null;
 }
 
-// Prevents Phone/PC Screen from turning off while reading
+// Breaks long text into < 120 character micro-chunks so each chunk takes ~6 seconds.
+// This completely bypasses Chrome's 15-second network TTS cutoff bug!
+function splitIntoMicroChunks(text, maxLen = 120) {
+  let clean = text.replace(/\s+/g, ' ').trim();
+  if (!clean) return [];
+  let rawSentences = clean.match(/[^.!?।,;:\n]+[.!?।,;:\n]*|[^.!?।,;:\n]+$/g) || [clean];
+  let result = [];
+  let current = "";
+
+  rawSentences.forEach(part => {
+    part = part.trim();
+    if (!part) return;
+    if ((current + " " + part).trim().length <= maxLen) {
+      current = (current + " " + part).trim();
+    } else {
+      if (current) result.push(current);
+      if (part.length <= maxLen) {
+        current = part;
+      } else {
+        // Force split by words if a single clause is still > 120 chars
+        let words = part.split(' ');
+        current = "";
+        words.forEach(w => {
+          if ((current + " " + w).trim().length <= maxLen) {
+            current = (current + " " + w).trim();
+          } else {
+            if (current) result.push(current);
+            current = w;
+          }
+        });
+      }
+    }
+  });
+  if (current) result.push(current);
+  return result;
+}
+
 async function requestWakeLock() {
   if ('wakeLock' in navigator) {
     try {
@@ -293,57 +385,103 @@ function releaseWakeLock() {
   }
 }
 
-// Re-acquire WakeLock if user switches tabs and comes back
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && isPlayingQueue) {
     requestWakeLock();
   }
 });
 
-// Chrome/Android bug fix: keeps speech synthesis alive past 15 seconds
-function startKeepAlive() {
-  stopKeepAlive();
-  keepAliveTimer = setInterval(() => {
-    if (synth.speaking && !synth.paused) {
-      synth.pause();
-      synth.resume();
-    }
-  }, 10000);
+function updateFloatingBarUI() {
+  const bar = document.getElementById('floatingTtsBar');
+  const statusEl = document.getElementById('floatTtsStatus');
+  const modeBtn = document.getElementById('floatModeBtn');
+  const pauseBtn = document.getElementById('floatPauseBtn');
+  const stopBtn = document.getElementById('floatStopBtn');
+
+  if (!window.ttsActiveId && !isPlayingQueue) {
+    bar.classList.remove('show');
+    return;
+  }
+
+  bar.classList.add('show');
+  if (window.ttsActiveId) {
+    modeBtn.innerHTML = '🔊 Click-to-Read: ON';
+    modeBtn.classList.add('mode-on');
+  } else {
+    modeBtn.innerHTML = '🔇 Click-to-Read: OFF';
+    modeBtn.classList.remove('mode-on');
+  }
+
+  if (isPlayingQueue) {
+    pauseBtn.style.display = 'inline-block';
+    stopBtn.style.display = 'inline-block';
+    pauseBtn.innerHTML = isPausedQueue ? '▶ Resume' : '⏸ Pause';
+    statusEl.innerText = isPausedQueue ? '⏸ Audio Paused' : '🔊 Speaking Article...';
+  } else {
+    pauseBtn.style.display = 'none';
+    stopBtn.style.display = 'none';
+    statusEl.innerText = '👆 Click any line or Play button';
+  }
 }
 
-function stopKeepAlive() {
-  if (keepAliveTimer) {
-    clearInterval(keepAliveTimer);
-    keepAliveTimer = null;
+function pauseResumeSpeech() {
+  if (!isPlayingQueue) return;
+  if (!isPausedQueue) {
+    isPausedQueue = true;
+    synth.cancel(); // Safely stops current micro-chunk; will resume from exact chunk index
+    updateFloatingBarUI();
+  } else {
+    isPausedQueue = false;
+    updateFloatingBarUI();
+    speakNextChunk(currentChunkIdx, sessionToken);
   }
 }
 
 function stopAllSpeech() {
+  sessionToken++;
   isPlayingQueue = false;
+  isPausedQueue = false;
   ttsQueue = [];
+  currentChunkIdx = 0;
+  window._activeUtterance = null;
   synth.cancel();
-  stopKeepAlive();
   releaseWakeLock();
+
+  // Clear highlights in DOM & Iframes
+  document.querySelectorAll('.tts-hl').forEach(n => n.classList.remove('tts-hl'));
+  document.querySelectorAll('.in-topic-tts-btn').forEach(b => {
+    b.innerHTML = '🔊 Play Topic';
+    b.classList.remove('active-Read');
+  });
+  if (window.ttsActiveId) {
+    sendMessageToIframe(window.ttsActiveId, { action: 'clearHighlights' });
+  }
+  updateFloatingBarUI();
 }
 
-// Plays chunks of sentences continuously from clicked point to the end
 function playTextQueue(chunks, startIndex = 0) {
   stopAllSpeech();
   ttsQueue = chunks.slice(startIndex);
   if (!ttsQueue.length) return;
   
   isPlayingQueue = true;
+  isPausedQueue = false;
+  currentChunkIdx = 0;
+  let myToken = ++sessionToken;
+  
   requestWakeLock();
-  startKeepAlive();
-  speakNextChunk(0);
+  updateFloatingBarUI();
+  speakNextChunk(0, myToken);
 }
 
-function speakNextChunk(idx) {
-  if (!isPlayingQueue || idx >= ttsQueue.length) {
+function speakNextChunk(idx, token) {
+  if (token !== sessionToken || !isPlayingQueue || isPausedQueue) return;
+  if (idx >= ttsQueue.length) {
     stopAllSpeech();
     return;
   }
 
+  currentChunkIdx = idx;
   let item = ttsQueue[idx];
   let text = (typeof item === 'string') ? item : item.text;
   
@@ -357,6 +495,8 @@ function speakNextChunk(idx) {
   }
 
   let u = new SpeechSynthesisUtterance(text);
+  window._activeUtterance = u; // Crucial: Prevent GC!
+
   let curLang = document.getElementById('customLangSelect').value || 'en';
   let bestVoice = getBestVoice(curLang);
   if (bestVoice) {
@@ -364,27 +504,37 @@ function speakNextChunk(idx) {
     u.lang = bestVoice.lang;
   }
   
-  // Tuned for clear, natural articulation
   u.rate = 0.96; 
   u.pitch = 1.02; 
 
   u.onend = () => {
-    if (isPlayingQueue) speakNextChunk(idx + 1);
+    if (token === sessionToken && isPlayingQueue && !isPausedQueue) {
+      setTimeout(() => speakNextChunk(idx + 1, token), 40);
+    }
   };
   u.onerror = (e) => {
-    if (e.error !== 'interrupted' && e.error !== 'canceled' && isPlayingQueue) {
-      speakNextChunk(idx + 1);
+    if (e.error !== 'interrupted' && e.error !== 'canceled') {
+      if (token === sessionToken && isPlayingQueue && !isPausedQueue) {
+        setTimeout(() => speakNextChunk(idx + 1, token), 60);
+      }
     }
   };
 
   synth.speak(u);
 }
 
-function showToast(msg) {
-  const t = document.getElementById('ttsToast');
-  t.innerText = msg;
-  t.style.display = 'flex';
-  setTimeout(() => { t.style.display = 'none'; }, 4000);
+// Toggle Listen Mode from the Sticky Floating Bar
+function toggleFloatingListenMode() {
+  if (!window.ttsActiveId) return;
+  let detailsEl = document.getElementById(window.ttsActiveId)?.closest('details.subtopic-item');
+  let topBtn = detailsEl ? detailsEl.querySelector('.listen-btn') : null;
+  if (topBtn) {
+    toggleAudioMode({ preventDefault: ()=>{}, stopPropagation: ()=>{} }, window.ttsActiveId, topBtn);
+  } else {
+    stopAllSpeech();
+    window.ttsActiveId = null;
+    updateFloatingBarUI();
+  }
 }
 
 // =========================================================
@@ -452,6 +602,7 @@ function render() {
   
   stopAllSpeech();
   window.ttsActiveId = null;
+  updateFloatingBarUI();
   
   renderCategoryButtons();
   renderBanner();
@@ -459,7 +610,6 @@ function render() {
   updateProgressBar();
 }
 
-// Render Category Buttons with Unique Colors
 function renderCategoryButtons() {
   var row = document.getElementById('catRow');
   var ids = Object.keys(DATA).sort(function(a, b) { return (Number(DATA[a].order) || 0) - (Number(DATA[b].order) || 0); });
@@ -476,7 +626,6 @@ function renderCategoryButtons() {
     h += '</button>';
   });
 
-  // "My Saved Hacks" at the LAST position with Crimson Red theme
   var isSavedActive = (activeCat === '__saved__');
   var savedStyle = 'background:' + SAVED_THEME.bg + ';box-shadow:0 ' + (isSavedActive ? '6px 18px ' : '4px 6px ') + (isSavedActive ? SAVED_THEME.shadow : 'rgba(0,0,0,0.15)') + ';';
   h += '<button class="cat-btn saved-btn' + (isSavedActive ? ' active' : '') + '" style="' + savedStyle + '" onclick="setCat(\'__saved__\')">';
@@ -485,7 +634,6 @@ function renderCategoryButtons() {
   row.innerHTML = h;
 }
 
-// Match Banner Color to Active Category Color
 function renderBanner() {
   var bannerEl = document.getElementById('pinkBanner');
   var titleEl = document.getElementById('bannerTitle');
@@ -565,7 +713,6 @@ function renderTree() {
     return (Number(c.topics[a].order) || 0) - (Number(c.topics[b].order) || 0);
   });
 
-  // Base the topic color on the active category theme for visual harmony
   var ids = Object.keys(DATA).sort(function(a, b) { return (Number(DATA[a].order) || 0) - (Number(DATA[b].order) || 0); });
   var catIdx = Math.max(0, ids.indexOf(activeCat));
 
@@ -615,7 +762,7 @@ function renderSubTopicDetails(sid, sub, parentGrad) {
   h += '</div></div>';
   
   h += '<div class="action-grp">';
-  h += '<button class="action-btn listen-btn" onclick="toggleAudioMode(event, \'' + domId + '\', this)">🎧 Listen</button>';
+  h += '<button class="action-btn listen-btn" onclick="toggleAudioMode(event, \'' + domId + '\', this)">🎧 Listen Mode</button>';
   h += '<button class="' + saveClass + '" onclick="toggleSave(event, \'' + escAttr(sid) + '\', this)">' + saveIcon + '</button>';
   h += '<span class="action-btn">View [+]</span>';
   h += '</div>';
@@ -627,8 +774,73 @@ function renderSubTopicDetails(sid, sub, parentGrad) {
 }
 
 // =========================================================
-//   INTERACTIVE CLICK-TO-SPEAK & CONTINUOUS READING
+//   IN-ARTICLE TOPIC PLAY BUTTONS & LISTEN MODE
 // =========================================================
+function injectDirectDOMTopicButtons(box, domId) {
+  let cards = box.querySelectorAll('.concept-card');
+  if (cards.length > 0) {
+    cards.forEach((card) => {
+      let header = card.querySelector('.card-header') || card.querySelector('h2, h3') || card;
+      if (header.querySelector('.in-topic-tts-btn')) return;
+      let btn = document.createElement('button');
+      btn.className = 'in-topic-tts-btn notranslate';
+      btn.setAttribute('translate', 'no');
+      btn.innerHTML = '🔊 Play Topic';
+      btn.onclick = (ev) => {
+        ev.stopPropagation();
+        window.ttsActiveId = domId;
+        box.classList.add('tts-active-box');
+        playFromDOMElement(box, card);
+      };
+      header.appendChild(btn);
+    });
+  } else {
+    let headings = box.querySelectorAll('h1, h2, h3');
+    headings.forEach((hEl) => {
+      if (hEl.querySelector('.in-topic-tts-btn')) return;
+      let btn = document.createElement('button');
+      btn.className = 'in-topic-tts-btn notranslate';
+      btn.setAttribute('translate', 'no');
+      btn.style.marginLeft = '12px';
+      btn.innerHTML = '🔊 Play Here';
+      btn.onclick = (ev) => {
+        ev.stopPropagation();
+        window.ttsActiveId = domId;
+        box.classList.add('tts-active-box');
+        playFromDOMElement(box, hEl);
+      };
+      hEl.appendChild(btn);
+    });
+  }
+}
+
+function playFromDOMElement(box, startContainer) {
+  let blocks = Array.from(box.querySelectorAll('h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag'));
+  if (!blocks.length) blocks = [box];
+
+  let firstBlock = startContainer.matches('h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag')
+    ? startContainer
+    : startContainer.querySelector('h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag');
+
+  let startIdx = Math.max(0, blocks.indexOf(firstBlock));
+  let chunks = [];
+
+  for (let i = startIdx; i < blocks.length; i++) {
+    let b = blocks[i];
+    // Clone node without the play button text so it doesn't read "Play Topic"
+    let clone = b.cloneNode(true);
+    clone.querySelectorAll('.in-topic-tts-btn').forEach(btn => btn.remove());
+    let txt = (clone.innerText || clone.textContent || '').trim();
+    if (!txt) continue;
+
+    let microChunks = splitIntoMicroChunks(txt, 120);
+    microChunks.forEach(mc => {
+      chunks.push({ text: mc, el: b, box: box });
+    });
+  }
+  if (chunks.length) playTextQueue(chunks, 0);
+}
+
 function toggleAudioMode(e, domId, btn) {
   e.preventDefault();
   e.stopPropagation();
@@ -636,10 +848,9 @@ function toggleAudioMode(e, domId, btn) {
   let detailsEl = btn.closest('details.subtopic-item');
 
   if (window.ttsActiveId === domId) {
-      // Turn Off
       window.ttsActiveId = null;
       stopAllSpeech();
-      btn.innerHTML = '🎧 Listen';
+      btn.innerHTML = '🎧 Listen Mode';
       btn.classList.remove('playing');
       
       let box = document.getElementById(domId);
@@ -648,8 +859,8 @@ function toggleAudioMode(e, domId, btn) {
         box.querySelectorAll('.tts-hl').forEach(n => n.classList.remove('tts-hl'));
       }
       sendMessageToIframe(domId, { action: 'disableTTS' });
+      updateFloatingBarUI();
   } else {
-      // Automatically open the article if user clicked Listen while it was closed
       if (detailsEl && !detailsEl.open) {
           detailsEl.open = true;
       }
@@ -658,14 +869,14 @@ function toggleAudioMode(e, domId, btn) {
       stopAllSpeech();
       
       document.querySelectorAll('.listen-btn').forEach(b => {
-          b.innerHTML = '🎧 Listen';
+          b.innerHTML = '🎧 Listen Mode';
           b.classList.remove('playing');
       });
       document.querySelectorAll('.subtopic-body').forEach(box => {
           box.classList.remove('tts-active-box');
       });
       
-      btn.innerHTML = '⏹ Stop Audio';
+      btn.innerHTML = '⏹ Exit Listen Mode';
       btn.classList.add('playing');
       
       let box = document.getElementById(domId);
@@ -675,7 +886,7 @@ function toggleAudioMode(e, domId, btn) {
         sendMessageToIframe(domId, { action: 'enableTTS' });
       }, 300);
       
-      showToast("🔊 Listen Mode ON: Click any paragraph inside the article to start reading from there!");
+      updateFloatingBarUI();
   }
 }
 
@@ -689,37 +900,33 @@ function sendMessageToIframe(domId, msgObj) {
     }
 }
 
-// Receive sentence queue from Iframe when user clicks a paragraph inside Iframe
+// Receive sentence queue from Iframe (either via Play Topic button or Paragraph Click)
 window.addEventListener('message', function(e) {
-    if(e.data && e.data.type === 'speakQueue' && window.ttsActiveId) {
-        playTextQueue(e.data.queue, 0);
+    if(e.data && e.data.type === 'speakQueue') {
+        if (e.data.domId) {
+          window.ttsActiveId = e.data.domId;
+        }
+        // Further split any incoming sentences into <120 char micro-chunks
+        let safeQueue = [];
+        (e.data.queue || []).forEach(item => {
+          let subParts = splitIntoMicroChunks(item.text, 120);
+          subParts.forEach(sp => safeQueue.push({ text: sp, blockIndex: item.blockIndex }));
+        });
+        playTextQueue(safeQueue, 0);
+    } else if (e.data && e.data.type === 'stopSpeechFromIframe') {
+        stopAllSpeech();
     }
 });
 
-// Direct DOM Click-to-Read (Reads from clicked paragraph till the end of article)
+// Direct DOM Click-to-Read
 document.addEventListener('click', function(e) {
     if(!window.ttsActiveId) return;
+    if (e.target.closest('.in-topic-tts-btn') || e.target.closest('.floating-tts-bar')) return;
     let box = document.getElementById(window.ttsActiveId);
     if(!box || box.querySelector('iframe') || !box.contains(e.target)) return;
     
-    let blocks = Array.from(box.querySelectorAll('h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag'));
-    if (!blocks.length) blocks = [box];
-
     let targetBlock = e.target.closest('h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag') || box;
-    let startIdx = Math.max(0, blocks.indexOf(targetBlock));
-
-    let chunks = [];
-    for (let i = startIdx; i < blocks.length; i++) {
-        let b = blocks[i];
-        let txt = (b.innerText || b.textContent || '').trim();
-        if (!txt) continue;
-        // Split into smaller sentences so speech never times out
-        let sentences = txt.match(/[^.!?।]+[.!?।]+|[^.!?।]+$/g) || [txt];
-        sentences.forEach(s => {
-            if (s.trim()) chunks.push({ text: s.trim(), el: b, box: box });
-        });
-    }
-    if (chunks.length) playTextQueue(chunks, 0);
+    playFromDOMElement(box, targetBlock);
 });
 
 // =========================================================
@@ -751,11 +958,21 @@ function handleSubToggle(detailsEl, domId, sid) {
         window.ttsActiveId = null;
         stopAllSpeech();
         let btn = detailsEl.querySelector('.listen-btn');
-        if(btn) { btn.innerHTML = '🎧 Listen'; btn.classList.remove('playing'); }
+        if(btn) { btn.innerHTML = '🎧 Listen Mode'; btn.classList.remove('playing'); }
     }
     return;
   }
   
+  // Auto-activate floating audio bar for this open article so user has controls on scroll
+  window.ttsActiveId = domId;
+  box.classList.add('tts-active-box');
+  let topBtn = detailsEl.querySelector('.listen-btn');
+  if (topBtn) {
+    topBtn.innerHTML = '⏹ Exit Listen Mode';
+    topBtn.classList.add('playing');
+  }
+  updateFloatingBarUI();
+
   if (!readHacks.includes(sid)) {
       readHacks.push(sid);
       localStorage.setItem('idealab_read_hacks', JSON.stringify(readHacks));
@@ -775,19 +992,84 @@ function handleSubToggle(detailsEl, domId, sid) {
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
     var curLang = document.getElementById('customLangSelect').value || 'en';
     
-    // Injected Iframe Helper: Supports continuous reading from clicked element & line highlighting
-    var helper = '<style>html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;font-size:1.1rem;top:0px!important;line-height:1.7}.goog-te-banner-frame,.goog-te-gadget-icon,#goog-gt-tt{display:none!important} .tts-hl{background: rgba(245, 158, 11, 0.25) !important; border-left: 4px solid #f59e0b !important; padding-left: 8px !important; border-radius: 4px; transition:0.2s;} body.tts-active p, body.tts-active div, body.tts-active li, body.tts-active h1, body.tts-active h2, body.tts-active h3, body.tts-active h4 { cursor: pointer; } body.tts-active p:hover, body.tts-active li:hover { background: rgba(245, 158, 11, 0.08); border-radius: 4px; }</style>' +
+    // Injected Iframe Helper: Automatically adds "🔊 Play Topic" button to EVERY Concept Card / Heading inside Iframe!
+    var helper = '<style>' +
+      'html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;font-size:1.1rem;top:0px!important;line-height:1.7}' +
+      '.goog-te-banner-frame,.goog-te-gadget-icon,#goog-gt-tt{display:none!important}' +
+      '.tts-hl{background: rgba(245, 158, 11, 0.25) !important; border-left: 4px solid #f59e0b !important; padding-left: 8px !important; border-radius: 4px; transition:0.2s;}' +
+      'body.tts-active p, body.tts-active div, body.tts-active li, body.tts-active h1, body.tts-active h2, body.tts-active h3, body.tts-active h4 { cursor: pointer; }' +
+      'body.tts-active p:hover, body.tts-active li:hover { background: rgba(245, 158, 11, 0.08); border-radius: 4px; }' +
+      '.ifr-topic-play-btn { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff !important; border: none; padding: 6px 14px; border-radius: 50px; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-left: auto; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 8px rgba(37,99,235,0.3); transition: 0.2s; flex-shrink: 0; }' +
+      '.ifr-topic-play-btn:hover { transform: scale(1.05); background: linear-gradient(135deg, #1d4ed8, #1e40af); }' +
+      '.ifr-topic-play-btn.playing { background: linear-gradient(135deg, #ef4444, #dc2626); }' +
+      '</style>' +
       '<div id="gt_ifr" style="display:none"></div>' +
       '<script>' +
-      'function fitH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,500);if(window.frameElement)window.frameElement.style.height=(h+40)+"px";}catch(e){}}' +
-      'window.addEventListener("load",function(){setTimeout(fitH,100);setTimeout(fitH,600);});' +
+      'const DOM_ID = "' + domId + '";' +
+      'let ttsActive = true; document.body.classList.add("tts-active"); let ttsBlocks = [];' +
+      'function fitH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,500);if(window.frameElement)window.frameElement.style.height=(h+45)+"px";}catch(e){}}' +
+      'function injectTopicButtons(){' +
+      '  ttsBlocks = Array.from(document.querySelectorAll("h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag"));' +
+      '  if(!ttsBlocks.length) ttsBlocks = [document.body];' +
+      '  let cards = document.querySelectorAll(".concept-card");' +
+      '  if(cards.length > 0){' +
+      '    cards.forEach((card) => {' +
+      '      let header = card.querySelector(".card-header") || card.querySelector("h2, h3") || card;' +
+      '      if(header.querySelector(".ifr-topic-play-btn")) return;' +
+      '      let btn = document.createElement("button");' +
+      '      btn.className = "ifr-topic-play-btn notranslate";' +
+      '      btn.setAttribute("translate", "no");' +
+      '      btn.innerHTML = "🔊 Play Topic";' +
+      '      btn.onclick = function(ev){' +
+      '        ev.stopPropagation();' +
+      '        if(btn.classList.contains("playing")){' +
+      '          btn.classList.remove("playing"); btn.innerHTML = "🔊 Play Topic";' +
+      '          window.parent.postMessage({type:"stopSpeechFromIframe"}, "*");' +
+      '          return;' +
+      '        }' +
+      '        document.querySelectorAll(".ifr-topic-play-btn").forEach(b=>{b.classList.remove("playing");b.innerHTML="🔊 Play Topic";});' +
+      '        btn.classList.add("playing"); btn.innerHTML = "⏹ Stop Topic";' +
+      '        let firstEl = card.querySelector("h1, h2, h3, h4, p, li, .concept-rule") || card;' +
+      '        startReadingFromNode(firstEl);' +
+      '      };' +
+      '      header.appendChild(btn);' +
+      '    });' +
+      '  } else {' +
+      '    document.querySelectorAll("h2, h3").forEach((hEl) => {' +
+      '      if(hEl.querySelector(".ifr-topic-play-btn")) return;' +
+      '      let btn = document.createElement("button");' +
+      '      btn.className = "ifr-topic-play-btn notranslate";' +
+      '      btn.setAttribute("translate", "no");' +
+      '      btn.style.marginLeft = "12px";' +
+      '      btn.innerHTML = "🔊 Play";' +
+      '      btn.onclick = function(ev){ ev.stopPropagation(); startReadingFromNode(hEl); };' +
+      '      hEl.appendChild(btn);' +
+      '    });' +
+      '  }' +
+      '  fitH();' +
+      '}' +
+      'function startReadingFromNode(targetNode){' +
+      '  ttsBlocks = Array.from(document.querySelectorAll("h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag"));' +
+      '  if(!ttsBlocks.length) ttsBlocks = [document.body];' +
+      '  let startIdx = Math.max(0, ttsBlocks.indexOf(targetNode));' +
+      '  let queue = [];' +
+      '  for(let i = startIdx; i < ttsBlocks.length; i++){' +
+      '    let clone = ttsBlocks[i].cloneNode(true);' +
+      '    clone.querySelectorAll(".ifr-topic-play-btn").forEach(b=>b.remove());' +
+      '    let txt = (clone.innerText || clone.textContent || "").trim();' +
+      '    if(!txt) continue;' +
+      '    queue.push({ text: txt, blockIndex: i });' +
+      '  }' +
+      '  if(queue.length) window.parent.postMessage({type:"speakQueue", domId: DOM_ID, queue:queue}, "*");' +
+      '}' +
+      'window.addEventListener("load",function(){ injectTopicButtons(); setTimeout(fitH,100); setTimeout(fitH,600); });' +
       'document.addEventListener("click",function(){setTimeout(fitH,150);});' +
       'function triggerIframeLang(l){document.cookie="googtrans=/en/"+l+"; path=/";var c=document.querySelector(".goog-te-combo");if(c){c.value=l;c.dispatchEvent(new Event("change"));setTimeout(fitH,500);}}' +
       'function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,te,hi,ta,ml,kn",autoDisplay:false},"gt_ifr");setTimeout(function(){triggerIframeLang("' + curLang + '");},600);}' +
-      'let ttsActive = false; let ttsBlocks = [];' +
       'window.addEventListener("message", function(e) {' +
       '  if(e.data.action==="enableTTS"){ttsActive=true;document.body.classList.add("tts-active");}' +
       '  if(e.data.action==="disableTTS"){ttsActive=false;document.body.classList.remove("tts-active");document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));}' +
+      '  if(e.data.action==="clearHighlights"){document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));document.querySelectorAll(".ifr-topic-play-btn").forEach(b=>{b.classList.remove("playing");b.innerHTML="🔊 Play Topic";});}' +
       '  if(e.data.action==="highlightBlock" && ttsBlocks[e.data.index]){' +
       '    document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));' +
       '    ttsBlocks[e.data.index].classList.add("tts-hl");' +
@@ -795,19 +1077,9 @@ function handleSubToggle(detailsEl, domId, sid) {
       '  }' +
       '});' +
       'document.addEventListener("click", function(e){' +
-      '  if(!ttsActive) return;' +
-      '  ttsBlocks = Array.from(document.querySelectorAll("h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag"));' +
-      '  if(!ttsBlocks.length) ttsBlocks = [document.body];' +
+      '  if(!ttsActive || e.target.closest(".ifr-topic-play-btn")) return;' +
       '  let target = e.target.closest("h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag") || e.target;' +
-      '  let startIdx = Math.max(0, ttsBlocks.indexOf(target));' +
-      '  let queue = [];' +
-      '  for(let i = startIdx; i < ttsBlocks.length; i++){' +
-      '    let txt = (ttsBlocks[i].innerText || ttsBlocks[i].textContent || "").trim();' +
-      '    if(!txt) continue;' +
-      '    let sents = txt.match(/[^.!?।]+[.!?।]+|[^.!?।]+$/g) || [txt];' +
-      '    sents.forEach(s => { if(s.trim()) queue.push({ text: s.trim(), blockIndex: i }); });' +
-      '  }' +
-      '  if(queue.length) window.parent.postMessage({type:"speakQueue", queue:queue}, "*");' +
+      '  startReadingFromNode(target);' +
       '});' +
       '<\/script>' +
       '<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"><\/script>';
@@ -818,6 +1090,7 @@ function handleSubToggle(detailsEl, domId, sid) {
     box.appendChild(iframe);
   } else {
     box.innerHTML = raw;
+    injectDirectDOMTopicButtons(box, domId);
   }
 }
 
