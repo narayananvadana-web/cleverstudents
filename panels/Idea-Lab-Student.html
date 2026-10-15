@@ -9,13 +9,23 @@
 :root{--bg:#0a0e1a;--srf:#0f1420;--srf2:#1a2030;--brd:rgba(255,255,255,.08);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif}
 body.light-mode{--bg:#f8fafc;--srf:#fff;--srf2:#f1f5f9;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:.3s}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:.3s;top:0px !important}
 
 .top-bar{background:var(--srf);border-bottom:1px solid var(--brd);padding:0 15px;position:sticky;top:0;z-index:999}
 .top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:15px;flex-wrap:wrap}
 .logo{font-family:'Fredoka One',cursive;font-size:1.5rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .user-info{font-weight:700;font-size:.85rem;color:#4ade80}
 .theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:700;font-size:.85rem;cursor:pointer;padding:6px 12px;border-radius:50px;font-family:var(--font)}
+
+/* Custom Language Selector (Red Glow Pill) */
+.lang-select{background:#0f172a;color:#fff;border:1.5px solid #ef4444;box-shadow:0 0 10px rgba(239,68,68,.45);padding:6px 14px;border-radius:50px;font-family:var(--font);font-weight:800;font-size:.85rem;cursor:pointer;outline:none;transition:.2s}
+.lang-select:hover,.lang-select:focus{border-color:#f87171;box-shadow:0 0 14px rgba(239,68,68,.75)}
+.lang-select option{background:#0f172a;color:#fff;font-weight:700;padding:8px}
+
+/* Hide Google Translate Top Bar & Tooltips */
+.goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+.goog-text-highlight { background: none !important; box-shadow: none !important; }
+iframe.skiptranslate { display: none !important; }
 
 .main-wrap{max-width:1400px;margin:20px auto;padding:0 15px 60px}
 .shell{background:var(--srf);border-radius:8px;overflow:hidden;border:1px solid var(--brd)}
@@ -60,7 +70,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:10
 .subtopic-head .sh-meta{font-size:.7rem;opacity:.85;font-weight:600}
 .subtopic-head .view-btn{background:rgba(0,0,0,.35);padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:800;transition:.2s}
 
-/* Content Body & Iframe support */
+/* Content Body */
 .subtopic-body{background:rgba(0,0,0,.35);border:1px solid var(--brd);border-radius:0 0 8px 8px;padding:16px;margin-top:-4px;line-height:1.8;color:#f8fafc;animation:fadeIn .3s ease;overflow-x:auto}
 body.light-mode .subtopic-body{background:#fff;color:#0f172a}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -87,10 +97,21 @@ body.light-mode .subtopic-body{background:#fff;color:#0f172a}
 
 <div class="top-bar">
   <div class="top-inner">
-    <div class="logo">💡 THE IDEA LAB</div>
-    <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
+    <div class="logo notranslate" translate="no">💡 THE IDEA LAB</div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
       <span class="user-info" id="user-info">👤 Guest Student</span>
       <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light Mode</button>
+
+      <!-- Fixed Language Selector (Headings never change due to notranslate) -->
+      <select id="customLangSelect" class="lang-select notranslate" translate="no" onchange="changeSiteLanguage(this.value)">
+        <option value="en">🌐 English</option>
+        <option value="te">🔴 తెలుగు</option>
+        <option value="hi">🔴 हिन्दी</option>
+        <option value="ta">🔴 தமிழ்</option>
+        <option value="ml">🔴 മലയാളം</option>
+        <option value="kn">🔴 ಕನ್ನಡ</option>
+      </select>
+      <div id="google_translate_element" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -123,18 +144,50 @@ let activeCat = null;
 let subCounter = 0;
 let SUB_CONTENT_MAP = {};
 
+/* =========================================================
+   LANGUAGE SWITCHER LOGIC (Changes inner content only!)
+========================================================= */
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    includedLanguages: 'en,te,hi,ta,ml,kn',
+    autoDisplay: false
+  }, 'google_translate_element');
+}
+
+function changeSiteLanguage(lang) {
+  localStorage.setItem('cs_pref_lang', lang);
+  // Set googtrans cookie for both main domain and current path
+  document.cookie = "googtrans=/en/" + lang + "; path=/";
+  document.cookie = "googtrans=/en/" + lang + "; path=/; domain=" + location.hostname;
+
+  var gtCombo = document.querySelector('.goog-te-combo');
+  if (gtCombo) {
+    gtCombo.value = lang;
+    gtCombo.dispatchEvent(new Event('change'));
+  } else {
+    location.reload();
+  }
+
+  // Also translate any open iframe content
+  document.querySelectorAll('.idea-iframe').forEach(function(ifr) {
+    try {
+      if (ifr.contentWindow && ifr.contentWindow.triggerIframeLang) {
+        ifr.contentWindow.triggerIframeLang(lang);
+      }
+    } catch (e) {}
+  });
+}
+
 async function fetchIdeaLabData() {
   try {
-    // Optional profile check (Never block public/guest users!)
     try {
       await window.supabaseAuth.ready;
       const profile = await window.supabaseAuth.profile();
       if (profile && profile.login_id) {
         document.getElementById('user-info').textContent = '👤 ' + (profile.display_name || profile.login_id);
       }
-    } catch (authErr) {
-      // Continue as Guest Student without throwing error
-    }
+    } catch (authErr) {}
 
     const snapshot = await window.supabaseDb.ref(DB_NODE).once('value');
     let fetchedData = (snapshot && snapshot.val()) ? snapshot.val() : {};
@@ -147,7 +200,6 @@ async function fetchIdeaLabData() {
     if (!activeCat || !DATA[activeCat]) activeCat = ids[0] || null;
     render();
   } catch (err) {
-    console.error("Idea Lab Load Error:", err);
     document.getElementById('treeArea').innerHTML =
       '<div class="empty"><div class="icon">⚠️</div><p>Error loading content: ' + escHtml(err.message) + '</p></div>';
   }
@@ -279,14 +331,22 @@ function handleSubToggle(detailsEl, domId) {
     return;
   }
 
-  // If content contains full HTML, <style>, or <script>, render cleanly inside an auto-resizing iframe so scripts & styles work 100%!
   var needsIframe = /<!doctype|<html|<head|<style|<script/i.test(raw);
   if (needsIframe) {
     var iframe = document.createElement('iframe');
     iframe.className = 'idea-iframe';
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
-    var helper = '<style>html,body{margin:0;padding:8px;overflow-x:hidden;font-family:sans-serif;}</style>' +
-      '<script>function fitH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,400);if(window.frameElement)window.frameElement.style.height=(h+35)+"px";}catch(e){}}window.addEventListener("load",function(){setTimeout(fitH,100);setTimeout(fitH,600);});document.addEventListener("click",function(){setTimeout(fitH,150);});<\/script>';
+    var curLang = document.getElementById('customLangSelect').value || 'en';
+    var helper = '<style>html,body{margin:0;padding:8px;overflow-x:hidden;font-family:sans-serif;top:0px!important}.goog-te-banner-frame,.goog-te-gadget-icon,#goog-gt-tt{display:none!important}</style>' +
+      '<div id="gt_ifr" style="display:none"></div>' +
+      '<script>' +
+      'function fitH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,400);if(window.frameElement)window.frameElement.style.height=(h+35)+"px";}catch(e){}}' +
+      'window.addEventListener("load",function(){setTimeout(fitH,100);setTimeout(fitH,600);});' +
+      'document.addEventListener("click",function(){setTimeout(fitH,150);});' +
+      'function triggerIframeLang(l){document.cookie="googtrans=/en/"+l+"; path=/";var c=document.querySelector(".goog-te-combo");if(c){c.value=l;c.dispatchEvent(new Event("change"));setTimeout(fitH,500);}}' +
+      'function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,te,hi,ta,ml,kn",autoDisplay:false},"gt_ifr");setTimeout(function(){triggerIframeLang("' + curLang + '");},600);}' +
+      '<\/script>' +
+      '<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"><\/script>';
     var isFull = /<!doctype|<html/i.test(raw);
     iframe.srcdoc = isFull ? (raw + helper) : ('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' + helper + '</head><body style="color:#e2e8f0;background:#0f172a;">' + raw + '</body></html>');
     box.innerHTML = '';
@@ -312,9 +372,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.add('light-mode');
     document.getElementById('themeBtn').innerText = '🌙 Dark Mode';
   }
+  var savedLang = localStorage.getItem('cs_pref_lang') || 'en';
+  var sel = document.getElementById('customLangSelect');
+  if (sel) sel.value = savedLang;
+  if (savedLang !== 'en') {
+    document.cookie = "googtrans=/en/" + savedLang + "; path=/";
+  }
   fetchIdeaLabData();
 });
 </script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <script src="/footer.js"></script>
 <script src="/global-navbar.js"></script>
