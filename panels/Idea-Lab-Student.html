@@ -67,16 +67,14 @@ iframe.skiptranslate { display: none !important; }
 .prog-track { width: 100%; height: 10px; background: var(--brd); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
 .prog-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #10b981); width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 10px; }
 
-/* --- CATEGORY TABS --- */
-.cat-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; padding: 20px; background: var(--srf); border-bottom: 1px solid var(--brd); }
-.cat-btn { padding: 12px 24px; border: 2px solid transparent; border-radius: 8px; color: #fff; font-weight: 800; font-size: 1.05rem; cursor: pointer; opacity: 0.65; transform: scale(0.98); white-space: nowrap; font-family: var(--font); transition: all 0.25s ease; background: linear-gradient(135deg, #475569, #334155); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-.cat-btn:hover { opacity: 0.9; transform: translateY(-2px) scale(1); }
-.cat-btn.active { opacity: 1; transform: scale(1.02); border-color: #fff; background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4); }
-.cat-btn.saved-btn { background: linear-gradient(135deg, #ec4899, #be185d); opacity: 0.8; }
-.cat-btn.saved-btn.active { opacity: 1; background: linear-gradient(135deg, #f43f5e, #e11d48); box-shadow: 0 6px 16px rgba(225, 29, 72, 0.4); }
+/* --- MULTI-COLOR CATEGORY TABS --- */
+.cat-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; padding: 22px 20px; background: var(--srf); border-bottom: 1px solid var(--brd); }
+.cat-btn { padding: 12px 24px; border: 2px solid rgba(255,255,255,0.15); border-radius: 10px; color: #fff; font-weight: 800; font-size: 1.05rem; cursor: pointer; opacity: 0.75; transform: scale(0.97); white-space: nowrap; font-family: var(--font); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.cat-btn:hover { opacity: 0.95; transform: translateY(-3px) scale(1); filter: brightness(1.1); }
+.cat-btn.active { opacity: 1; transform: scale(1.05); border-color: #ffffff; filter: brightness(1.15); z-index: 2; }
 
-.pink-banner { padding: 20px; text-align: center; background: linear-gradient(135deg, #db2777, #be185d); border-bottom: 3px solid rgba(255,255,255,0.1); }
-.pink-banner h2 { font-size: 1.5rem; font-weight: 900; color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 0.5px; }
+.pink-banner { padding: 20px; text-align: center; background: linear-gradient(135deg, #db2777, #be185d); border-bottom: 3px solid rgba(255,255,255,0.15); transition: background 0.4s ease; }
+.pink-banner h2 { font-size: 1.5rem; font-weight: 900; color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 0.5px; text-shadow: 0 2px 6px rgba(0,0,0,0.3); }
 
 .content { padding: 30px; background: var(--srf); min-height: 250px; }
 
@@ -101,21 +99,21 @@ iframe.skiptranslate { display: none !important; }
 
 /* ACTION BUTTONS (View, Save, Listen) */
 .action-grp { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.action-btn { background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; color: #fff; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; transition: 0.2s; font-family: var(--font); }
-.action-btn:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.4); transform: translateY(-1px); }
+.action-btn { background: rgba(0,0,0,0.35); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; color: #fff; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: 0.2s; font-family: var(--font); }
+.action-btn:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); transform: translateY(-1px); }
 .action-btn.saved { background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #fbbf24; color: #000; }
 .action-btn.playing { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; animation: pulseGlow 1.5s infinite; }
-@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); } 70% { box-shadow: 0 0 0 8px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
+@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); } 70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
 
 /* Content Body */
 .subtopic-body { background: var(--srf2); border: 1px solid var(--brd); border-radius: 0 0 10px 10px; padding: 24px; margin-top: -6px; font-size: 1.1rem; color: var(--txt); animation: fadeIn 0.4s ease; overflow-x: auto; box-shadow: inset 0 4px 6px rgba(0,0,0,0.05); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 .idea-iframe { width: 100%; min-height: 700px; border: none; border-radius: 8px; background: transparent; display: block; }
 
-/* Text To Speech Highlighter for non-iframe content */
-.tts-hl { background: rgba(245, 158, 11, 0.3) !important; border-radius: 4px; box-shadow: 0 0 0 2px #f59e0b; transition: 0.3s; }
-.tts-active-box p, .tts-active-box div, .tts-active-box li { cursor: pointer; }
-.tts-active-box p:hover, .tts-active-box li:hover { background: rgba(255,255,255,0.05); border-radius: 4px; }
+/* Text To Speech Highlighter */
+.tts-hl { background: rgba(245, 158, 11, 0.25) !important; border-left: 4px solid #f59e0b !important; padding-left: 8px !important; border-radius: 4px; transition: 0.2s; }
+.tts-active-box p, .tts-active-box div, .tts-active-box li, .tts-active-box h1, .tts-active-box h2, .tts-active-box h3, .tts-active-box h4 { cursor: pointer; }
+.tts-active-box p:hover, .tts-active-box li:hover { background: rgba(255,255,255,0.06); border-radius: 4px; }
 
 /* --- SKELETON LOADERS --- */
 .skeleton-box { height: 70px; border-radius: 10px; margin-bottom: 15px; background: linear-gradient(90deg, var(--srf2) 25%, var(--srf) 50%, var(--srf2) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite linear; border: 1px solid var(--brd); }
@@ -124,11 +122,14 @@ iframe.skiptranslate { display: none !important; }
 .empty { text-align: center; padding: 60px 20px; color: var(--mut); font-size: 1.2rem; font-weight: 700; }
 .empty .icon { font-size: 3.5rem; margin-bottom: 15px; opacity: 0.6; }
 
+/* Toast Notification for Audio */
+.tts-toast { position: fixed; bottom: 25px; right: 25px; background: #10b981; color: #fff; padding: 12px 22px; border-radius: 50px; font-weight: 800; box-shadow: 0 8px 25px rgba(0,0,0,0.4); z-index: 9999; display: none; align-items: center; gap: 10px; animation: fadeIn 0.3s; font-size: 0.95rem; border: 2px solid #34d399; }
+
 /* Mobile Responsiveness */
 @media(max-width: 768px) {
   .logo { font-size: 1.5rem; }
   .banner h1 { font-size: 1.8rem; }
-  .cat-row { padding: 15px; }
+  .cat-row { padding: 15px; gap: 10px; }
   .cat-btn { padding: 10px 16px; font-size: 0.95rem; }
   .topic-head { padding: 15px 18px; font-size: 1.1rem; }
   .subtopic-head { padding: 12px 16px; font-size: 1rem; flex-direction: column; align-items: flex-start; }
@@ -184,8 +185,10 @@ iframe.skiptranslate { display: none !important; }
       </div>
     </div>
 
+    <!-- Multi-Color Category Row -->
     <div class="cat-row" id="catRow"></div>
 
+    <!-- Dynamic Category Banner -->
     <div class="pink-banner" id="pinkBanner">
       <h2 id="bannerTitle">📂 Select a Category</h2>
     </div>
@@ -200,6 +203,8 @@ iframe.skiptranslate { display: none !important; }
   </div>
 </div>
 
+<div class="tts-toast" id="ttsToast">🔊 Listen Mode ON: Click any line inside the article to play!</div>
+
 <script>
 const DB_NODE = 'ideaLabDatabase';
 let DATA = {};
@@ -211,10 +216,180 @@ let SUB_CONTENT_MAP = {};
 let savedHacks = JSON.parse(localStorage.getItem('idealab_saved_hacks')) || [];
 let readHacks = JSON.parse(localStorage.getItem('idealab_read_hacks')) || [];
 
-// Speech Synthesis State (TTS)
+// Distinct Creative Color Themes for Each Category
+const CAT_THEMES = [
+  { bg: 'linear-gradient(135deg, #f59e0b, #d97706)', shadow: 'rgba(245, 158, 11, 0.45)' }, // Amber/Gold (Tips & Tricks)
+  { bg: 'linear-gradient(135deg, #ec4899, #be185d)', shadow: 'rgba(236, 72, 153, 0.45)' }, // Pink/Rose (Innovative Thinking)
+  { bg: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', shadow: 'rgba(139, 92, 246, 0.45)' }, // Purple/Violet (Unconventional Methods)
+  { bg: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', shadow: 'rgba(59, 130, 246, 0.45)' }, // Electric Blue (Mental Models)
+  { bg: 'linear-gradient(135deg, #10b981, #047857)', shadow: 'rgba(16, 185, 129, 0.45)' }, // Emerald Green (Science Tricks)
+  { bg: 'linear-gradient(135deg, #06b6d4, #0e7490)', shadow: 'rgba(6, 182, 212, 0.45)' },  // Cyan/Teal
+  { bg: 'linear-gradient(135deg, #f97316, #c2410c)', shadow: 'rgba(249, 115, 22, 0.45)' }  // Deep Orange
+];
+const SAVED_THEME = { bg: 'linear-gradient(135deg, #f43f5e, #be123c)', shadow: 'rgba(244, 63, 94, 0.45)' }; // Crimson Red for Saved Hacks
+
+// =========================================================
+//   HIGH-QUALITY TTS & WAKE LOCK ENGINE (Screen Never Sleeps)
+// =========================================================
 let synth = window.speechSynthesis;
 window.ttsActiveId = null; 
+let availableVoices = [];
+let ttsQueue = [];
+let isPlayingQueue = false;
+let wakeLock = null;
+let keepAliveTimer = null;
 
+function loadVoices() {
+  availableVoices = synth.getVoices();
+}
+loadVoices();
+if (speechSynthesis.onvoiceschanged !== undefined) {
+  speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+// Selects the highest quality Neural / Natural voice
+function getBestVoice(langCode) {
+  if (!availableVoices.length) availableVoices = synth.getVoices();
+  const langMap = { 'en': 'en', 'te': 'te', 'hi': 'hi', 'ta': 'ta', 'ml': 'ml', 'kn': 'kn' };
+  let target = langMap[langCode] || 'en';
+  
+  let matching = availableVoices.filter(v => v.lang.toLowerCase().replace('_', '-').startsWith(target));
+  if (!matching.length && target !== 'en') {
+    matching = availableVoices.filter(v => v.lang.toLowerCase().includes('in'));
+  }
+  if (!matching.length) {
+    matching = availableVoices.filter(v => v.lang.toLowerCase().startsWith('en'));
+  }
+
+  // Prioritize Natural, Online, Google Neural voices for HD Quality
+  matching.sort((a, b) => {
+    let scoreA = 0, scoreB = 0;
+    if (a.name.includes('Natural') || a.name.includes('Online')) scoreA += 5;
+    if (b.name.includes('Natural') || b.name.includes('Online')) scoreB += 5;
+    if (a.name.includes('Google')) scoreA += 3;
+    if (b.name.includes('Google')) scoreB += 3;
+    if (a.lang.includes('IN')) scoreA += 2;
+    if (b.lang.includes('IN')) scoreB += 2;
+    return scoreB - scoreA;
+  });
+
+  return matching[0] || availableVoices[0] || null;
+}
+
+// Prevents Phone/PC Screen from turning off while reading
+async function requestWakeLock() {
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (err) {}
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock !== null) {
+    wakeLock.release().catch(() => {});
+    wakeLock = null;
+  }
+}
+
+// Re-acquire WakeLock if user switches tabs and comes back
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && isPlayingQueue) {
+    requestWakeLock();
+  }
+});
+
+// Chrome/Android bug fix: keeps speech synthesis alive past 15 seconds
+function startKeepAlive() {
+  stopKeepAlive();
+  keepAliveTimer = setInterval(() => {
+    if (synth.speaking && !synth.paused) {
+      synth.pause();
+      synth.resume();
+    }
+  }, 10000);
+}
+
+function stopKeepAlive() {
+  if (keepAliveTimer) {
+    clearInterval(keepAliveTimer);
+    keepAliveTimer = null;
+  }
+}
+
+function stopAllSpeech() {
+  isPlayingQueue = false;
+  ttsQueue = [];
+  synth.cancel();
+  stopKeepAlive();
+  releaseWakeLock();
+}
+
+// Plays chunks of sentences continuously from clicked point to the end
+function playTextQueue(chunks, startIndex = 0) {
+  stopAllSpeech();
+  ttsQueue = chunks.slice(startIndex);
+  if (!ttsQueue.length) return;
+  
+  isPlayingQueue = true;
+  requestWakeLock();
+  startKeepAlive();
+  speakNextChunk(0);
+}
+
+function speakNextChunk(idx) {
+  if (!isPlayingQueue || idx >= ttsQueue.length) {
+    stopAllSpeech();
+    return;
+  }
+
+  let item = ttsQueue[idx];
+  let text = (typeof item === 'string') ? item : item.text;
+  
+  // Highlight current block in direct DOM or Iframe
+  if (item.el && item.box) {
+    item.box.querySelectorAll('.tts-hl').forEach(n => n.classList.remove('tts-hl'));
+    item.el.classList.add('tts-hl');
+    item.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else if (item.blockIndex !== undefined && window.ttsActiveId) {
+    sendMessageToIframe(window.ttsActiveId, { action: 'highlightBlock', index: item.blockIndex });
+  }
+
+  let u = new SpeechSynthesisUtterance(text);
+  let curLang = document.getElementById('customLangSelect').value || 'en';
+  let bestVoice = getBestVoice(curLang);
+  if (bestVoice) {
+    u.voice = bestVoice;
+    u.lang = bestVoice.lang;
+  }
+  
+  // Tuned for clear, natural articulation
+  u.rate = 0.96; 
+  u.pitch = 1.02; 
+
+  u.onend = () => {
+    if (isPlayingQueue) speakNextChunk(idx + 1);
+  };
+  u.onerror = (e) => {
+    if (e.error !== 'interrupted' && e.error !== 'canceled' && isPlayingQueue) {
+      speakNextChunk(idx + 1);
+    }
+  };
+
+  synth.speak(u);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('ttsToast');
+  t.innerText = msg;
+  t.style.display = 'flex';
+  setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+
+// =========================================================
+//   GOOGLE TRANSLATE & DATA FETCH
+// =========================================================
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
     pageLanguage: 'en',
@@ -275,8 +450,7 @@ function render() {
   SUB_CONTENT_MAP = {};
   subCounter = 0;
   
-  // Stop any playing audio on category change
-  synth.cancel(); 
+  stopAllSpeech();
   window.ttsActiveId = null;
   
   renderCategoryButtons();
@@ -285,36 +459,55 @@ function render() {
   updateProgressBar();
 }
 
+// Render Category Buttons with Unique Colors
 function renderCategoryButtons() {
   var row = document.getElementById('catRow');
   var ids = Object.keys(DATA).sort(function(a, b) { return (Number(DATA[a].order) || 0) - (Number(DATA[b].order) || 0); });
   
   var h = '';
-  // Normal Categories
-  ids.forEach(function(id) {
+  ids.forEach(function(id, idx) {
     var c = DATA[id];
     var isActive = (id === activeCat);
-    h += '<button class="cat-btn' + (isActive ? ' active' : '') + '" onclick="setCat(\'' + escAttr(id) + '\')">';
+    var theme = CAT_THEMES[idx % CAT_THEMES.length];
+    var styleStr = 'background:' + theme.bg + ';box-shadow:0 ' + (isActive ? '6px 18px ' : '4px 6px ') + (isActive ? theme.shadow : 'rgba(0,0,0,0.15)') + ';';
+    
+    h += '<button class="cat-btn' + (isActive ? ' active' : '') + '" style="' + styleStr + '" onclick="setCat(\'' + escAttr(id) + '\')">';
     h += (isActive ? '✓ ' : '') + (c.icon || '📂') + ' ' + escHtml(c.title || id);
     h += '</button>';
   });
 
-  // Added "Saved Hacks" specifically at the LAST position
+  // "My Saved Hacks" at the LAST position with Crimson Red theme
   var isSavedActive = (activeCat === '__saved__');
-  h += '<button class="cat-btn saved-btn' + (isSavedActive ? ' active' : '') + '" onclick="setCat(\'__saved__\')">';
+  var savedStyle = 'background:' + SAVED_THEME.bg + ';box-shadow:0 ' + (isSavedActive ? '6px 18px ' : '4px 6px ') + (isSavedActive ? SAVED_THEME.shadow : 'rgba(0,0,0,0.15)') + ';';
+  h += '<button class="cat-btn saved-btn' + (isSavedActive ? ' active' : '') + '" style="' + savedStyle + '" onclick="setCat(\'__saved__\')">';
   h += (isSavedActive ? '✓ ' : '') + '⭐ My Saved Hacks</button>';
 
   row.innerHTML = h;
 }
 
+// Match Banner Color to Active Category Color
 function renderBanner() {
+  var bannerEl = document.getElementById('pinkBanner');
+  var titleEl = document.getElementById('bannerTitle');
+  
   if (activeCat === '__saved__') {
-    document.getElementById('bannerTitle').innerText = '⭐ My Saved Hacks';
+    titleEl.innerText = '⭐ My Saved Hacks';
+    bannerEl.style.background = SAVED_THEME.bg;
     return;
   }
+  
+  var ids = Object.keys(DATA).sort(function(a, b) { return (Number(DATA[a].order) || 0) - (Number(DATA[b].order) || 0); });
+  var idx = ids.indexOf(activeCat);
   var c = DATA[activeCat];
-  if (!c) { document.getElementById('bannerTitle').innerText = '📂 Select a Category'; return; }
-  document.getElementById('bannerTitle').innerText = (c.icon || '📂') + ' ' + (c.title || activeCat);
+  
+  if (!c) { 
+    titleEl.innerText = '📂 Select a Category'; 
+    return; 
+  }
+  
+  var theme = CAT_THEMES[(idx > -1 ? idx : 0) % CAT_THEMES.length];
+  bannerEl.style.background = theme.bg;
+  titleEl.innerText = (c.icon || '📂') + ' ' + (c.title || activeCat);
 }
 
 function renderTree() {
@@ -372,6 +565,10 @@ function renderTree() {
     return (Number(c.topics[a].order) || 0) - (Number(c.topics[b].order) || 0);
   });
 
+  // Base the topic color on the active category theme for visual harmony
+  var ids = Object.keys(DATA).sort(function(a, b) { return (Number(DATA[a].order) || 0) - (Number(DATA[b].order) || 0); });
+  var catIdx = Math.max(0, ids.indexOf(activeCat));
+
   var h = '';
   topicIds.forEach(function(tid, i) {
     var topic = c.topics[tid];
@@ -379,8 +576,10 @@ function renderTree() {
       return (Number(topic.subtopics[a].order) || 0) - (Number(topic.subtopics[b].order) || 0);
     }) : [];
 
+    var grad = CAT_THEMES[(catIdx + i) % CAT_THEMES.length].bg;
+
     h += '<details class="topic-item" ' + (i === 0 ? 'open' : '') + '><summary>';
-    h += '<div class="topic-head" style="background:' + palette[i % palette.length] + '">';
+    h += '<div class="topic-head" style="background:' + grad + '">';
     h += '<span class="th-title">📄 ' + escHtml(topic.title || 'Untitled') + '</span>';
     h += '<span class="view-btn">View <span class="arr">[+]</span></span></div></summary>';
     h += '<div class="subtopic-container">';
@@ -389,7 +588,7 @@ function renderTree() {
       h += '<div class="empty" style="padding:15px;font-size:1rem;">No sub-topics yet.</div>';
     } else {
       subIds.forEach(function(sid) {
-        h += renderSubTopicDetails(sid, topic.subtopics[sid], palette[i % palette.length]);
+        h += renderSubTopicDetails(sid, topic.subtopics[sid], grad);
       });
     }
     h += '</div></details>';
@@ -407,7 +606,6 @@ function renderSubTopicDetails(sid, sub, parentGrad) {
   var saveIcon = isSaved ? '★ Saved' : '⭐ Save';
   var saveClass = isSaved ? 'action-btn saved' : 'action-btn';
 
-  // Note: data-id is added here so search filter can fetch raw content
   var h = '<details class="subtopic-item search-target" data-id="'+domId+'" data-title="'+ escAttr((sub.title || '').toLowerCase()) +'" ontoggle="handleSubToggle(this, \'' + domId + '\', \'' + escAttr(sid) + '\')">';
   h += '<summary>';
   h += '<div class="subtopic-head" style="background:' + parentGrad + ';opacity:0.95">';
@@ -416,7 +614,6 @@ function renderSubTopicDetails(sid, sub, parentGrad) {
   h += '<div><div class="sh-title">' + escHtml(sub.title || 'Untitled Sub-Topic') + '</div>';
   h += '</div></div>';
   
-  // ACTION BUTTONS
   h += '<div class="action-grp">';
   h += '<button class="action-btn listen-btn" onclick="toggleAudioMode(event, \'' + domId + '\', this)">🎧 Listen</button>';
   h += '<button class="' + saveClass + '" onclick="toggleSave(event, \'' + escAttr(sid) + '\', this)">' + saveIcon + '</button>';
@@ -429,32 +626,37 @@ function renderSubTopicDetails(sid, sub, parentGrad) {
   return h;
 }
 
-// ==========================================
-// 1. CLICK-TO-PLAY TEXT TO SPEECH LOGIC
-// ==========================================
+// =========================================================
+//   INTERACTIVE CLICK-TO-SPEAK & CONTINUOUS READING
+// =========================================================
 function toggleAudioMode(e, domId, btn) {
   e.preventDefault();
   e.stopPropagation();
 
+  let detailsEl = btn.closest('details.subtopic-item');
+
   if (window.ttsActiveId === domId) {
       // Turn Off
       window.ttsActiveId = null;
-      synth.cancel();
+      stopAllSpeech();
       btn.innerHTML = '🎧 Listen';
       btn.classList.remove('playing');
       
-      // Remove visual active class
       let box = document.getElementById(domId);
-      if(box) box.classList.remove('tts-active-box');
-      
-      // If it's an iframe, send disable message
+      if(box) {
+        box.classList.remove('tts-active-box');
+        box.querySelectorAll('.tts-hl').forEach(n => n.classList.remove('tts-hl'));
+      }
       sendMessageToIframe(domId, { action: 'disableTTS' });
   } else {
-      // Turn On
+      // Automatically open the article if user clicked Listen while it was closed
+      if (detailsEl && !detailsEl.open) {
+          detailsEl.open = true;
+      }
+
       window.ttsActiveId = domId;
-      synth.cancel();
+      stopAllSpeech();
       
-      // Reset all other listen buttons
       document.querySelectorAll('.listen-btn').forEach(b => {
           b.innerHTML = '🎧 Listen';
           b.classList.remove('playing');
@@ -463,21 +665,20 @@ function toggleAudioMode(e, domId, btn) {
           box.classList.remove('tts-active-box');
       });
       
-      btn.innerHTML = '⏹ Listening...';
+      btn.innerHTML = '⏹ Stop Audio';
       btn.classList.add('playing');
       
       let box = document.getElementById(domId);
       if(box) box.classList.add('tts-active-box');
       
-      // If it's an iframe, send enable message
-      sendMessageToIframe(domId, { action: 'enableTTS' });
+      setTimeout(() => {
+        sendMessageToIframe(domId, { action: 'enableTTS' });
+      }, 300);
       
-      // Little alert notification
-      alert("🔊 Listen Mode ON: Click on any paragraph inside the article to read it out loud.");
+      showToast("🔊 Listen Mode ON: Click any paragraph inside the article to start reading from there!");
   }
 }
 
-// Helper to communicate with iframe for TTS
 function sendMessageToIframe(domId, msgObj) {
     let box = document.getElementById(domId);
     if(box) {
@@ -488,45 +689,42 @@ function sendMessageToIframe(domId, msgObj) {
     }
 }
 
-// Receive messages from iframe to play TTS
+// Receive sentence queue from Iframe when user clicks a paragraph inside Iframe
 window.addEventListener('message', function(e) {
-    if(e.data && e.data.type === 'speakText' && window.ttsActiveId) {
-        synth.cancel();
-        let u = new SpeechSynthesisUtterance(e.data.text);
-        // Automatically determine language/accent if needed, or leave to default
-        synth.speak(u);
+    if(e.data && e.data.type === 'speakQueue' && window.ttsActiveId) {
+        playTextQueue(e.data.queue, 0);
     }
 });
 
-// Listener for Non-iframe direct content
+// Direct DOM Click-to-Read (Reads from clicked paragraph till the end of article)
 document.addEventListener('click', function(e) {
     if(!window.ttsActiveId) return;
     let box = document.getElementById(window.ttsActiveId);
-    // Ignore if click is outside the box or if box contains iframe (iframe handles its own clicks)
     if(!box || box.querySelector('iframe') || !box.contains(e.target)) return;
     
-    let el = e.target;
-    // Find closest block element
-    while(el && el !== box && ['P','DIV','LI','H1','H2','H3','H4','TD'].indexOf(el.tagName) === -1) { 
-        el = el.parentElement; 
+    let blocks = Array.from(box.querySelectorAll('h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag'));
+    if (!blocks.length) blocks = [box];
+
+    let targetBlock = e.target.closest('h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag') || box;
+    let startIdx = Math.max(0, blocks.indexOf(targetBlock));
+
+    let chunks = [];
+    for (let i = startIdx; i < blocks.length; i++) {
+        let b = blocks[i];
+        let txt = (b.innerText || b.textContent || '').trim();
+        if (!txt) continue;
+        // Split into smaller sentences so speech never times out
+        let sentences = txt.match(/[^.!?।]+[.!?।]+|[^.!?।]+$/g) || [txt];
+        sentences.forEach(s => {
+            if (s.trim()) chunks.push({ text: s.trim(), el: b, box: box });
+        });
     }
-    if(!el) el = e.target;
-    
-    let text = el.innerText || el.textContent;
-    if(text) {
-        synth.cancel();
-        let u = new SpeechSynthesisUtterance(text);
-        synth.speak(u);
-        
-        // Visual Highlight
-        box.querySelectorAll('.tts-hl').forEach(n => n.classList.remove('tts-hl'));
-        el.classList.add('tts-hl');
-    }
+    if (chunks.length) playTextQueue(chunks, 0);
 });
 
-// ==========================================
-// 2. TOGGLE BOOKMARK (Save/Unsave)
-// ==========================================
+// =========================================================
+//   BOOKMARK & CONTENT RENDERING
+// =========================================================
 function toggleSave(e, sid, btn) {
   e.preventDefault();
   e.stopPropagation();
@@ -544,23 +742,20 @@ function toggleSave(e, sid, btn) {
   localStorage.setItem('idealab_saved_hacks', JSON.stringify(savedHacks));
 }
 
-
 function handleSubToggle(detailsEl, domId, sid) {
   var box = document.getElementById(domId);
   if (!box) return;
   if (!detailsEl.open) {
     box.innerHTML = '';
-    // If closed while speaking this article, stop it.
     if(window.ttsActiveId === domId) {
         window.ttsActiveId = null;
-        synth.cancel();
+        stopAllSpeech();
         let btn = detailsEl.querySelector('.listen-btn');
         if(btn) { btn.innerHTML = '🎧 Listen'; btn.classList.remove('playing'); }
     }
     return;
   }
   
-  // Progress tracking (Zeigarnik Effect)
   if (!readHacks.includes(sid)) {
       readHacks.push(sid);
       localStorage.setItem('idealab_read_hacks', JSON.stringify(readHacks));
@@ -580,8 +775,8 @@ function handleSubToggle(detailsEl, domId, sid) {
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
     var curLang = document.getElementById('customLangSelect').value || 'en';
     
-    // Injected Helper Script for IFRAME TTS & Translation
-    var helper = '<style>html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;font-size:1.1rem;top:0px!important;line-height:1.7}.goog-te-banner-frame,.goog-te-gadget-icon,#goog-gt-tt{display:none!important} .tts-hl{background: rgba(245, 158, 11, 0.3) !important; border-radius: 4px; box-shadow: 0 0 0 2px #f59e0b;} body.tts-active p, body.tts-active div, body.tts-active li { cursor: pointer; } body.tts-active p:hover, body.tts-active li:hover { background: rgba(255,255,255,0.05); }</style>' +
+    // Injected Iframe Helper: Supports continuous reading from clicked element & line highlighting
+    var helper = '<style>html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;font-size:1.1rem;top:0px!important;line-height:1.7}.goog-te-banner-frame,.goog-te-gadget-icon,#goog-gt-tt{display:none!important} .tts-hl{background: rgba(245, 158, 11, 0.25) !important; border-left: 4px solid #f59e0b !important; padding-left: 8px !important; border-radius: 4px; transition:0.2s;} body.tts-active p, body.tts-active div, body.tts-active li, body.tts-active h1, body.tts-active h2, body.tts-active h3, body.tts-active h4 { cursor: pointer; } body.tts-active p:hover, body.tts-active li:hover { background: rgba(245, 158, 11, 0.08); border-radius: 4px; }</style>' +
       '<div id="gt_ifr" style="display:none"></div>' +
       '<script>' +
       'function fitH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,500);if(window.frameElement)window.frameElement.style.height=(h+40)+"px";}catch(e){}}' +
@@ -589,8 +784,31 @@ function handleSubToggle(detailsEl, domId, sid) {
       'document.addEventListener("click",function(){setTimeout(fitH,150);});' +
       'function triggerIframeLang(l){document.cookie="googtrans=/en/"+l+"; path=/";var c=document.querySelector(".goog-te-combo");if(c){c.value=l;c.dispatchEvent(new Event("change"));setTimeout(fitH,500);}}' +
       'function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,te,hi,ta,ml,kn",autoDisplay:false},"gt_ifr");setTimeout(function(){triggerIframeLang("' + curLang + '");},600);}' +
-      'let ttsActive = false; window.addEventListener("message", function(e) { if(e.data.action==="enableTTS"){ttsActive=true;document.body.classList.add("tts-active");} if(e.data.action==="disableTTS"){ttsActive=false;document.body.classList.remove("tts-active");document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));} });' +
-      'document.body.addEventListener("click", function(e){ if(!ttsActive)return; let el=e.target; while(el && el!==document.body && ["P","DIV","LI","H1","H2","H3","H4","TD"].indexOf(el.tagName)===-1){el=el.parentElement;} if(!el)el=e.target; let text=el.innerText||el.textContent; if(text){ window.parent.postMessage({type:"speakText", text:text}, "*"); document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl")); el.classList.add("tts-hl"); } });' +
+      'let ttsActive = false; let ttsBlocks = [];' +
+      'window.addEventListener("message", function(e) {' +
+      '  if(e.data.action==="enableTTS"){ttsActive=true;document.body.classList.add("tts-active");}' +
+      '  if(e.data.action==="disableTTS"){ttsActive=false;document.body.classList.remove("tts-active");document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));}' +
+      '  if(e.data.action==="highlightBlock" && ttsBlocks[e.data.index]){' +
+      '    document.querySelectorAll(".tts-hl").forEach(n=>n.classList.remove("tts-hl"));' +
+      '    ttsBlocks[e.data.index].classList.add("tts-hl");' +
+      '    ttsBlocks[e.data.index].scrollIntoView({behavior:"smooth", block:"center"});' +
+      '  }' +
+      '});' +
+      'document.addEventListener("click", function(e){' +
+      '  if(!ttsActive) return;' +
+      '  ttsBlocks = Array.from(document.querySelectorAll("h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag"));' +
+      '  if(!ttsBlocks.length) ttsBlocks = [document.body];' +
+      '  let target = e.target.closest("h1, h2, h3, h4, p, li, .concept-rule, .deep-explanation, .execution-tag") || e.target;' +
+      '  let startIdx = Math.max(0, ttsBlocks.indexOf(target));' +
+      '  let queue = [];' +
+      '  for(let i = startIdx; i < ttsBlocks.length; i++){' +
+      '    let txt = (ttsBlocks[i].innerText || ttsBlocks[i].textContent || "").trim();' +
+      '    if(!txt) continue;' +
+      '    let sents = txt.match(/[^.!?।]+[.!?।]+|[^.!?।]+$/g) || [txt];' +
+      '    sents.forEach(s => { if(s.trim()) queue.push({ text: s.trim(), blockIndex: i }); });' +
+      '  }' +
+      '  if(queue.length) window.parent.postMessage({type:"speakQueue", queue:queue}, "*");' +
+      '});' +
       '<\/script>' +
       '<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"><\/script>';
       
@@ -603,7 +821,6 @@ function handleSubToggle(detailsEl, domId, sid) {
   }
 }
 
-// PROGRESS BAR LOGIC
 function updateProgressBar() {
     if(activeCat === '__saved__') {
        document.getElementById('progText').innerText = 'N/A';
@@ -636,9 +853,6 @@ function updateProgressBar() {
     document.getElementById('progFill').style.width = percent + '%';
 }
 
-// ==========================================
-// 3. FULL-TEXT DEEP SEARCH LOGIC
-// ==========================================
 function filterContent() {
     let input = document.getElementById('searchInput').value.toLowerCase();
     let topics = document.querySelectorAll('.topic-item');
@@ -651,11 +865,8 @@ function filterContent() {
             let title = sub.getAttribute('data-title');
             let domId = sub.getAttribute('data-id');
             let rawContent = SUB_CONTENT_MAP[domId] || '';
-            
-            // Strip HTML tags for clean text searching
             let plainTextContent = rawContent.replace(/<[^>]+>/g, ' ').toLowerCase();
             
-            // Search in Title OR inside the actual Content
             if (title.includes(input) || plainTextContent.includes(input)) {
                 sub.style.display = 'block';
                 hasMatch = true;
@@ -664,7 +875,6 @@ function filterContent() {
             }
         });
 
-        // Auto open/close topics based on search results
         if (hasMatch) {
             topic.style.display = 'block';
             if (input.length > 1) topic.setAttribute('open', 'true'); 
@@ -675,7 +885,7 @@ function filterContent() {
 }
 
 function setCat(id) { 
-  document.getElementById('searchInput').value = ''; // Reset search
+  document.getElementById('searchInput').value = '';
   activeCat = id; 
   render(); 
 }
