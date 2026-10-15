@@ -14,11 +14,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:10
 .top-bar{background:var(--srf);border-bottom:1px solid var(--brd);padding:0 15px;position:sticky;top:0;z-index:999}
 .top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:15px;flex-wrap:wrap}
 .logo{font-family:'Fredoka One',cursive;font-size:1.5rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.user-info{font-weight:700;font-size:.85rem;color:var(--mut)}
+.user-info{font-weight:700;font-size:.85rem;color:#4ade80}
 .theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:700;font-size:.85rem;cursor:pointer;padding:6px 12px;border-radius:50px;font-family:var(--font)}
-.btn{padding:8px 18px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;font-family:var(--font);display:inline-flex;align-items:center;gap:6px;font-size:.85rem}
-.btn-red{background:#ef4444}
-.btn-sm{padding:6px 14px;font-size:.8rem}
 
 .main-wrap{max-width:1400px;margin:20px auto;padding:0 15px 60px}
 .shell{background:var(--srf);border-radius:8px;overflow:hidden;border:1px solid var(--brd)}
@@ -48,11 +45,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:10
 .topic-head .th-title{flex:1;min-width:200px}
 .topic-head .view-btn{background:rgba(0,0,0,.35);padding:5px 14px;border-radius:20px;font-size:.8rem;font-weight:800;white-space:nowrap;transition:.2s}
 .topic-item[open] > summary .view-btn{background:rgba(255,255,255,.4)}
-.topic-item[open] > summary .view-btn .arr{display:inline-block;transform:rotate(180deg)}
 
 /* Sub-topic item */
 .subtopic-container{padding:12px 0 6px 20px;display:flex;flex-direction:column;gap:8px}
-
 .subtopic-item{margin-bottom:0}
 .subtopic-item > summary{list-style:none;cursor:pointer;display:block;padding:0}
 .subtopic-item > summary::-webkit-details-marker{display:none}
@@ -64,21 +59,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:10
 .subtopic-head .sh-title{font-size:.9rem}
 .subtopic-head .sh-meta{font-size:.7rem;opacity:.85;font-weight:600}
 .subtopic-head .view-btn{background:rgba(0,0,0,.35);padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:800;transition:.2s}
-.subtopic-item[open] > summary .view-btn{background:rgba(255,255,255,.4)}
-.subtopic-item[open] > summary .view-btn .arr{display:inline-block;transform:rotate(180deg)}
 
-/* Content */
-.subtopic-body{background:rgba(0,0,0,.35);border:1px solid var(--brd);border-radius:0 0 8px 8px;padding:24px;margin-top:-4px;line-height:1.8;color:#f8fafc;animation:fadeIn .3s ease}
+/* Content Body & Iframe support */
+.subtopic-body{background:rgba(0,0,0,.35);border:1px solid var(--brd);border-radius:0 0 8px 8px;padding:16px;margin-top:-4px;line-height:1.8;color:#f8fafc;animation:fadeIn .3s ease;overflow-x:auto}
+body.light-mode .subtopic-body{background:#fff;color:#0f172a}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.subtopic-body h1{font-size:1.4rem;font-weight:900;margin-bottom:14px;color:#fff}
-.subtopic-body h2{font-size:1.15rem;font-weight:800;margin:22px 0 12px;color:#fbbf24;border-bottom:2px solid rgba(255,255,255,.15);padding-bottom:8px}
-.subtopic-body h3{font-size:1rem;font-weight:800;margin:16px 0 8px;color:#fff}
-.subtopic-body p{font-size:.95rem;margin-bottom:14px}
-.subtopic-body ul,.subtopic-body ol{margin:12px 0 16px 24px}
-.subtopic-body li{margin-bottom:6px}
-.subtopic-body blockquote{background:rgba(219,39,119,.15);border-left:4px solid #db2777;padding:14px 18px;margin:14px 0;border-radius:8px;font-style:italic}
-.subtopic-body code{background:rgba(255,255,255,.1);padding:2px 8px;border-radius:4px;font-family:monospace;font-size:.85rem;color:#fbbf24}
-.subtopic-body img{max-width:100%;border-radius:8px;margin:10px 0}
+.idea-iframe{width:100%;min-height:650px;border:none;border-radius:8px;background:transparent;display:block}
 
 .empty{text-align:center;padding:60px 20px;color:var(--mut)}
 .empty .icon{font-size:3rem;margin-bottom:12px;opacity:.5}
@@ -92,20 +78,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:10
   .pink-banner h2{font-size:1.05rem}
   .topic-head{padding:12px 14px;font-size:.88rem}
   .subtopic-container{padding-left:10px}
-  .subtopic-body{padding:16px}
+  .subtopic-body{padding:10px}
 }
 </style>
 </head>
 <body>
-<script src="../supabase-client.js"></script>
+<script src="/supabase-client.js"></script>
 
 <div class="top-bar">
   <div class="top-inner">
     <div class="logo">💡 THE IDEA LAB</div>
     <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
-      <span class="user-info" id="user-info">Sign in required</span>
-      <a href="/index.html">Sign in</a>
-      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">Light Mode</button>
+      <span class="user-info" id="user-info">👤 Guest Student</span>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light Mode</button>
     </div>
   </div>
 </div>
@@ -125,44 +110,52 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:10
 
     <div class="content">
       <div id="treeArea">
-        <div class="empty"><span class="spinner"></span> Loading Content...</div>
+        <div class="empty"><span class="spinner"></span> Loading Idea Lab Content...</div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-/* =========================================================
-   VERCEL KV DATABASE WRAPPER & STATE
-========================================================= */
 const DB_NODE = 'ideaLabDatabase';
 let DATA = {};
 let activeCat = null;
+let subCounter = 0;
+let SUB_CONTENT_MAP = {};
 
 async function fetchIdeaLabData() {
   try {
-    await window.supabaseAuth.ready;
-    const profile = await window.supabaseAuth.profile();
-    if (!profile || !profile.is_active || !profile.auth_user_id) throw new Error('Sign in on the home page with your Supabase Auth email or phone and linked account, then reload this page.');
-    document.getElementById('user-info').textContent = profile.login_id;
+    // Optional profile check (Never block public/guest users!)
+    try {
+      await window.supabaseAuth.ready;
+      const profile = await window.supabaseAuth.profile();
+      if (profile && profile.login_id) {
+        document.getElementById('user-info').textContent = '👤 ' + (profile.display_name || profile.login_id);
+      }
+    } catch (authErr) {
+      // Continue as Guest Student without throwing error
+    }
+
     const snapshot = await window.supabaseDb.ref(DB_NODE).once('value');
-    let fetchedData = snapshot.val() || {};
-    
+    let fetchedData = (snapshot && snapshot.val()) ? snapshot.val() : {};
     DATA = fetchedData;
-    
-    let ids = Object.keys(DATA).sort(function(a, b) { 
-        return (DATA[a].order || 0) - (DATA[b].order || 0); 
+
+    let ids = Object.keys(DATA).sort(function(a, b) {
+      return (Number(DATA[a].order) || 0) - (Number(DATA[b].order) || 0);
     });
-    
+
     if (!activeCat || !DATA[activeCat]) activeCat = ids[0] || null;
     render();
   } catch (err) {
+    console.error("Idea Lab Load Error:", err);
     document.getElementById('treeArea').innerHTML =
-      '<div class="empty"><div class="icon">⚠️</div><p>Error: ' + escHtml(err.message) + '</p></div>';
+      '<div class="empty"><div class="icon">⚠️</div><p>Error loading content: ' + escHtml(err.message) + '</p></div>';
   }
 }
 
 function render() {
+  SUB_CONTENT_MAP = {};
+  subCounter = 0;
   renderCategoryButtons();
   renderBanner();
   renderTree();
@@ -170,7 +163,7 @@ function render() {
 
 function renderCategoryButtons() {
   var row = document.getElementById('catRow');
-  var ids = Object.keys(DATA).sort(function(a, b) { return (DATA[a].order || 0) - (DATA[b].order || 0); });
+  var ids = Object.keys(DATA).sort(function(a, b) { return (Number(DATA[a].order) || 0) - (Number(DATA[b].order) || 0); });
   if (!ids.length) {
     row.innerHTML = '<span style="color:var(--mut);font-size:.85rem;padding:10px;">No categories yet.</span>';
     return;
@@ -201,7 +194,7 @@ function renderTree() {
   }
 
   var topicIds = c.topics ? Object.keys(c.topics).sort(function(a, b) {
-    return (c.topics[a].order || 0) - (c.topics[b].order || 0);
+    return (Number(c.topics[a].order) || 0) - (Number(c.topics[b].order) || 0);
   }) : [];
 
   if (!topicIds.length) {
@@ -222,17 +215,17 @@ function renderTree() {
 
   var h = '';
   topicIds.forEach(function(tid, i) {
-    h += renderTopicDetails(c.topics[tid], palette[i % palette.length]);
+    h += renderTopicDetails(c.topics[tid], palette[i % palette.length], i === 0);
   });
   area.innerHTML = h;
 }
 
-function renderTopicDetails(topic, grad) {
+function renderTopicDetails(topic, grad, openFirst) {
   var subIds = topic.subtopics ? Object.keys(topic.subtopics).sort(function(a, b) {
-    return (topic.subtopics[a].order || 0) - (topic.subtopics[b].order || 0);
+    return (Number(topic.subtopics[a].order) || 0) - (Number(topic.subtopics[b].order) || 0);
   }) : [];
 
-  var h = '<details class="topic-item">';
+  var h = '<details class="topic-item" ' + (openFirst ? 'open' : '') + '>';
   h += '<summary>';
   h += '<div class="topic-head" style="background:' + grad + '">';
   h += '<span class="th-title">📄 ' + escHtml(topic.title || 'Untitled') + '</span>';
@@ -252,20 +245,55 @@ function renderTopicDetails(topic, grad) {
 }
 
 function renderSubTopicDetails(sub, parentGrad) {
-  var h = '<details class="subtopic-item">';
+  subCounter++;
+  var domId = 'sub_box_' + subCounter;
+  var rawContent = sub.content || sub.content_html || (sub.metadata && sub.metadata.content) || '';
+  SUB_CONTENT_MAP[domId] = rawContent;
+
+  var h = '<details class="subtopic-item" ontoggle="handleSubToggle(this, \'' + domId + '\')">';
   h += '<summary>';
   h += '<div class="subtopic-head" style="background:' + parentGrad + ';opacity:.92">';
   h += '<div class="sh-left">';
   h += '<span>📄</span>';
   h += '<div>';
-  h += '<div class="sh-title">' + escHtml(sub.title) + '</div>';
-  h += '<div class="sh-meta">⏱ ' + escHtml(sub.readTime || '5 min read') + '</div>';
+  h += '<div class="sh-title">' + escHtml(sub.title || 'Untitled Sub-Topic') + '</div>';
+  h += '<div class="sh-meta">⏱ ' + escHtml(sub.readTime || sub.read_time || '5 min read') + '</div>';
   h += '</div></div>';
   h += '<span class="view-btn">View <span class="arr">[+]</span></span>';
   h += '</div></summary>';
-  h += '<div class="subtopic-body">' + (sub.content || '<p style="color:var(--mut);">No content yet.</p>') + '</div>';
+  h += '<div class="subtopic-body" id="' + domId + '"></div>';
   h += '</details>';
   return h;
+}
+
+function handleSubToggle(detailsEl, domId) {
+  var box = document.getElementById(domId);
+  if (!box) return;
+  if (!detailsEl.open) {
+    box.innerHTML = '';
+    return;
+  }
+  var raw = SUB_CONTENT_MAP[domId] || '';
+  if (!raw.trim()) {
+    box.innerHTML = '<p style="color:var(--mut);">No content available in this sub-topic yet.</p>';
+    return;
+  }
+
+  // If content contains full HTML, <style>, or <script>, render cleanly inside an auto-resizing iframe so scripts & styles work 100%!
+  var needsIframe = /<!doctype|<html|<head|<style|<script/i.test(raw);
+  if (needsIframe) {
+    var iframe = document.createElement('iframe');
+    iframe.className = 'idea-iframe';
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
+    var helper = '<style>html,body{margin:0;padding:8px;overflow-x:hidden;font-family:sans-serif;}</style>' +
+      '<script>function fitH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,400);if(window.frameElement)window.frameElement.style.height=(h+35)+"px";}catch(e){}}window.addEventListener("load",function(){setTimeout(fitH,100);setTimeout(fitH,600);});document.addEventListener("click",function(){setTimeout(fitH,150);});<\/script>';
+    var isFull = /<!doctype|<html/i.test(raw);
+    iframe.srcdoc = isFull ? (raw + helper) : ('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' + helper + '</head><body style="color:#e2e8f0;background:#0f172a;">' + raw + '</body></html>');
+    box.innerHTML = '';
+    box.appendChild(iframe);
+  } else {
+    box.innerHTML = raw;
+  }
 }
 
 function setCat(id) { activeCat = id; render(); }
@@ -276,24 +304,19 @@ function escAttr(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').
 function toggleTheme() {
   var isLight = document.body.classList.toggle('light-mode');
   localStorage.setItem('idealab_student_theme', isLight ? 'light' : 'dark');
-  document.getElementById('themeBtn').innerText = isLight ? 'Dark Mode' : 'Light Mode';
+  document.getElementById('themeBtn').innerText = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
 }
 
-/* =========================================================
-   INITIALIZATION
-========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
-    if (localStorage.getItem('idealab_student_theme') === 'light') {
-      document.body.classList.add('light-mode');
-      document.getElementById('themeBtn').innerText = 'Dark Mode';
-    }
-    fetchIdeaLabData();
+  if (localStorage.getItem('idealab_student_theme') === 'light') {
+    document.body.classList.add('light-mode');
+    document.getElementById('themeBtn').innerText = '🌙 Dark Mode';
+  }
+  fetchIdeaLabData();
 });
 </script>
 
-<!-- Global Navbar & Footer -->
 <script src="/footer.js"></script>
 <script src="/global-navbar.js"></script>
-
 </body>
 </html>
