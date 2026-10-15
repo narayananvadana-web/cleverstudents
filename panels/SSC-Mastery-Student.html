@@ -56,12 +56,12 @@
     .study-tab-btn.grand-test{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border-color:transparent;font-size:1.1rem;animation:grandPulse 2s ease-in-out infinite}
     @keyframes grandPulse{0%,100%{box-shadow:0 0 10px rgba(245,158,11,.5)}50%{box-shadow:0 0 25px rgba(239,68,68,.8)}}
     
-    .content{min-height:150px;background:var(--srf)}
+    .content{min-height:150px;background:var(--srf);padding-bottom:20px}
     
-    .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:8px 12px 0;color:#fff;font-weight:800;font-size:1.2rem;border-radius:8px;cursor:pointer;box-shadow:0 4px 6px rgba(0,0,0,.15)}
-    .ch-row:hover{filter:brightness(1.1);transform:translateY(-2px)}
-    .ch-content{display:none;background:rgba(0,0,0,.2);border:1px solid var(--brd);margin:0 12px 10px;padding:20px;border-radius:0 0 8px 8px;line-height:1.7;font-size:1.1rem;color:#f8fafc;overflow-x:auto}
-    body.light-mode .ch-content{color:#334155;background:rgba(0,0,0,.03)}
+    .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:8px 12px 0;color:#fff;font-weight:800;font-size:1.15rem;border-radius:8px;cursor:pointer;box-shadow:0 4px 6px rgba(0,0,0,.15)}
+    .ch-row:hover{filter:brightness(1.1);transform:translateY(-1px)}
+    .ch-content{display:none;background:rgba(0,0,0,.25);border:1px solid var(--brd);margin:0 12px 10px;padding:20px;border-radius:0 0 8px 8px;line-height:1.75;font-size:1.1rem;color:#f8fafc;overflow-x:auto}
+    body.light-mode .ch-content{color:#0f172a;background:#ffffff}
     .ch-content.show{display:block;animation:fadeIn .2s ease}
     @keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
     
@@ -69,102 +69,42 @@
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:15px}
     .q-card{border:none;border-radius:8px;padding:20px 12px;text-align:center;cursor:pointer;color:#fff;transition:all 0.3s}
     .q-card:hover{transform:translateY(-4px);box-shadow:0 6px 15px rgba(0,0,0,.3)}
-    .q-card h4{font-weight:900;font-size:1.25rem;margin-bottom:8px}
-    .q-card small{font-size:1.05rem;opacity:0.9}
+    .q-card h4{font-weight:900;font-size:1.2rem;margin-bottom:8px}
+    .q-card small{font-size:1rem;opacity:0.9}
 
     .q-player{padding:25px;background:var(--srf);border:1px solid var(--brd);border-radius:12px;max-width:1400px;margin:0 auto}
     .q-panel{border-radius:16px;padding:25px;background:rgba(0,0,0,.2)}
-    .q-panel img{max-width:100%;max-height:200px;margin:10px 0;border-radius:8px;object-fit:contain;}
-    
-    .options-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .opt-btn{
-      padding: 16px 20px;
-      background: rgba(255,255,255,.05);
-      border: 2px solid var(--brd);
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 800;
-      font-size: 1.25rem;
-      color: var(--txt);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s;
-      width: 100%;
-      word-break: break-word;
-      text-align: left;
-    }
-    .opt-btn:hover{border-color:#3b82f6; background: rgba(59,130,246,.1);}
-    .opt-btn img{max-width: 100%; max-height: 120px; object-fit: contain; margin:0;}
-    
+    .options-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-bottom:20px}
+    .opt-btn{padding:16px 20px;background:rgba(255,255,255,.05);border:2px solid var(--brd);border-radius:12px;cursor:pointer;font-weight:800;font-size:1.2rem;color:var(--txt);display:flex;align-items:center;gap:12px;transition:all 0.2s;width:100%;word-break:break-word;text-align:left}
+    .opt-btn:hover{border-color:#3b82f6;background:rgba(59,130,246,.1)}
     .opt-btn.correct{background:#15803d!important;border-color:#22c55e!important;color:#fff!important}
     .opt-btn.wrong{background:#b91c1c!important;border-color:#ef4444!important;color:#fff!important}
     .opt-btn.reveal{border-color:#22c55e!important;background:rgba(34,197,94,.2)!important}
-    
     .feedback{display:none;padding:16px;border-radius:10px;font-weight:800;font-size:1.15rem;color:#fff!important;margin-bottom:20px;line-height:1.6}
     .feedback.show{display:block}.feedback.correct{background:#15803d}.feedback.wrong{background:#b91c1c}
 
-    .results-container{padding:20px;max-height:70vh;overflow-y:auto}
-    .results-header{text-align:center;margin-bottom:25px;padding:25px;background:rgba(0,0,0,.2);border-radius:12px}
-    .results-score{font-size:3.5rem;font-weight:900}
-    .results-summary{display:flex;justify-content:center;gap:15px;flex-wrap:wrap;margin:15px 0}
-    .results-summary-item{text-align:center;padding:12px 18px;background:rgba(0,0,0,.3);border-radius:10px;min-width:80px}
-    .results-summary-item .val{font-size:1.8rem;font-weight:900}.results-summary-item .lbl{font-size:1rem;color:var(--mut)}
-    .result-item{background:rgba(255,255,255,.05);border:1px solid var(--brd);border-radius:10px;padding:20px;margin-bottom:15px}
-    .result-item img{max-width:200px;max-height:120px;margin:8px;border-radius:6px}
-    .result-qno{display:inline-block;width:36px;height:36px;border-radius:50%;text-align:center;line-height:36px;font-weight:900;font-size:1.1rem;margin-right:10px}
-    .result-qno.correct-q{background:#15803d;color:#fff}.result-qno.wrong-q{background:#b91c1c;color:#fff}.result-qno.skipped-q{background:#64748b;color:#fff}
-    .result-status{display:inline-block;padding:6px 15px;border-radius:20px;font-weight:800;font-size:1rem;margin-top:8px}
-    .result-status.correct{background:#15803d;color:#fff}.result-status.wrong{background:#b91c1c;color:#fff}.result-status.skipped{background:#64748b;color:#fff}
-
-    .btn{padding:14px 24px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:8px;font-size:1.15rem;transition:all 0.2s;}
+    .btn{padding:12px 22px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:8px;font-size:1.1rem;transition:all 0.2s}
     .btn:hover{filter:brightness(1.15);transform:translateY(-2px)}
     .btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-orange{background:#f59e0b}
-    .btn-sm{padding:8px 18px;font-size:1.05rem}.btn-xs{padding:6px 12px;font-size:1rem}
+    .btn-sm{padding:8px 18px;font-size:1rem}
 
     #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:none;align-items:center;justify-content:center}
-    .login-box{background:var(--srf);padding:45px 35px;border-radius:var(--r-lg);box-shadow:0 15px 40px rgba(0,0,0,.6);width:90%;max-width:450px;border:1px solid var(--brd);text-align:center}
-    .login-inp{width:100%;padding:16px;margin-bottom:18px;border-radius:10px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1.2rem;font-weight:600;outline:0}
-    .login-info{background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:8px;padding:15px;margin-bottom:20px;font-size:1.05rem;color:var(--txt)}
+    .login-box{background:var(--srf);padding:40px 30px;border-radius:var(--r-lg);box-shadow:0 15px 40px rgba(0,0,0,.6);width:90%;max-width:420px;border:1px solid var(--brd);text-align:center}
+    .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:10px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1.1rem;font-weight:600;outline:0}
 
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;display:none;justify-content:center;align-items:center}
     .modal.show{display:flex}.modal img{max-width:92%;max-height:92%;border-radius:8px}
-    .modal-close{position:absolute;top:20px;right:25px;color:#fff;font-size:2.5rem;cursor:pointer;font-weight:900;}
+    .modal-close{position:absolute;top:20px;right:25px;color:#fff;font-size:2.5rem;cursor:pointer;font-weight:900}
     .spinner{display:inline-block;width:24px;height:24px;border:4px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    .gt-back-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:rgba(255,255,255,.1);color:var(--txt);border:1px solid var(--brd);border-radius:50px;cursor:pointer;font-weight:800;font-size:1.1rem;margin-bottom:15px}
-    .gt-back-btn:hover{background:rgba(255,255,255,.2)}
-    .gt-step-indicator{background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(239,68,68,.2));border:2px solid #f59e0b;border-radius:12px;padding:15px 25px;margin-bottom:20px;text-align:center;font-weight:800;font-size:1.2rem;color:#fbbf24;letter-spacing:1px}
-    .gt-step-arrow{color:#f59e0b;margin:0 8px;font-weight:900}
-    .gt-subject-container{border:1px solid var(--brd);border-radius:12px;padding:20px;margin-bottom:15px;background:rgba(0,0,0,.15)}
-    .gt-subj-check,input.gt-subj-check{accent-color:#22c55e;width:24px;height:24px;cursor:pointer}
-    .gt-topic-check,input.gt-topic-check{accent-color:#22c55e;width:20px;height:20px;cursor:pointer}
-    .gt-topic-label{transition:all 0.3s ease;display:flex;align-items:center;gap:10px;padding:10px 18px;background:rgba(0,0,0,.2);border-radius:25px;cursor:pointer;font-size:1.1rem;border:2px solid transparent}
-    .gt-section-header{cursor:pointer;padding:12px 18px;border-radius:8px;margin-bottom:8px;font-weight:800;font-size:1.2rem;transition:all 0.3s;display:flex;align-items:center;gap:12px}
-    .gt-section-content{display:none;padding:10px 0 10px 30px}
-    .gt-section-content.open{display:block;animation:fadeIn .2s ease}
-    .gt-level-count{font-size:1rem;padding:4px 12px;border-radius:15px;background:rgba(0,0,0,.3);color:var(--mut);margin-left:8px}
-    .gt-level-count-highlight{font-size:1rem;padding:4px 12px;border-radius:15px;background:rgba(245,158,11,.2);color:#fbbf24;margin-left:8px;font-weight:800}
-    .ch-content img{max-width:100%;height:auto;border-radius:8px;margin:10px 0}
-    .item-count-badge{font-size:1rem;padding:5px 15px;background:rgba(255,255,255,.12);border-radius:20px;white-space:nowrap}
+    .item-count-badge{font-size:.95rem;padding:4px 14px;background:rgba(0,0,0,.25);border-radius:20px;white-space:nowrap}
     .item-count-badge span{font-weight:900;color:#fbbf24}
     .syl-iframe{width:100%;min-height:600px;border:none;border-radius:8px;background:transparent;display:block}
 
     @media(max-width:768px){
-      body{font-size:16px;}
-      .top-info-bar{flex-wrap:wrap}.news-ticker-wrap{flex:0 0 100%}.banner{flex-direction:column}.results-score{font-size:3rem}
-      .q-player{padding:15px;}.q-panel{padding:15px;}
-      .options-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .opt-btn { flex-direction: column; align-items: center; text-align: center; padding: 12px 10px; font-size: 1.1rem; }
-      .opt-btn b { align-self: flex-start; margin-bottom: 6px; }
-      .opt-btn img { max-height: 90px; }
+      body{font-size:16px}
+      .options-grid{grid-template-columns:1fr;gap:10px}
     }
   </style>
 </head>
@@ -177,9 +117,9 @@
       <h2 style="margin-bottom:25px;color:var(--txt);font-size:1.4rem;">Student Login</h2>
       <input type="text" id="login-phone" class="login-inp" placeholder="User ID / Phone" autocomplete="off">
       <input type="password" id="login-pass" class="login-inp" placeholder="Password" autocomplete="off">
-      <button class="btn btn-blue" style="width:100%;padding:16px;font-size:1.2rem;margin-top:10px;" onclick="window.attemptLogin()">🔐 Login</button>
-      <button class="btn btn-orange" style="width:100%;padding:14px;font-size:1.1rem;margin-top:12px;" onclick="window.loginAsGuest()">👤 Play / Study as Guest</button>
-      <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:800;font-size:1.1rem;display:none;"></div>
+      <button class="btn btn-blue" style="width:100%;margin-top:10px;" onclick="window.attemptLogin()">🔐 Login</button>
+      <button class="btn btn-orange" style="width:100%;margin-top:12px;" onclick="window.loginAsGuest()">👤 Study as Guest</button>
+      <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:800;display:none;"></div>
     </div>
   </div>
 
@@ -222,7 +162,6 @@
         const snap = await window.supabaseDb.ref(key).once('value');
         return snap ? snap.val() : null;
       } catch (e) {
-        console.error('fetchDB error for ' + key, e);
         return null;
       }
     }
@@ -234,8 +173,8 @@
     var newsWithLinks=[
       {text:'🎓 Reasoning - Study Materials',action:function(){window.switchSubject('Reasoning & Intelligence');studyType='syllabus';window.refreshUI()}},
       {text:'📚 Quantitative Aptitude',action:function(){window.switchSubject('Quantitative Aptitude');studyType='syllabus';window.refreshUI()}},
-      {text:'🏆 Grand Test - Create Custom Paper!',action:function(){window.openGrandTestConfig()}},
-      {text:'📝 General English - Study & Practice',action:function(){window.switchSubject('General English');studyType='syllabus';window.refreshUI()}}
+      {text:'📝 General English - Study & Practice',action:function(){window.switchSubject('General English');studyType='syllabus';window.refreshUI()}},
+      {text:'🌍 General Studies - Complete Notes',action:function(){window.switchSubject('General Studies');studyType='syllabus';window.refreshUI()}}
     ];
     window.buildNewsTicker = function(){var t=document.getElementById('newsTicker');if(!t)return;var h='';newsWithLinks.forEach(function(i,idx){h+='<a class="news-link" onclick="event.stopPropagation();window.handleNewsClick('+idx+')">'+i.text+'</a>';if(idx<newsWithLinks.length-1)h+='<span style="color:rgba(255,255,255,.3);margin:0 6px">|</span>'});t.innerHTML=h+h}
     window.handleNewsClick = function(i){var n=newsWithLinks[i%newsWithLinks.length];if(n&&n.action)n.action()}
@@ -252,41 +191,46 @@
     };
 
     window.DB = { syllabus: {}, quiz: {} };
-    var settings = { loginEnabled: false, users: {}, copyEnabled: false };
-    var currentUser = { phone: 'guest', isGuest: true };
-    var userAccess = { modes: ['ALL'], subjects: ['ALL'], classes: ['ALL'] };
+    var settings = { users: {} };
     var studyType = 'syllabus';
     var subject = 'General English';
-    var qActive=[],qIdx=0,qTimer=null,qSec=0,qAns=[],qSourceInfo=[];
+    var qActive=[],qIdx=0,qTimer=null,qSec=0,qAns=[];
     var SSC_HIERARCHY = {};
     var SYL_CONTENT_MAP = {};
+    var sylCounter = 0;
 
-    // Auto-build hierarchy from actual Syllabus + Quiz database records so NO subject is ever hidden!
-    function buildHierarchyFromData() {
-      if (!SSC_HIERARCHY || typeof SSC_HIERARCHY !== 'object' || Object.keys(SSC_HIERARCHY).length === 0) {
-        SSC_HIERARCHY = JSON.parse(JSON.stringify(DEFAULT_HIERARCHY));
+    function extractContent(item) {
+      if (!item) return '';
+      if (item.content && String(item.content).trim()) return item.content;
+      if (item.content_html && String(item.content_html).trim()) return item.content_html;
+      if (item.body && String(item.body).trim()) return item.body;
+      if (item.metadata && typeof item.metadata === 'object') {
+        return item.metadata.content || item.metadata.content_html || item.metadata.body || '';
       }
-      // Scan Syllabus
+      return '';
+    }
+
+    function buildHierarchyFromData() {
+      SSC_HIERARCHY = JSON.parse(JSON.stringify(DEFAULT_HIERARCHY));
       Object.keys(window.DB.syllabus || {}).forEach(function(k) {
         var it = window.DB.syllabus[k];
         if (!it || typeof it !== 'object') return;
-        var s = it.subject || 'General';
-        var ss = it.subSubject || it.sub_subject || 'General';
-        var tp = it.topic || 'General';
-        var st = it.subTopic || it.sub_topic || 'General';
+        var s = it.subject || (it.metadata && it.metadata.subject) || 'General';
+        var ss = it.subSubject || it.sub_subject || (it.metadata && it.metadata.subSubject) || 'General';
+        var tp = it.topic || (it.metadata && it.metadata.topic) || 'General';
+        var st = it.subTopic || it.sub_topic || (it.metadata && it.metadata.subTopic) || 'General';
         if (!SSC_HIERARCHY[s]) SSC_HIERARCHY[s] = {};
         if (!SSC_HIERARCHY[s][ss]) SSC_HIERARCHY[s][ss] = {};
         if (!SSC_HIERARCHY[s][ss][tp]) SSC_HIERARCHY[s][ss][tp] = [];
         if (SSC_HIERARCHY[s][ss][tp].indexOf(st) === -1) SSC_HIERARCHY[s][ss][tp].push(st);
       });
-      // Scan Quizzes
       Object.keys(window.DB.quiz || {}).forEach(function(k) {
         var q = window.DB.quiz[k];
         if (!q || typeof q !== 'object') return;
-        var s = q.subject || 'General';
-        var ss = q.subSubject || q.sub_subject || 'General';
-        var tp = q.topic || 'General';
-        var st = q.subTopic || q.sub_topic || 'General';
+        var s = q.subject || (q.metadata && q.metadata.subject) || 'General';
+        var ss = q.subSubject || q.sub_subject || (q.metadata && q.metadata.subSubject) || 'General';
+        var tp = q.topic || (q.metadata && q.metadata.topic) || 'General';
+        var st = q.subTopic || q.sub_topic || (q.metadata && q.metadata.subTopic) || 'General';
         if (!SSC_HIERARCHY[s]) SSC_HIERARCHY[s] = {};
         if (!SSC_HIERARCHY[s][ss]) SSC_HIERARCHY[s][ss] = {};
         if (!SSC_HIERARCHY[s][ss][tp]) SSC_HIERARCHY[s][ss][tp] = [];
@@ -303,20 +247,37 @@
     window.initTheme = function(){var t=localStorage.getItem('ssc_st_th')||'dark',b=document.getElementById('theme-toggle');t==='light'?(document.body.classList.add('light-mode'),b.innerText='Dark Mode'):(document.body.classList.remove('light-mode'),b.innerText='Light Mode')}
     window.initTheme();
     window.toggleTheme = function(){var l=document.body.classList.toggle('light-mode');localStorage.setItem('ssc_st_th',l?'light':'dark');document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode'}
-    window.getArr = function(o){if(!o)return[];var r=[];Object.keys(o).forEach(function(k){if(o[k]&&typeof o[k]==='object')r.push(o[k])});r.sort(function(a,b){var oA=a.order!==undefined?a.order:999999;var oB=b.order!==undefined?b.order:999999;return oA-oB});return r}
+    window.getArr = function(o){
+      if(!o)return[];
+      var r=[];
+      Object.keys(o).forEach(function(k){
+        if(o[k]&&typeof o[k]==='object') {
+          var merged = Object.assign({}, o[k].metadata || {}, o[k]);
+          merged._key = k;
+          r.push(merged);
+        }
+      });
+      r.sort(function(a,b){var oA=a.order!==undefined?a.order:999999;var oB=b.order!==undefined?b.order:999999;return oA-oB});
+      return r;
+    }
     window.getImgs = function(u){if(!u||!Array.isArray(u)||!u.length)return'';var h='';u.forEach(function(url){if(url)h+='<img src="'+url+'" class="img-th" onclick="window.openModal(\''+encodeURIComponent(url)+'\')">'});return h}
+
     window.tog = function(id){
-      var el=document.getElementById(id);
-      if(!el)return;
+      var el = document.getElementById(id);
+      if(!el) return;
       var isShowing = el.classList.toggle('show');
-      if(isShowing && SYL_CONTENT_MAP[id]){
+      if(isShowing && SYL_CONTENT_MAP[id] !== undefined){
         var raw = SYL_CONTENT_MAP[id];
+        if(!raw || !String(raw).trim()){
+          el.innerHTML = '<p style="color:var(--mut);">No content inside this topic yet.</p>';
+          return;
+        }
         if(/<!doctype|<html|<head|<style|<script/i.test(raw)){
           var ifr = document.createElement('iframe');
           ifr.className = 'syl-iframe';
           ifr.setAttribute('sandbox','allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
-          var helper = '<style>html,body{margin:0;padding:10px;overflow-x:hidden;font-family:sans-serif;}</style><script>function fH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,450);if(window.frameElement)window.frameElement.style.height=(h+35)+"px";}catch(e){}}window.addEventListener("load",function(){setTimeout(fH,100);setTimeout(fH,500);});document.addEventListener("click",function(){setTimeout(fH,150);});<\/script>';
-          ifr.srcdoc = /<!doctype|<html/i.test(raw) ? (raw+helper) : ('<!DOCTYPE html><html><head><meta charset="UTF-8">'+helper+'</head><body style="color:#e2e8f0;background:#0f172a;">'+raw+'</body></html>');
+          var helper = '<style>html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;line-height:1.6;}</style><script>function fH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,500);if(window.frameElement)window.frameElement.style.height=(h+40)+"px";}catch(e){}}window.addEventListener("load",function(){setTimeout(fH,100);setTimeout(fH,600);});document.addEventListener("click",function(){setTimeout(fH,150);});<\/script>';
+          ifr.srcdoc = /<!doctype|<html/i.test(raw) ? (raw+helper) : ('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">'+helper+'</head><body style="color:#e2e8f0;background:#0f172a;">'+raw+'</body></html>');
           el.innerHTML = '';
           el.appendChild(ifr);
         } else {
@@ -324,14 +285,11 @@
         }
       }
     }
-    window.togGT=function(id){var el=document.getElementById(id);if(el)el.classList.toggle('open')}
+
     window.openModal = function(d){var m=document.getElementById('img-modal');document.getElementById('modal-img').src=decodeURIComponent(d);m.classList.add('show')}
     window.closeModal = function(){document.getElementById('img-modal').classList.remove('show')}
-    window.shuffleArray = function(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=a[i];a[i]=a[j];a[j]=tmp;}return a;}
 
     window.loginAsGuest = function(){
-      currentUser={phone:'guest',isGuest:true};
-      userAccess={modes:['ALL'],subjects:['ALL'],classes:['ALL']};
       document.getElementById('login-overlay').style.display='none';
       document.getElementById('user-display').innerText='👤 Guest';
       window.refreshUI();
@@ -343,14 +301,12 @@
       var e=document.getElementById('login-error');
       if(!p||!pa){e.innerText='Enter ID and Password';e.style.display='block';return}
       if(settings.users && settings.users[p] && String(settings.users[p].pass)===String(pa)){
-        currentUser={phone:p,isGuest:false};
-        userAccess={modes:['ALL'],subjects:['ALL'],classes:['ALL']};
         document.getElementById('login-overlay').style.display='none';
         document.getElementById('user-display').innerText='👤 '+p;
         window.refreshUI();
         return;
       }
-      e.innerText='Invalid credentials (Or click Play as Guest)';
+      e.innerText='Invalid credentials';
       e.style.display='block';
     }
 
@@ -365,27 +321,15 @@
     }
 
     window.refreshUI = function(){
-      if(studyType==='grandtest'){window.openGrandTestConfig();return;}
       var sr=document.getElementById('sub-row'),ca=document.getElementById('content-area');
       var as = getMainSubjects();
 
-      // Auto-select first subject that actually has data
-      if(as.indexOf(subject)===-1) {
-        var withSyl = as.find(function(s){ return Object.values(window.DB.syllabus).some(function(it){return it&&it.subject===s;}); });
-        subject = withSyl || as[0] || 'General English';
-      }
-
-      // If current subject has syllabus items but no quizzes, default to syllabus tab so user sees content immediately!
-      var hasQuizzesForSubj = Object.values(window.DB.quiz).some(function(q){ return q && q.subject === subject; });
-      var hasSylForSubj = Object.values(window.DB.syllabus).some(function(it){ return it && it.subject === subject; });
-      if (studyType === 'quiz' && !hasQuizzesForSubj && hasSylForSubj) {
-        studyType = 'syllabus';
-      }
+      if(as.indexOf(subject)===-1) subject = as[0] || 'General English';
 
       sr.innerHTML=as.map(function(s){return'<button class="btn-sub '+(subject===s?'active':'')+'" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)" onclick="window.switchSubject(\''+s.replace(/'/g,"\\'")+'\')">'+(subject===s?'✔ ':'')+s+'</button>'}).join('');
       
       var tn={syllabus:'📖 Syllabus / Study Material', quiz:'📝 Practice Quiz'};
-      var tabsHTML='<div class="study-tabs-row">'+Object.keys(tn).map(function(t){return'<button class="study-tab-btn '+(studyType===t?'active':'')+'" onclick="window.setStudyType(\''+t+'\')">'+tn[t]+'</button>'}).join('')+'<button class="study-tab-btn grand-test" onclick="window.openGrandTestConfig()">🏆 Grand Test</button></div>';
+      var tabsHTML='<div class="study-tabs-row">'+Object.keys(tn).map(function(t){return'<button class="study-tab-btn '+(studyType===t?'active':'')+'" onclick="window.setStudyType(\''+t+'\')">'+tn[t]+'</button>'}).join('')+'</div>';
       var fullHTML='<div class="banner" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><h1>'+subject+'</h1><p>SSC Mastery Preparation</p></div>'+tabsHTML;
       if(studyType==='quiz')fullHTML+=window.renderQuizHTML();
       else fullHTML+=window.renderSyllabusHTML();
@@ -399,17 +343,18 @@
       var quizKeys=Object.keys(window.DB.quiz).filter(function(k){
           var qMeta = window.DB.quiz[k];
           if(!qMeta || typeof qMeta !== 'object') return false;
-          return qMeta.subject===subject;
+          var s = qMeta.subject || (qMeta.metadata && qMeta.metadata.subject) || 'General';
+          return s === subject;
       });
-      if(!quizKeys.length)return'<div style="padding:40px;text-align:center;color:var(--mut);font-size:1.3rem;font-weight:700;">No quizzes uploaded yet for '+subject+'. <br><br><button class="btn btn-blue btn-sm" onclick="window.setStudyType(\'syllabus\')">📖 View Syllabus Instead</button></div>';
+      if(!quizKeys.length)return'<div style="padding:40px;text-align:center;color:var(--mut);font-size:1.25rem;font-weight:700;">No quizzes found for <strong>'+subject+'</strong> yet.<br><small style="font-size:.95rem;">Run <code>python fix_ssc.py</code> or upload CSV in Admin Panel.</small><br><br><button class="btn btn-blue btn-sm" onclick="window.setStudyType(\'syllabus\')">📖 View Study Material Instead</button></div>';
       
       var grouped={};
       quizKeys.forEach(function(k){
-        var qMeta=window.DB.quiz[k];
+        var qMeta = Object.assign({}, window.DB.quiz[k].metadata || {}, window.DB.quiz[k]);
         var ss=qMeta.subSubject||qMeta.sub_subject||'General';
         var tp=qMeta.topic||'General';
         var st=qMeta.subTopic||qMeta.sub_topic||'General';
-        var cnt = Number(qMeta.count) || (qMeta.metadata && Number(qMeta.metadata.count)) || 10;
+        var cnt = Number(qMeta.count) || 10;
         if(!grouped[ss])grouped[ss]={};
         if(!grouped[ss][tp])grouped[ss][tp]={};
         if(!grouped[ss][tp][st])grouped[ss][tp][st]=[];
@@ -418,32 +363,25 @@
       
       var h='',ci=0;var subColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)'];
       
-      Object.keys(grouped).sort().forEach(function(ss){
-        var sColor=subColors[ci%subColors.length];ci++;var ssid='qz_'+ss.replace(/[^a-z0-9]/gi,'_');
-        var ssTopicCount=Object.keys(grouped[ss]).length;
-        var ssSubTopicCount=0, ssTotalTests=0;
-        Object.keys(grouped[ss]).forEach(function(tp){
-          ssSubTopicCount+=Object.keys(grouped[ss][tp]).length;
-          Object.keys(grouped[ss][tp]).forEach(function(st){ ssTotalTests+=grouped[ss][tp][st].length; });
-        });
-        
-        h+='<div class="ch-row" style="background:'+sColor+';" onclick="window.tog(\''+ssid+'\')"><span>📝 '+sanitizeHTML(ss)+'</span><span class="item-count-badge"><span>'+ssTopicCount+'</span> Topics | <span>'+ssTotalTests+'</span> Sets</span> <span>▼</span></div>';
+      Object.keys(grouped).sort().forEach(function(ss, sIdx){
+        var sColor=subColors[ci%subColors.length];ci++;var ssid='qz_ss_'+sIdx;
+        h+='<div class="ch-row" style="background:'+sColor+';" onclick="window.tog(\''+ssid+'\')"><span>📝 '+sanitizeHTML(ss)+'</span><span>▼</span></div>';
         h+='<div id="'+ssid+'" class="ch-content show" style="padding:10px">';
         
-        Object.keys(grouped[ss]).sort().forEach(function(tp){
-          var tpColor=getSSSColor(tp);var tpid='qz_tp_'+ss.replace(/[^a-z0-9]/gi,'_')+'_'+tp.replace(/[^a-z0-9]/gi,'_');
-          h+='<div class="ch-row" style="background:'+tpColor+';margin:4px 0;padding:10px 15px;font-size:1.05rem;margin-left:16px;" onclick="window.tog(\''+tpid+'\')"><span>📌 '+sanitizeHTML(tp)+'</span><span>▼</span></div>';
-          h+='<div id="'+tpid+'" class="ch-content show" style="padding:8px;margin-left:16px;">';
+        Object.keys(grouped[ss]).sort().forEach(function(tp, tIdx){
+          var tpColor=getSSSColor(tp);var tpid=ssid+'_tp_'+tIdx;
+          h+='<div class="ch-row" style="background:'+tpColor+';margin:4px 0;padding:10px 15px;font-size:1.05rem;margin-left:12px;" onclick="window.tog(\''+tpid+'\')"><span>📌 '+sanitizeHTML(tp)+'</span><span>▼</span></div>';
+          h+='<div id="'+tpid+'" class="ch-content show" style="padding:8px;margin-left:12px;">';
           
-          Object.keys(grouped[ss][tp]).sort().forEach(function(st){
-            var stColor=getSSSColor(st);var stid='qz_st_'+ss.replace(/[^a-z0-9]/gi,'_')+'_'+tp.replace(/[^a-z0-9]/gi,'_')+'_'+st.replace(/[^a-z0-9]/gi,'_'),topicTests=grouped[ss][tp][st];
-            h+='<div class="ch-row" style="background:'+stColor+';margin:6px 0;padding:8px 14px;font-size:1rem;margin-left:24px;" onclick="window.tog(\''+stid+'\')"><span>🔹 '+sanitizeHTML(st)+'</span><span>▼</span></div>';
-            h+='<div id="'+stid+'" class="ch-content show" style="padding:8px;margin-left:24px;"><div class="grid">';
+          Object.keys(grouped[ss][tp]).sort().forEach(function(st, stIdx){
+            var stColor=getSSSColor(st);var stid=tpid+'_st_'+stIdx,topicTests=grouped[ss][tp][st];
+            h+='<div class="ch-row" style="background:'+stColor+';margin:6px 0;padding:8px 14px;font-size:1rem;margin-left:20px;" onclick="window.tog(\''+stid+'\')"><span>🔹 '+sanitizeHTML(st)+'</span><span>▼</span></div>';
+            h+='<div id="'+stid+'" class="ch-content show" style="padding:8px;margin-left:20px;"><div class="grid">';
             topicTests.forEach(function(qz){
                 var totalQs=qz.count||10,tc=Math.max(1,Math.ceil(totalQs/10));
                 for(var t=1;t<=tc;t++){
                     var st2=(t-1)*10,end=Math.min(st2+10,totalQs);
-                    h+='<div class="q-card" style="background:'+stColor+';" onclick="window.launchQ(\''+qz.key+'\','+st2+','+end+',\''+stColor.replace(/'/g,"\\'")+'\')"><h4>'+sanitizeHTML(st)+'</h4><small style="font-size:1rem;">Test '+t+' ('+(end-st2)+' Qs)</small></div>';
+                    h+='<div class="q-card" style="background:'+stColor+';" onclick="window.launchQ(\''+qz.key+'\','+st2+','+end+',\''+stColor.replace(/'/g,"\\'")+'\')"><h4>'+sanitizeHTML(st)+'</h4><small>Test '+t+' ('+(end-st2)+' Qs)</small></div>';
                 }
             });
             h+='</div></div>';
@@ -457,6 +395,7 @@
 
     window.renderSyllabusHTML = function(){
       SYL_CONTENT_MAP = {};
+      sylCounter = 0;
       var items=window.getArr(window.DB.syllabus).filter(function(item){return item.subject===subject;});
       if(!items.length)return'<div style="padding:40px;text-align:center;color:var(--mut);font-size:1.3rem;font-weight:700;">No syllabus items for '+subject+'</div>';
       
@@ -472,30 +411,29 @@
       
       var h='',ci=0;var subColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)'];
       
-      Object.keys(grouped).sort().forEach(function(ss){
-        var sColor=subColors[ci%subColors.length];ci++;var ssid='ss_'+ss.replace(/[^a-z0-9]/gi,'_');
-        var ssTopicCount=Object.keys(grouped[ss]).length;
-        var ssSubTopicCount=0, ssTotalItems=0;
+      Object.keys(grouped).sort().forEach(function(ss, sIdx){
+        var sColor=subColors[ci%subColors.length];ci++;var ssid='ss_box_'+sIdx;
+        var ssTotalItems=0;
         Object.keys(grouped[ss]).forEach(function(tp){
-          ssSubTopicCount+=Object.keys(grouped[ss][tp]).length;
           Object.keys(grouped[ss][tp]).forEach(function(st){ ssTotalItems+=grouped[ss][tp][st].length; });
         });
         
         h+='<div class="ch-row" style="background:'+sColor+';" onclick="window.tog(\''+ssid+'\')"><span>📂 '+sanitizeHTML(ss)+'</span><span class="item-count-badge"><span>'+ssTotalItems+'</span> chapters</span> <span>▼</span></div>';
         h+='<div id="'+ssid+'" class="ch-content show" style="padding:10px">';
         
-        Object.keys(grouped[ss]).sort().forEach(function(tp){
-          var tpColor=getSSSColor(tp);var tpid='ss_tp_'+ss.replace(/[^a-z0-9]/gi,'_')+'_'+tp.replace(/[^a-z0-9]/gi,'_');
+        Object.keys(grouped[ss]).sort().forEach(function(tp, tIdx){
+          var tpColor=getSSSColor(tp);var tpid=ssid+'_tp_'+tIdx;
           h+='<div class="ch-row" style="background:'+tpColor+';margin:4px 0;padding:10px 15px;font-size:1.05rem;margin-left:12px;" onclick="window.tog(\''+tpid+'\')"><span>📌 '+sanitizeHTML(tp)+'</span><span>▼</span></div>';
           h+='<div id="'+tpid+'" class="ch-content show" style="padding:6px;margin-left:12px;">';
           
-          Object.keys(grouped[ss][tp]).sort().forEach(function(st){
-            var stColor=getSSSColor(st);var stid='ss_st_'+ss.replace(/[^a-z0-9]/gi,'_')+'_'+tp.replace(/[^a-z0-9]/gi,'_')+'_'+st.replace(/[^a-z0-9]/gi,'_');
+          Object.keys(grouped[ss][tp]).sort().forEach(function(st, stIdx){
+            var stColor=getSSSColor(st);var stid=tpid+'_st_'+stIdx;
             h+='<div class="ch-row" style="background:'+stColor+';margin:6px 0;padding:8px 14px;font-size:1rem;margin-left:20px;" onclick="window.tog(\''+stid+'\')"><span>🔹 '+sanitizeHTML(st)+'</span><span class="item-count-badge"><span>'+grouped[ss][tp][st].length+'</span> items</span> <span>▼</span></div>';
             h+='<div id="'+stid+'" class="ch-content show" style="padding:6px;margin-left:20px;">';
             grouped[ss][tp][st].forEach(function(item,idx){
-              var itid='it_'+ss.replace(/[^a-z0-9]/gi,'_')+'_'+tp.replace(/[^a-z0-9]/gi,'_')+'_'+st.replace(/[^a-z0-9]/gi,'_')+'_'+idx;
-              var rawBody = (item.content || item.content_html || (item.metadata && item.metadata.content) || 'No content') + window.getImgs(item.imageUrls || item.image_urls);
+              sylCounter++;
+              var itid = 'syl_item_' + sylCounter;
+              var rawBody = extractContent(item) + window.getImgs(item.imageUrls || item.image_urls);
               SYL_CONTENT_MAP[itid] = rawBody;
               h+='<div class="ch-row" style="background:rgba(255,255,255,.06);border:1px solid var(--brd);margin:6px 0;padding:12px 16px;font-size:1.05rem;margin-left:24px;" onclick="window.tog(\''+itid+'\')"><span>📖 '+sanitizeHTML(item.title||'Item '+(idx+1))+'</span><span style="color:#fbbf24;">View Content [+]</span></div>';
               h+='<div id="'+itid+'" class="ch-content" style="padding:16px;font-size:1.15rem;margin-left:24px;line-height:1.7;"></div>';
@@ -508,36 +446,6 @@
       });
       return h;
     }
-
-    window.openGrandTestConfig = function(){
-      studyType='grandtest';
-      var sr=document.getElementById('sub-row'),ca=document.getElementById('content-area');
-      sr.innerHTML=getMainSubjects().map(function(s){return'<button class="btn-sub" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);opacity:.5;cursor:default;font-size:1.15rem;">'+s+'</button>'}).join('');
-      
-      var quizData=window.DB.quiz,allTopics={};
-      Object.keys(quizData).forEach(function(key){
-        var qMeta=quizData[key];
-        if(!qMeta || typeof qMeta !== 'object')return;
-        var cnt = Number(qMeta.count) || 10;
-        var ms=qMeta.subject||'General';
-        if(!allTopics[ms])allTopics[ms]={};
-        var ss=qMeta.subSubject||qMeta.sub_subject||'General';if(!allTopics[ms][ss])allTopics[ms][ss]={};
-        var tp=qMeta.topic||'General';if(!allTopics[ms][ss][tp])allTopics[ms][ss][tp]=[];
-        allTopics[ms][ss][tp].push({key:key,count:cnt,subTopic:qMeta.subTopic||qMeta.sub_topic||'General',topic:tp,subSubject:ss});
-      });
-      
-      var h='<button class="gt-back-btn" onclick="window.goBackFromGT()">← Back to Topics</button>';
-      h+='<div class="banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);"><h1>🏆 Grand Test Configuration</h1><p>Customize Your Exam</p></div>';
-      var allSubjects=Object.keys(allTopics).sort();
-      if(!allSubjects.length){
-        h+='<div style="padding:40px;text-align:center;color:var(--mut);">No quiz sets available for Grand Test yet.</div>';
-        ca.innerHTML=h;
-        return;
-      }
-      ca.innerHTML=h+'<div style="padding:30px;text-align:center;">Select subjects from the Quiz tab to start practicing!</div>';
-    }
-
-    window.goBackFromGT = function(){studyType='syllabus';window.refreshUI();}
 
     window.launchQ = async function(k,s,e,c){
       document.getElementById('shell').style.display='none';
