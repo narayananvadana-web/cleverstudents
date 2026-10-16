@@ -167,7 +167,69 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <script>
     // ============ VERCEL KV API HELPERS (WITH RETRY FOR 500 ERRORS) ============
+async function ensureSbCreds() {
+      if (window.__SB_REST_URL && window.__SB_API_KEY) return;
+      try {
+        var txt = await fetch('/supabase-client.js').then(r => r.text());
+        var uMatch = txt.match(/https:\/\/[a-z0-9\-]+\.supabase\.co/i);
+        var kMatch = txt.match(/eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+/);
+        if (uMatch) window.__SB_REST_URL = uMatch[0];
+        if (kMatch) window.__SB_API_KEY = kMatch[0];
+      } catch (e) {}
+    }
+
     async function fetchDB(key) {
+      await ensureSbCreds();
+      if (window.__SB_REST_URL && window.__SB_API_KEY) {
+        var hdrs = { 'apikey': window.__SB_API_KEY, 'Authorization': 'Bearer ' + window.__SB_API_KEY };
+        if (key === 'sscQuestionBank_index') {
+          var res = await fetch(window.__SB_REST_URL + '/rest/v1/quiz_sets?course=eq.ssc&select=id,quiz_key,title,subject,sub_subject,topic,sub_topic,order_index,metadata&limit=1000', { headers: hdrs });
+          if (res.ok) {
+            var rows = await res.json();
+            var idx = {};
+            rows.forEach(function(r) {
+              var m = r.metadata || {};
+              var k = r.quiz_key || r.id;
+              idx[k] = {
+                id: r.id,
+                count: Number(m.count) || 10,
+                subject: r.subject || m.subject || 'General Studies',
+                subSubject: r.sub_subject || m.subSubject || 'General',
+                topic: r.topic || m.topic || r.title || k,
+                subTopic: r.sub_topic || m.subTopic || 'General',
+                order: r.order_index || m.order || 0
+              };
+            });
+            return idx;
+          }
+        }
+        if (key.indexOf('qb_') === 0) {
+          var qKey = key.substring(3);
+          var sRes = await fetch(window.__SB_REST_URL + '/rest/v1/quiz_sets?course=eq.ssc&quiz_key=eq.' + encodeURIComponent(qKey) + '&select=id&limit=1', { headers: hdrs });
+          if (sRes.ok) {
+            var sRows = await sRes.json();
+            if (sRows && sRows.length > 0) {
+              var qRes = await fetch(window.__SB_REST_URL + '/rest/v1/quiz_questions?quiz_set_id=eq.' + encodeURIComponent(sRows[0].id) + '&select=*&order=order_index.asc&limit=2000', { headers: hdrs });
+              if (qRes.ok) {
+                var qRows = await qRes.json();
+                return qRows.map(function(r) {
+                  var m = r.metadata || {};
+                  return {
+                    question: r.question_html || r.question_text || m.question || '',
+                    options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
+                    correctAnswer: r.correct_answer || m.correctAnswer || 'A',
+                    explanation: r.explanation_html || r.explanation || m.explanation || '',
+                    subject: m.subject || 'General',
+                    subSubject: m.subSubject || 'General',
+                    topic: m.topic || qKey,
+                    subTopic: m.subTopic || 'General'
+                  };
+                });
+              }
+            }
+          }
+        }
+      }
       return (await window.supabaseDb.ref(key).once('value')).val();
     }
 
