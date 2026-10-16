@@ -53,8 +53,6 @@
     .study-tabs-row{display:flex;gap:10px;padding:15px;background:rgba(0,0,0,.15);flex-wrap:wrap;justify-content:center}
     .study-tab-btn{padding:10px 20px;border-radius:50px;border:2px solid var(--brd);background:0 0;color:var(--mut);font-weight:800;font-size:1.05rem;cursor:pointer;white-space:nowrap;transition:all 0.3s;}
     .study-tab-btn.active{background:#3b82f6;color:#fff;border-color:#3b82f6;box-shadow:0 4px 10px rgba(59,130,246,.4)}
-    .study-tab-btn.grand-test{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border-color:transparent;font-size:1.1rem;animation:grandPulse 2s ease-in-out infinite}
-    @keyframes grandPulse{0%,100%{box-shadow:0 0 10px rgba(245,158,11,.5)}50%{box-shadow:0 0 25px rgba(239,68,68,.8)}}
     
     .content{min-height:150px;background:var(--srf);padding-bottom:20px}
     
@@ -69,8 +67,8 @@
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:15px}
     .q-card{border:none;border-radius:8px;padding:20px 12px;text-align:center;cursor:pointer;color:#fff;transition:all 0.3s}
     .q-card:hover{transform:translateY(-4px);box-shadow:0 6px 15px rgba(0,0,0,.3)}
-    .q-card h4{font-weight:900;font-size:1.2rem;margin-bottom:8px}
-    .q-card small{font-size:1rem;opacity:0.9}
+    .q-card h4{font-weight:900;font-size:1.1rem;margin-bottom:8px;word-break:break-word}
+    .q-card small{font-size:.95rem;opacity:0.9}
 
     .q-player{padding:25px;background:var(--srf);border:1px solid var(--brd);border-radius:12px;max-width:1400px;margin:0 auto}
     .q-panel{border-radius:16px;padding:25px;background:rgba(0,0,0,.2)}
@@ -157,13 +155,83 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
   <script>
+    // ==================== ULTRA-FAST DIRECT SUPABASE QUERIES ====================
+    function getSbClient() {
+      return window.supabaseClient || (window.supabaseDb && window.supabaseDb.client) || null;
+    }
+
     async function fetchDB(key) {
       try {
-        const snap = await window.supabaseDb.ref(key).once('value');
+        const snap = await Promise.race([
+          window.supabaseDb.ref(key).once('value'),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout')), 8000))
+        ]);
         return snap ? snap.val() : null;
       } catch (e) {
+        console.warn('fetchDB fallback for ' + key, e);
         return null;
       }
+    }
+
+    // Fast single-query loader for 400+ SSC quiz sets (avoids N+1 hang!)
+    async function fastFetchQuizIndex() {
+      var sb = getSbClient();
+      if (sb && sb.from) {
+        try {
+          const { data, error } = await sb
+            .from('quiz_sets')
+            .select('id, quiz_key, title, subject, sub_subject, topic, sub_topic, order_index, metadata')
+            .eq('course', 'ssc');
+          if (!error && Array.isArray(data)) {
+            var idx = {};
+            data.forEach(function(row) {
+              var meta = row.metadata || {};
+              idx[row.quiz_key] = {
+                id: row.id,
+                count: Number(meta.count) || 10,
+                subject: row.subject || meta.subject || 'General Studies',
+                subSubject: row.sub_subject || meta.subSubject || 'General',
+                topic: row.topic || meta.topic || row.title || row.quiz_key,
+                subTopic: row.sub_topic || meta.subTopic || 'General',
+                order: row.order_index || meta.order || 0
+              };
+            });
+            return idx;
+          }
+        } catch (err) {
+          console.error('Fast quiz index query error:', err);
+        }
+      }
+      return (await fetchDB('sscQuestionBank_index')) || {};
+    }
+
+    // Fast single-query loader for questions of a specific quiz set
+    async function fastFetchQuizQuestions(quizKey) {
+      var sb = getSbClient();
+      var setMeta = window.DB.quiz && window.DB.quiz[quizKey];
+      if (sb && sb.from && setMeta && setMeta.id) {
+        try {
+          const { data, error } = await sb
+            .from('quiz_questions')
+            .select('*')
+            .eq('quiz_set_id', setMeta.id)
+            .order('order_index', { ascending: true });
+          if (!error && Array.isArray(data) && data.length > 0) {
+            return data.map(function(r) {
+              var m = r.metadata || {};
+              return {
+                question: r.question_html || r.question_text || m.question || '',
+                options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
+                correctAnswer: r.correct_answer || m.correctAnswer || 'A',
+                explanation: r.explanation_html || r.explanation || m.explanation || ''
+              };
+            });
+          }
+        } catch (err) {
+          console.error('Fast question fetch error:', err);
+        }
+      }
+      return await fetchDB('qb_' + quizKey);
     }
 
     var sssColorMap={};var sssColorIndex=0;
@@ -171,10 +239,10 @@
     function getSSSColor(sss){if(!sssColorMap[sss]){sssColorMap[sss]=SSS_COLORS[sssColorIndex%SSS_COLORS.length];sssColorIndex++;}return sssColorMap[sss];}
 
     var newsWithLinks=[
-      {text:'🎓 Reasoning - Study Materials',action:function(){window.switchSubject('Reasoning & Intelligence');studyType='syllabus';window.refreshUI()}},
-      {text:'📚 Quantitative Aptitude',action:function(){window.switchSubject('Quantitative Aptitude');studyType='syllabus';window.refreshUI()}},
-      {text:'📝 General English - Study & Practice',action:function(){window.switchSubject('General English');studyType='syllabus';window.refreshUI()}},
-      {text:'🌍 General Studies - Complete Notes',action:function(){window.switchSubject('General Studies');studyType='syllabus';window.refreshUI()}}
+      {text:'🎓 Reasoning - 16,000+ Practice Questions',action:function(){window.switchSubject('Reasoning & Intelligence');studyType='quiz';window.refreshUI()}},
+      {text:'📚 Quantitative Aptitude Quizzes',action:function(){window.switchSubject('Quantitative Aptitude');studyType='quiz';window.refreshUI()}},
+      {text:'📝 General English - 2,700+ Questions',action:function(){window.switchSubject('General English');studyType='quiz';window.refreshUI()}},
+      {text:'🌍 General Studies - 12,000+ MCQs',action:function(){window.switchSubject('General Studies');studyType='quiz';window.refreshUI()}}
     ];
     window.buildNewsTicker = function(){var t=document.getElementById('newsTicker');if(!t)return;var h='';newsWithLinks.forEach(function(i,idx){h+='<a class="news-link" onclick="event.stopPropagation();window.handleNewsClick('+idx+')">'+i.text+'</a>';if(idx<newsWithLinks.length-1)h+='<span style="color:rgba(255,255,255,.3);margin:0 6px">|</span>'});t.innerHTML=h+h}
     window.handleNewsClick = function(i){var n=newsWithLinks[i%newsWithLinks.length];if(n&&n.action)n.action()}
@@ -192,7 +260,7 @@
 
     window.DB = { syllabus: {}, quiz: {} };
     var settings = { users: {} };
-    var studyType = 'syllabus';
+    var studyType = 'quiz';
     var subject = 'General English';
     var qActive=[],qIdx=0,qTimer=null,qSec=0,qAns=[];
     var SSC_HIERARCHY = {};
@@ -313,233 +381,6 @@
     window.loadAllData = async function(){
       const [syl, qzIndex] = await Promise.all([
          fetchDB('sscTheoryDatabase'),
-         fetchDB('sscQuestionBank_index')
+         fastFetchQuizIndex()
       ]);
-      window.DB.syllabus = syl || {};
-      window.DB.quiz = qzIndex || {};
-      buildHierarchyFromData();
-    }
-
-    window.refreshUI = function(){
-      var sr=document.getElementById('sub-row'),ca=document.getElementById('content-area');
-      var as = getMainSubjects();
-
-      if(as.indexOf(subject)===-1) subject = as[0] || 'General English';
-
-      sr.innerHTML=as.map(function(s){return'<button class="btn-sub '+(subject===s?'active':'')+'" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)" onclick="window.switchSubject(\''+s.replace(/'/g,"\\'")+'\')">'+(subject===s?'✔ ':'')+s+'</button>'}).join('');
-      
-      var tn={syllabus:'📖 Syllabus / Study Material', quiz:'📝 Practice Quiz'};
-      var tabsHTML='<div class="study-tabs-row">'+Object.keys(tn).map(function(t){return'<button class="study-tab-btn '+(studyType===t?'active':'')+'" onclick="window.setStudyType(\''+t+'\')">'+tn[t]+'</button>'}).join('')+'</div>';
-      var fullHTML='<div class="banner" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><h1>'+subject+'</h1><p>SSC Mastery Preparation</p></div>'+tabsHTML;
-      if(studyType==='quiz')fullHTML+=window.renderQuizHTML();
-      else fullHTML+=window.renderSyllabusHTML();
-      ca.innerHTML=fullHTML;
-    }
-
-    window.switchSubject = function(s){subject=s;window.refreshUI()}
-    window.setStudyType = function(t){studyType=t;window.refreshUI()}
-
-    window.renderQuizHTML = function(){
-      var quizKeys=Object.keys(window.DB.quiz).filter(function(k){
-          var qMeta = window.DB.quiz[k];
-          if(!qMeta || typeof qMeta !== 'object') return false;
-          var s = qMeta.subject || (qMeta.metadata && qMeta.metadata.subject) || 'General';
-          return s === subject;
-      });
-      if(!quizKeys.length)return'<div style="padding:40px;text-align:center;color:var(--mut);font-size:1.25rem;font-weight:700;">No quizzes found for <strong>'+subject+'</strong> yet.<br><small style="font-size:.95rem;">Run <code>python fix_ssc.py</code> or upload CSV in Admin Panel.</small><br><br><button class="btn btn-blue btn-sm" onclick="window.setStudyType(\'syllabus\')">📖 View Study Material Instead</button></div>';
-      
-      var grouped={};
-      quizKeys.forEach(function(k){
-        var qMeta = Object.assign({}, window.DB.quiz[k].metadata || {}, window.DB.quiz[k]);
-        var ss=qMeta.subSubject||qMeta.sub_subject||'General';
-        var tp=qMeta.topic||'General';
-        var st=qMeta.subTopic||qMeta.sub_topic||'General';
-        var cnt = Number(qMeta.count) || 10;
-        if(!grouped[ss])grouped[ss]={};
-        if(!grouped[ss][tp])grouped[ss][tp]={};
-        if(!grouped[ss][tp][st])grouped[ss][tp][st]=[];
-        grouped[ss][tp][st].push({key:k, count:cnt, subTopic:st});
-      });
-      
-      var h='',ci=0;var subColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)'];
-      
-      Object.keys(grouped).sort().forEach(function(ss, sIdx){
-        var sColor=subColors[ci%subColors.length];ci++;var ssid='qz_ss_'+sIdx;
-        h+='<div class="ch-row" style="background:'+sColor+';" onclick="window.tog(\''+ssid+'\')"><span>📝 '+sanitizeHTML(ss)+'</span><span>▼</span></div>';
-        h+='<div id="'+ssid+'" class="ch-content show" style="padding:10px">';
-        
-        Object.keys(grouped[ss]).sort().forEach(function(tp, tIdx){
-          var tpColor=getSSSColor(tp);var tpid=ssid+'_tp_'+tIdx;
-          h+='<div class="ch-row" style="background:'+tpColor+';margin:4px 0;padding:10px 15px;font-size:1.05rem;margin-left:12px;" onclick="window.tog(\''+tpid+'\')"><span>📌 '+sanitizeHTML(tp)+'</span><span>▼</span></div>';
-          h+='<div id="'+tpid+'" class="ch-content show" style="padding:8px;margin-left:12px;">';
-          
-          Object.keys(grouped[ss][tp]).sort().forEach(function(st, stIdx){
-            var stColor=getSSSColor(st);var stid=tpid+'_st_'+stIdx,topicTests=grouped[ss][tp][st];
-            h+='<div class="ch-row" style="background:'+stColor+';margin:6px 0;padding:8px 14px;font-size:1rem;margin-left:20px;" onclick="window.tog(\''+stid+'\')"><span>🔹 '+sanitizeHTML(st)+'</span><span>▼</span></div>';
-            h+='<div id="'+stid+'" class="ch-content show" style="padding:8px;margin-left:20px;"><div class="grid">';
-            topicTests.forEach(function(qz){
-                var totalQs=qz.count||10,tc=Math.max(1,Math.ceil(totalQs/10));
-                for(var t=1;t<=tc;t++){
-                    var st2=(t-1)*10,end=Math.min(st2+10,totalQs);
-                    h+='<div class="q-card" style="background:'+stColor+';" onclick="window.launchQ(\''+qz.key+'\','+st2+','+end+',\''+stColor.replace(/'/g,"\\'")+'\')"><h4>'+sanitizeHTML(st)+'</h4><small>Test '+t+' ('+(end-st2)+' Qs)</small></div>';
-                }
-            });
-            h+='</div></div>';
-          });
-          h+='</div>';
-        });
-        h+='</div>';
-      });
-      return h;
-    }
-
-    window.renderSyllabusHTML = function(){
-      SYL_CONTENT_MAP = {};
-      sylCounter = 0;
-      var items=window.getArr(window.DB.syllabus).filter(function(item){return item.subject===subject;});
-      if(!items.length)return'<div style="padding:40px;text-align:center;color:var(--mut);font-size:1.3rem;font-weight:700;">No syllabus items for '+subject+'</div>';
-      
-      sssColorMap={};sssColorIndex=0;
-      var grouped={};
-      items.forEach(function(item){
-        var ss=item.subSubject||item.sub_subject||'General',tp=item.topic||'General',st=item.subTopic||item.sub_topic||item.subSubSubject||'General';
-        if(!grouped[ss])grouped[ss]={};
-        if(!grouped[ss][tp])grouped[ss][tp]={};
-        if(!grouped[ss][tp][st])grouped[ss][tp][st]=[];
-        grouped[ss][tp][st].push(item);
-      });
-      
-      var h='',ci=0;var subColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)'];
-      
-      Object.keys(grouped).sort().forEach(function(ss, sIdx){
-        var sColor=subColors[ci%subColors.length];ci++;var ssid='ss_box_'+sIdx;
-        var ssTotalItems=0;
-        Object.keys(grouped[ss]).forEach(function(tp){
-          Object.keys(grouped[ss][tp]).forEach(function(st){ ssTotalItems+=grouped[ss][tp][st].length; });
-        });
-        
-        h+='<div class="ch-row" style="background:'+sColor+';" onclick="window.tog(\''+ssid+'\')"><span>📂 '+sanitizeHTML(ss)+'</span><span class="item-count-badge"><span>'+ssTotalItems+'</span> chapters</span> <span>▼</span></div>';
-        h+='<div id="'+ssid+'" class="ch-content show" style="padding:10px">';
-        
-        Object.keys(grouped[ss]).sort().forEach(function(tp, tIdx){
-          var tpColor=getSSSColor(tp);var tpid=ssid+'_tp_'+tIdx;
-          h+='<div class="ch-row" style="background:'+tpColor+';margin:4px 0;padding:10px 15px;font-size:1.05rem;margin-left:12px;" onclick="window.tog(\''+tpid+'\')"><span>📌 '+sanitizeHTML(tp)+'</span><span>▼</span></div>';
-          h+='<div id="'+tpid+'" class="ch-content show" style="padding:6px;margin-left:12px;">';
-          
-          Object.keys(grouped[ss][tp]).sort().forEach(function(st, stIdx){
-            var stColor=getSSSColor(st);var stid=tpid+'_st_'+stIdx;
-            h+='<div class="ch-row" style="background:'+stColor+';margin:6px 0;padding:8px 14px;font-size:1rem;margin-left:20px;" onclick="window.tog(\''+stid+'\')"><span>🔹 '+sanitizeHTML(st)+'</span><span class="item-count-badge"><span>'+grouped[ss][tp][st].length+'</span> items</span> <span>▼</span></div>';
-            h+='<div id="'+stid+'" class="ch-content show" style="padding:6px;margin-left:20px;">';
-            grouped[ss][tp][st].forEach(function(item,idx){
-              sylCounter++;
-              var itid = 'syl_item_' + sylCounter;
-              var rawBody = extractContent(item) + window.getImgs(item.imageUrls || item.image_urls);
-              SYL_CONTENT_MAP[itid] = rawBody;
-              h+='<div class="ch-row" style="background:rgba(255,255,255,.06);border:1px solid var(--brd);margin:6px 0;padding:12px 16px;font-size:1.05rem;margin-left:24px;" onclick="window.tog(\''+itid+'\')"><span>📖 '+sanitizeHTML(item.title||'Item '+(idx+1))+'</span><span style="color:#fbbf24;">View Content [+]</span></div>';
-              h+='<div id="'+itid+'" class="ch-content" style="padding:16px;font-size:1.15rem;margin-left:24px;line-height:1.7;"></div>';
-            });
-            h+='</div>';
-          });
-          h+='</div>';
-        });
-        h+='</div>';
-      });
-      return h;
-    }
-
-    window.launchQ = async function(k,s,e,c){
-      document.getElementById('shell').style.display='none';
-      var p=document.getElementById('quiz-player');
-      p.style.display='block';
-      p.dataset.theme=c;
-      p.innerHTML = '<div style="padding:60px;text-align:center;font-size:1.3rem;font-weight:800;"><span class="spinner"></span> Loading Questions...</div>';
-      
-      var data = await fetchDB('qb_' + k);
-      if(!data||!Array.isArray(data)||!data.length){alert('Quiz questions not found for this set!'); window.closeQ(); return}
-      
-      qActive=data.slice(s,e);
-      qIdx=0;
-      qAns=new Array(qActive.length).fill(null);
-      qSec=0;
-      window.stopQT();
-      qTimer=setInterval(function(){
-          qSec++;
-          var el=document.getElementById('qt');
-          if(el)el.innerText='Timer: '+String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');
-      },1000);
-      window.renderQ();
-    }
-
-    window.renderQ = function() {
-      var q = qActive[qIdx], pa = qAns[qIdx], c = document.getElementById('quiz-player').dataset.theme || '';
-      var m = String(Math.floor(qSec / 60)).padStart(2, '0'), s = String(qSec % 60).padStart(2, '0');
-      var opts = q.options || { A: q.optionA || q.option_a, B: q.optionB || q.option_b, C: q.optionC || q.option_c, D: q.optionD || q.option_d };
-      var corr = q.correctAnswer || q.correct_answer || 'A';
-
-      function oc(o) {
-        if (!pa) return '';
-        if (pa.sel === o) return pa.ok ? 'correct' : 'wrong';
-        if (corr === o && !pa.ok) return 'reveal';
-        return '';
-      }
-
-      var fb = '';
-      if (pa) {
-        fb = '<div class="feedback show ' + (pa.ok ? 'correct' : 'wrong') + '">' +
-          (pa.ok ? '✅ Correct!' : '❌ Incorrect!') +
-          '<br>Correct: <b>' + sanitizeHTML(corr) + ') ' + (opts[corr] || '') + '</b>' +
-          (q.explanation ? '<br>💡 ' + q.explanation : '') + '</div>';
-      }
-
-      var html = '<div class="q-panel">';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;">';
-      html += '<button class="btn btn-dark btn-sm notranslate" onclick="window.closeQ()">← Back</button>';
-      html += '<span class="btn" style="background:' + c + ';font-size:1.1rem;padding:8px 16px;">Q ' + (qIdx + 1) + '/' + qActive.length + '</span>';
-      html += '<span class="btn btn-dark notranslate" id="qt" style="font-size:1.1rem;padding:8px 16px;">Timer: ' + m + ':' + s + '</span>';
-      html += '</div>';
-
-      html += '<div style="font-size:1.45rem;font-weight:800;margin-bottom:25px;line-height:1.7;">' + (q.question || q.question_text || '') + '</div>';
-
-      html += '<div class="options-grid">';
-      ['A', 'B', 'C', 'D'].forEach(function(o) {
-        if (opts && opts[o]) {
-          html += '<button class="opt-btn ' + oc(o) + '" onclick="window.answerQ(\'' + o + '\')" ' + (pa ? 'disabled' : '') + '>';
-          html += '<b>' + o + ')</b> <span style="flex:1;">' + opts[o] + '</span>';
-          html += '</button>';
-        }
-      });
-      html += '</div>';
-
-      html += fb;
-      html += '<div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:20px;">';
-      html += '<button class="btn btn-dark" onclick="window.prevQ()" ' + (qIdx === 0 ? 'disabled' : '') + '>◀ Prev</button>';
-      html += '<button class="btn btn-green" onclick="window.nextQ()" ' + (!pa ? 'disabled' : '') + '>' + (qIdx === qActive.length - 1 ? '🏁 Finish' : 'Next ▶') + '</button>';
-      html += '</div></div>';
-
-      document.getElementById('quiz-player').innerHTML = html;
-    }
-
-    window.answerQ = function(s){
-      var corr = qActive[qIdx].correctAnswer || qActive[qIdx].correct_answer || 'A';
-      qAns[qIdx]={sel:s,ok:s===corr};
-      window.renderQ();
-    }
-    window.prevQ = function(){if(qIdx>0){qIdx--;window.renderQ();}}
-    window.nextQ = function(){if(qIdx<qActive.length-1){qIdx++;window.renderQ();}else{window.closeQ();}}
-    window.stopQT = function(){if(qTimer){clearInterval(qTimer);qTimer=null;}}
-    window.closeQ = function(){window.stopQT();document.getElementById('quiz-player').style.display='none';document.getElementById('shell').style.display='block';window.refreshUI();}
-
-    async function initApp(){
-      document.getElementById('login-overlay').style.display = 'none';
-      const [hier, sets] = await Promise.all([ fetchDB('sscHierarchy'), fetchDB('appSettings') ]);
-      if(hier && Object.keys(hier).length > 0) SSC_HIERARCHY = hier;
-      if(sets) settings.users = sets.users || {};
-      await window.loadAllData();
-      window.refreshUI();
-    }
-    window.onload=initApp;
-  </script>
-  <script src="/footer.js"></script>
-  <script src="/global-navbar.js"></script>
-</body>
-</html>
+      window
