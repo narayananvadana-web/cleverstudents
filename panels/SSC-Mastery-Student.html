@@ -107,7 +107,30 @@
   </style>
 </head>
 <body class="protected-mode">
-<script src="/supabase-client.js"></script>
+  <script>
+    // Intercept fetch to automatically capture Supabase REST URL and API Key!
+    window.__SB_REST_URL = null;
+    window.__SB_API_KEY = null;
+    (function(){
+      var origFetch = window.fetch;
+      window.fetch = function(url, opts) {
+        try {
+          var u = typeof url === 'string' ? url : (url && url.url ? url.url : '');
+          if (u && u.indexOf('.supabase.co') !== -1) {
+            var m = u.match(/^(https:\/\/[^\/]+\.supabase\.co)/i);
+            if (m) window.__SB_REST_URL = m[1];
+            if (opts && opts.headers) {
+              var h = opts.headers;
+              var k = (h.get ? (h.get('apikey') || h.get('Authorization')) : (h.apikey || h.Authorization || h['apikey']));
+              if (k) window.__SB_API_KEY = String(k).replace(/^Bearer\s+/i, '');
+            }
+          }
+        } catch(e) {}
+        return origFetch.apply(this, arguments);
+      };
+    })();
+  </script>
+  <script src="/supabase-client.js"></script>
 
   <div id="login-overlay">
     <div class="login-box">
@@ -155,83 +178,96 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
   <script>
-    // ==================== ULTRA-FAST DIRECT SUPABASE QUERIES ====================
-    function getSbClient() {
-      return window.supabaseClient || (window.supabaseDb && window.supabaseDb.client) || null;
-    }
-
-    async function fetchDB(key) {
+    // Extract credentials from supabase-client.js source if not yet captured
+    async function ensureSbCredentials() {
+      if (window.__SB_REST_URL && window.__SB_API_KEY) return true;
       try {
-        const snap = await Promise.race([
-          window.supabaseDb.ref(key).once('value'),
-          new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout')), 8000))
-        ]);
-        return snap ? snap.val() : null;
-      } catch (e) {
-        console.warn('fetchDB fallback for ' + key, e);
-        return null;
-      }
+        var txt = await fetch('/supabase-client.js').then(r => r.text());
+        var uMatch = txt.match(/https:\/\/[a-z0-9\-]+\.supabase\.co/i);
+        var kMatch = txt.match(/eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+/);
+        if (uMatch) window.__SB_REST_URL = uMatch[0];
+        if (kMatch) window.__SB_API_KEY = kMatch[0];
+      } catch (e) {}
+      return Boolean(window.__SB_REST_URL && window.__SB_API_KEY);
     }
 
-    // Fast single-query loader for 400+ SSC quiz sets (avoids N+1 hang!)
-    async function fastFetchQuizIndex() {
-      var sb = getSbClient();
-      if (sb && sb.from) {
-        try {
-          const { data, error } = await sb
-            .from('quiz_sets')
-            .select('id, quiz_key, title, subject, sub_subject, topic, sub_topic, order_index, metadata')
-            .eq('course', 'ssc');
-          if (!error && Array.isArray(data)) {
-            var idx = {};
-            data.forEach(function(row) {
-              var meta = row.metadata || {};
-              idx[row.quiz_key] = {
-                id: row.id,
-                count: Number(meta.count) || 10,
-                subject: row.subject || meta.subject || 'General Studies',
-                subSubject: row.sub_subject || meta.subSubject || 'General',
-                topic: row.topic || meta.topic || row.title || row.quiz_key,
-                subTopic: row.sub_topic || meta.subTopic || 'General',
-                order: row.order_index || meta.order || 0
-              };
-            });
-            return idx;
-          }
-        } catch (err) {
-          console.error('Fast quiz index query error:', err);
+    async function sbRestGet(tableAndQuery) {
+      await ensureSbCredentials();
+      if (!window.__SB_REST_URL || !window.__SB_API_KEY) return null;
+      var res = await fetch(window.__SB_REST_URL + '/rest/v1/' + tableAndQuery, {
+        headers: {
+          'apikey': window.__SB_API_KEY,
+          'Authorization': 'Bearer ' + window.__SB_API_KEY
         }
-      }
-      return (await fetchDB('sscQuestionBank_index')) || {};
+      });
+      if (!res.ok) return null;
+      return await res.json();
     }
 
-    // Fast single-query loader for questions of a specific quiz set
+    // 1-Second Direct REST Loader for Syllabus + 400 Quiz Sets!
+    async function fastLoadAllSSCData() {
+      var [sylRows, quizRows] = await Promise.all([
+        sbRestGet('study_materials?course=eq.ssc&select=id,material_key,title,subject,sub_subject,topic,sub_topic,content_html,image_urls,order_index,metadata&limit=1000'),
+        sbRestGet('quiz_sets?course=eq.ssc&select=id,quiz_key,title,subject,sub_subject,topic,sub_topic,order_index,metadata&limit=1000')
+      ]);
+
+      var sylMap = {};
+      if (Array.isArray(sylRows)) {
+        sylRows.forEach(function(r) {
+          var m = r.metadata || {};
+          var k = r.material_key || r.id;
+          sylMap[k] = {
+            title: r.title || m.title || 'Untitled',
+            subject: r.subject || m.subject || 'General English',
+            subSubject: r.sub_subject || m.subSubject || 'General',
+            topic: r.topic || m.topic || 'General',
+            subTopic: r.sub_topic || m.subTopic || 'General',
+            content: r.content_html || m.content || '',
+            imageUrls: r.image_urls || m.imageUrls || [],
+            order: r.order_index || m.order || 0
+          };
+        });
+      }
+
+      var quizMap = {};
+      if (Array.isArray(quizRows)) {
+        quizRows.forEach(function(r) {
+          var m = r.metadata || {};
+          var k = r.quiz_key || r.id;
+          quizMap[k] = {
+            id: r.id,
+            count: Number(m.count) || 10,
+            subject: r.subject || m.subject || 'General Studies',
+            subSubject: r.sub_subject || m.subSubject || 'General',
+            topic: r.topic || m.topic || r.title || k,
+            subTopic: r.sub_topic || m.subTopic || 'General',
+            order: r.order_index || m.order || 0
+          };
+        });
+      }
+
+      window.DB.syllabus = sylMap;
+      window.DB.quiz = quizMap;
+      buildHierarchyFromData();
+    }
+
     async function fastFetchQuizQuestions(quizKey) {
-      var sb = getSbClient();
       var setMeta = window.DB.quiz && window.DB.quiz[quizKey];
-      if (sb && sb.from && setMeta && setMeta.id) {
-        try {
-          const { data, error } = await sb
-            .from('quiz_questions')
-            .select('*')
-            .eq('quiz_set_id', setMeta.id)
-            .order('order_index', { ascending: true });
-          if (!error && Array.isArray(data) && data.length > 0) {
-            return data.map(function(r) {
-              var m = r.metadata || {};
-              return {
-                question: r.question_html || r.question_text || m.question || '',
-                options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
-                correctAnswer: r.correct_answer || m.correctAnswer || 'A',
-                explanation: r.explanation_html || r.explanation || m.explanation || ''
-              };
-            });
-          }
-        } catch (err) {
-          console.error('Fast question fetch error:', err);
+      if (setMeta && setMeta.id) {
+        var rows = await sbRestGet('quiz_questions?quiz_set_id=eq.' + encodeURIComponent(setMeta.id) + '&select=*&order=order_index.asc&limit=2000');
+        if (Array.isArray(rows) && rows.length > 0) {
+          return rows.map(function(r) {
+            var m = r.metadata || {};
+            return {
+              question: r.question_html || r.question_text || m.question || '',
+              options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
+              correctAnswer: r.correct_answer || m.correctAnswer || 'A',
+              explanation: r.explanation_html || r.explanation || m.explanation || ''
+            };
+          });
         }
       }
-      return await fetchDB('qb_' + quizKey);
+      return [];
     }
 
     var sssColorMap={};var sssColorIndex=0;
@@ -239,10 +275,10 @@
     function getSSSColor(sss){if(!sssColorMap[sss]){sssColorMap[sss]=SSS_COLORS[sssColorIndex%SSS_COLORS.length];sssColorIndex++;}return sssColorMap[sss];}
 
     var newsWithLinks=[
-      {text:'🎓 Reasoning - 16,000+ Practice Questions',action:function(){window.switchSubject('Reasoning & Intelligence');studyType='quiz';window.refreshUI()}},
-      {text:'📚 Quantitative Aptitude Quizzes',action:function(){window.switchSubject('Quantitative Aptitude');studyType='quiz';window.refreshUI()}},
-      {text:'📝 General English - 2,700+ Questions',action:function(){window.switchSubject('General English');studyType='quiz';window.refreshUI()}},
-      {text:'🌍 General Studies - 12,000+ MCQs',action:function(){window.switchSubject('General Studies');studyType='quiz';window.refreshUI()}}
+      {text:'🎓 Reasoning - 16,184 Practice Questions',action:function(){window.switchSubject('Reasoning & Intelligence');studyType='quiz';window.refreshUI()}},
+      {text:'📚 Quantitative Aptitude - 3,502 Questions',action:function(){window.switchSubject('Quantitative Aptitude');studyType='quiz';window.refreshUI()}},
+      {text:'📝 General English - 2,715 Questions',action:function(){window.switchSubject('General English');studyType='quiz';window.refreshUI()}},
+      {text:'🌍 General Studies - 12,293 MCQs',action:function(){window.switchSubject('General Studies');studyType='quiz';window.refreshUI()}}
     ];
     window.buildNewsTicker = function(){var t=document.getElementById('newsTicker');if(!t)return;var h='';newsWithLinks.forEach(function(i,idx){h+='<a class="news-link" onclick="event.stopPropagation();window.handleNewsClick('+idx+')">'+i.text+'</a>';if(idx<newsWithLinks.length-1)h+='<span style="color:rgba(255,255,255,.3);margin:0 6px">|</span>'});t.innerHTML=h+h}
     window.handleNewsClick = function(i){var n=newsWithLinks[i%newsWithLinks.length];if(n&&n.action)n.action()}
@@ -259,7 +295,6 @@
     };
 
     window.DB = { syllabus: {}, quiz: {} };
-    var settings = { users: {} };
     var studyType = 'quiz';
     var subject = 'General English';
     var qActive=[],qIdx=0,qTimer=null,qSec=0,qAns=[];
@@ -267,26 +302,15 @@
     var SYL_CONTENT_MAP = {};
     var sylCounter = 0;
 
-    function extractContent(item) {
-      if (!item) return '';
-      if (item.content && String(item.content).trim()) return item.content;
-      if (item.content_html && String(item.content_html).trim()) return item.content_html;
-      if (item.body && String(item.body).trim()) return item.body;
-      if (item.metadata && typeof item.metadata === 'object') {
-        return item.metadata.content || item.metadata.content_html || item.metadata.body || '';
-      }
-      return '';
-    }
-
     function buildHierarchyFromData() {
       SSC_HIERARCHY = JSON.parse(JSON.stringify(DEFAULT_HIERARCHY));
       Object.keys(window.DB.syllabus || {}).forEach(function(k) {
         var it = window.DB.syllabus[k];
-        if (!it || typeof it !== 'object') return;
-        var s = it.subject || (it.metadata && it.metadata.subject) || 'General';
-        var ss = it.subSubject || it.sub_subject || (it.metadata && it.metadata.subSubject) || 'General';
-        var tp = it.topic || (it.metadata && it.metadata.topic) || 'General';
-        var st = it.subTopic || it.sub_topic || (it.metadata && it.metadata.subTopic) || 'General';
+        if (!it) return;
+        var s = it.subject || 'General';
+        var ss = it.subSubject || 'General';
+        var tp = it.topic || 'General';
+        var st = it.subTopic || 'General';
         if (!SSC_HIERARCHY[s]) SSC_HIERARCHY[s] = {};
         if (!SSC_HIERARCHY[s][ss]) SSC_HIERARCHY[s][ss] = {};
         if (!SSC_HIERARCHY[s][ss][tp]) SSC_HIERARCHY[s][ss][tp] = [];
@@ -294,11 +318,11 @@
       });
       Object.keys(window.DB.quiz || {}).forEach(function(k) {
         var q = window.DB.quiz[k];
-        if (!q || typeof q !== 'object') return;
-        var s = q.subject || (q.metadata && q.metadata.subject) || 'General';
-        var ss = q.subSubject || q.sub_subject || (q.metadata && q.metadata.subSubject) || 'General';
-        var tp = q.topic || (q.metadata && q.metadata.topic) || 'General';
-        var st = q.subTopic || q.sub_topic || (q.metadata && q.metadata.subTopic) || 'General';
+        if (!q) return;
+        var s = q.subject || 'General';
+        var ss = q.subSubject || 'General';
+        var tp = q.topic || 'General';
+        var st = q.subTopic || 'General';
         if (!SSC_HIERARCHY[s]) SSC_HIERARCHY[s] = {};
         if (!SSC_HIERARCHY[s][ss]) SSC_HIERARCHY[s][ss] = {};
         if (!SSC_HIERARCHY[s][ss][tp]) SSC_HIERARCHY[s][ss][tp] = [];
@@ -317,15 +341,8 @@
     window.toggleTheme = function(){var l=document.body.classList.toggle('light-mode');localStorage.setItem('ssc_st_th',l?'light':'dark');document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode'}
     window.getArr = function(o){
       if(!o)return[];
-      var r=[];
-      Object.keys(o).forEach(function(k){
-        if(o[k]&&typeof o[k]==='object') {
-          var merged = Object.assign({}, o[k].metadata || {}, o[k]);
-          merged._key = k;
-          r.push(merged);
-        }
-      });
-      r.sort(function(a,b){var oA=a.order!==undefined?a.order:999999;var oB=b.order!==undefined?b.order:999999;return oA-oB});
+      var r=Object.keys(o).map(function(k){return o[k];}).filter(Boolean);
+      r.sort(function(a,b){return (a.order||0)-(b.order||0);});
       return r;
     }
     window.getImgs = function(u){if(!u||!Array.isArray(u)||!u.length)return'';var h='';u.forEach(function(url){if(url)h+='<img src="'+url+'" class="img-th" onclick="window.openModal(\''+encodeURIComponent(url)+'\')">'});return h}
@@ -356,31 +373,225 @@
 
     window.openModal = function(d){var m=document.getElementById('img-modal');document.getElementById('modal-img').src=decodeURIComponent(d);m.classList.add('show')}
     window.closeModal = function(){document.getElementById('img-modal').classList.remove('show')}
+    window.loginAsGuest = function(){document.getElementById('login-overlay').style.display='none';window.refreshUI();}
+    window.attemptLogin = function(){document.getElementById('login-overlay').style.display='none';window.refreshUI();}
 
-    window.loginAsGuest = function(){
-      document.getElementById('login-overlay').style.display='none';
-      document.getElementById('user-display').innerText='👤 Guest';
+    window.refreshUI = function(){
+      var sr=document.getElementById('sub-row'),ca=document.getElementById('content-area');
+      var as = getMainSubjects();
+      if(as.indexOf(subject)===-1) subject = as[0] || 'General English';
+
+      sr.innerHTML=as.map(function(s){return'<button class="btn-sub '+(subject===s?'active':'')+'" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)" onclick="window.switchSubject(\''+s.replace(/'/g,"\\'")+'\')">'+(subject===s?'✔ ':'')+s+'</button>'}).join('');
+      
+      var tn={quiz:'📝 Practice Quiz', syllabus:'📖 Syllabus / Study Material'};
+      var tabsHTML='<div class="study-tabs-row">'+Object.keys(tn).map(function(t){return'<button class="study-tab-btn '+(studyType===t?'active':'')+'" onclick="window.setStudyType(\''+t+'\')">'+tn[t]+'</button>'}).join('')+'</div>';
+      var fullHTML='<div class="banner" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><h1>'+subject+'</h1><p>SSC Mastery Preparation</p></div>'+tabsHTML;
+      if(studyType==='quiz')fullHTML+=window.renderQuizHTML();
+      else fullHTML+=window.renderSyllabusHTML();
+      ca.innerHTML=fullHTML;
+    }
+
+    window.switchSubject = function(s){subject=s;window.refreshUI()}
+    window.setStudyType = function(t){studyType=t;window.refreshUI()}
+
+    window.renderQuizHTML = function(){
+      var quizKeys=Object.keys(window.DB.quiz).filter(function(k){
+          var qMeta = window.DB.quiz[k];
+          return qMeta && qMeta.subject === subject;
+      });
+      if(!quizKeys.length)return'<div style="padding:40px;text-align:center;color:var(--mut);font-size:1.25rem;font-weight:700;">No quizzes found for <strong>'+subject+'</strong>.<br><br><button class="btn btn-blue btn-sm" onclick="window.setStudyType(\'syllabus\')">📖 View Study Material Instead</button></div>';
+      
+      var grouped={};
+      quizKeys.forEach(function(k){
+        var qMeta = window.DB.quiz[k];
+        var ss=qMeta.subSubject||'General';
+        var tp=qMeta.topic||'General';
+        var st=qMeta.subTopic||'General';
+        var cnt = Number(qMeta.count) || 10;
+        if(!grouped[ss])grouped[ss]={};
+        if(!grouped[ss][tp])grouped[ss][tp]={};
+        if(!grouped[ss][tp][st])grouped[ss][tp][st]=[];
+        grouped[ss][tp][st].push({key:k, count:cnt, subTopic:st, topic:tp});
+      });
+      
+      var h='',ci=0;var subColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)'];
+      
+      Object.keys(grouped).sort().forEach(function(ss, sIdx){
+        var sColor=subColors[ci%subColors.length];ci++;var ssid='qz_ss_'+sIdx;
+        var topicCount = Object.keys(grouped[ss]).length;
+        h+='<div class="ch-row" style="background:'+sColor+';" onclick="window.tog(\''+ssid+'\')"><span>📝 '+sanitizeHTML(ss)+'</span><span class="item-count-badge"><span>'+topicCount+'</span> Topics ▼</span></div>';
+        h+='<div id="'+ssid+'" class="ch-content show" style="padding:10px">';
+        
+        Object.keys(grouped[ss]).sort().forEach(function(tp, tIdx){
+          var tpColor=getSSSColor(tp);var tpid=ssid+'_tp_'+tIdx;
+          h+='<div class="ch-row" style="background:'+tpColor+';margin:4px 0;padding:10px 15px;font-size:1.05rem;margin-left:12px;" onclick="window.tog(\''+tpid+'\')"><span>📌 '+sanitizeHTML(tp)+'</span><span>▼</span></div>';
+          h+='<div id="'+tpid+'" class="ch-content" style="padding:8px;margin-left:12px;">';
+          
+          Object.keys(grouped[ss][tp]).sort().forEach(function(st, stIdx){
+            var stColor=getSSSColor(st);var stid=tpid+'_st_'+stIdx,topicTests=grouped[ss][tp][st];
+            h+='<div class="ch-row" style="background:'+stColor+';margin:6px 0;padding:8px 14px;font-size:1rem;margin-left:20px;" onclick="window.tog(\''+stid+'\')"><span>🔹 '+sanitizeHTML(st)+'</span><span>▼</span></div>';
+            h+='<div id="'+stid+'" class="ch-content show" style="padding:8px;margin-left:20px;"><div class="grid">';
+            topicTests.forEach(function(qz){
+                var totalQs=qz.count||10,tc=Math.max(1,Math.ceil(totalQs/10));
+                var displayTitle = (st && st !== 'General') ? st : tp;
+                for(var t=1;t<=tc;t++){
+                    var st2=(t-1)*10,end=Math.min(st2+10,totalQs);
+                    h+='<div class="q-card" style="background:'+stColor+';" onclick="window.launchQ(\''+qz.key.replace(/'/g,"\\'")+'\','+st2+','+end+',\''+stColor.replace(/'/g,"\\'")+'\')"><h4>'+sanitizeHTML(displayTitle)+'</h4><small>Test '+t+' ('+(end-st2)+' Qs)</small></div>';
+                }
+            });
+            h+='</div></div>';
+          });
+          h+='</div>';
+        });
+        h+='</div>';
+      });
+      return h;
+    }
+
+    window.renderSyllabusHTML = function(){
+      SYL_CONTENT_MAP = {};
+      sylCounter = 0;
+      var items=window.getArr(window.DB.syllabus).filter(function(item){return item.subject===subject;});
+      if(!items.length)return'<div style="padding:40px;text-align:center;color:var(--mut);font-size:1.3rem;font-weight:700;">No syllabus items for '+subject+'</div>';
+      
+      sssColorMap={};sssColorIndex=0;
+      var grouped={};
+      items.forEach(function(item){
+        var ss=item.subSubject||'General',tp=item.topic||'General',st=item.subTopic||'General';
+        if(!grouped[ss])grouped[ss]={};
+        if(!grouped[ss][tp])grouped[ss][tp]={};
+        if(!grouped[ss][tp][st])grouped[ss][tp][st]=[];
+        grouped[ss][tp][st].push(item);
+      });
+      
+      var h='',ci=0;var subColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)'];
+      
+      Object.keys(grouped).sort().forEach(function(ss, sIdx){
+        var sColor=subColors[ci%subColors.length];ci++;var ssid='ss_box_'+sIdx;
+        var ssTotalItems=0;
+        Object.keys(grouped[ss]).forEach(function(tp){
+          Object.keys(grouped[ss][tp]).forEach(function(st){ ssTotalItems+=grouped[ss][tp][st].length; });
+        });
+        
+        h+='<div class="ch-row" style="background:'+sColor+';" onclick="window.tog(\''+ssid+'\')"><span>📂 '+sanitizeHTML(ss)+'</span><span class="item-count-badge"><span>'+ssTotalItems+'</span> chapters</span> <span>▼</span></div>';
+        h+='<div id="'+ssid+'" class="ch-content show" style="padding:10px">';
+        
+        Object.keys(grouped[ss]).sort().forEach(function(tp, tIdx){
+          var tpColor=getSSSColor(tp);var tpid=ssid+'_tp_'+tIdx;
+          h+='<div class="ch-row" style="background:'+tpColor+';margin:4px 0;padding:10px 15px;font-size:1.05rem;margin-left:12px;" onclick="window.tog(\''+tpid+'\')"><span>📌 '+sanitizeHTML(tp)+'</span><span>▼</span></div>';
+          h+='<div id="'+tpid+'" class="ch-content show" style="padding:6px;margin-left:12px;">';
+          
+          Object.keys(grouped[ss][tp]).sort().forEach(function(st, stIdx){
+            var stColor=getSSSColor(st);var stid=tpid+'_st_'+stIdx;
+            h+='<div class="ch-row" style="background:'+stColor+';margin:6px 0;padding:8px 14px;font-size:1rem;margin-left:20px;" onclick="window.tog(\''+stid+'\')"><span>🔹 '+sanitizeHTML(st)+'</span><span class="item-count-badge"><span>'+grouped[ss][tp][st].length+'</span> items</span> <span>▼</span></div>';
+            h+='<div id="'+stid+'" class="ch-content show" style="padding:6px;margin-left:20px;">';
+            grouped[ss][tp][st].forEach(function(item,idx){
+              sylCounter++;
+              var itid = 'syl_item_' + sylCounter;
+              var rawBody = (item.content || '') + window.getImgs(item.imageUrls);
+              SYL_CONTENT_MAP[itid] = rawBody;
+              h+='<div class="ch-row" style="background:rgba(255,255,255,.06);border:1px solid var(--brd);margin:6px 0;padding:12px 16px;font-size:1.05rem;margin-left:24px;" onclick="window.tog(\''+itid+'\')"><span>📖 '+sanitizeHTML(item.title||'Item '+(idx+1))+'</span><span style="color:#fbbf24;">View Content [+]</span></div>';
+              h+='<div id="'+itid+'" class="ch-content" style="padding:16px;font-size:1.15rem;margin-left:24px;line-height:1.7;"></div>';
+            });
+            h+='</div>';
+          });
+          h+='</div>';
+        });
+        h+='</div>';
+      });
+      return h;
+    }
+
+    window.launchQ = async function(k,s,e,c){
+      document.getElementById('shell').style.display='none';
+      var p=document.getElementById('quiz-player');
+      p.style.display='block';
+      p.dataset.theme=c;
+      p.innerHTML = '<div style="padding:60px;text-align:center;font-size:1.3rem;font-weight:800;"><span class="spinner"></span> Loading Questions...</div>';
+      
+      var data = await fastFetchQuizQuestions(k);
+      if(!data||!Array.isArray(data)||!data.length){alert('Quiz questions not found for this set!'); window.closeQ(); return}
+      
+      qActive=data.slice(s,e);
+      qIdx=0;
+      qAns=new Array(qActive.length).fill(null);
+      qSec=0;
+      window.stopQT();
+      qTimer=setInterval(function(){
+          qSec++;
+          var el=document.getElementById('qt');
+          if(el)el.innerText='Timer: '+String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');
+      },1000);
+      window.renderQ();
+    }
+
+    window.renderQ = function() {
+      var q = qActive[qIdx], pa = qAns[qIdx], c = document.getElementById('quiz-player').dataset.theme || '';
+      var m = String(Math.floor(qSec / 60)).padStart(2, '0'), s = String(qSec % 60).padStart(2, '0');
+      var opts = q.options || {};
+      var corr = q.correctAnswer || 'A';
+
+      function oc(o) {
+        if (!pa) return '';
+        if (pa.sel === o) return pa.ok ? 'correct' : 'wrong';
+        if (corr === o && !pa.ok) return 'reveal';
+        return '';
+      }
+
+      var fb = '';
+      if (pa) {
+        fb = '<div class="feedback show ' + (pa.ok ? 'correct' : 'wrong') + '">' +
+          (pa.ok ? '✅ Correct!' : '❌ Incorrect!') +
+          '<br>Correct: <b>' + sanitizeHTML(corr) + ') ' + (opts[corr] || '') + '</b>' +
+          (q.explanation ? '<br>💡 ' + q.explanation : '') + '</div>';
+      }
+
+      var html = '<div class="q-panel">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;">';
+      html += '<button class="btn btn-dark btn-sm notranslate" onclick="window.closeQ()">← Back</button>';
+      html += '<span class="btn" style="background:' + c + ';font-size:1.1rem;padding:8px 16px;">Q ' + (qIdx + 1) + '/' + qActive.length + '</span>';
+      html += '<span class="btn btn-dark notranslate" id="qt" style="font-size:1.1rem;padding:8px 16px;">Timer: ' + m + ':' + s + '</span>';
+      html += '</div>';
+
+      html += '<div style="font-size:1.45rem;font-weight:800;margin-bottom:25px;line-height:1.7;">' + (q.question || '') + '</div>';
+
+      html += '<div class="options-grid">';
+      ['A', 'B', 'C', 'D'].forEach(function(o) {
+        if (opts && opts[o]) {
+          html += '<button class="opt-btn ' + oc(o) + '" onclick="window.answerQ(\'' + o + '\')" ' + (pa ? 'disabled' : '') + '>';
+          html += '<b>' + o + ')</b> <span style="flex:1;">' + opts[o] + '</span>';
+          html += '</button>';
+        }
+      });
+      html += '</div>';
+
+      html += fb;
+      html += '<div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:20px;">';
+      html += '<button class="btn btn-dark" onclick="window.prevQ()" ' + (qIdx === 0 ? 'disabled' : '') + '>◀ Prev</button>';
+      html += '<button class="btn btn-green" onclick="window.nextQ()" ' + (!pa ? 'disabled' : '') + '>' + (qIdx === qActive.length - 1 ? '🏁 Finish' : 'Next ▶') + '</button>';
+      html += '</div></div>';
+
+      document.getElementById('quiz-player').innerHTML = html;
+    }
+
+    window.answerQ = function(s){
+      var corr = qActive[qIdx].correctAnswer || 'A';
+      qAns[qIdx]={sel:s,ok:s===corr};
+      window.renderQ();
+    }
+    window.prevQ = function(){if(qIdx>0){qIdx--;window.renderQ();}}
+    window.nextQ = function(){if(qIdx<qActive.length-1){qIdx++;window.renderQ();}else{window.closeQ();}}
+    window.stopQT = function(){if(qTimer){clearInterval(qTimer);qTimer=null;}}
+    window.closeQ = function(){window.stopQT();document.getElementById('quiz-player').style.display='none';document.getElementById('shell').style.display='block';window.refreshUI();}
+
+    async function initApp(){
+      document.getElementById('login-overlay').style.display = 'none';
+      await fastLoadAllSSCData();
       window.refreshUI();
     }
-
-    window.attemptLogin = function(){
-      var p=document.getElementById('login-phone').value.trim();
-      var pa=document.getElementById('login-pass').value.trim();
-      var e=document.getElementById('login-error');
-      if(!p||!pa){e.innerText='Enter ID and Password';e.style.display='block';return}
-      if(settings.users && settings.users[p] && String(settings.users[p].pass)===String(pa)){
-        document.getElementById('login-overlay').style.display='none';
-        document.getElementById('user-display').innerText='👤 '+p;
-        window.refreshUI();
-        return;
-      }
-      e.innerText='Invalid credentials';
-      e.style.display='block';
-    }
-
-    window.loadAllData = async function(){
-      const [syl, qzIndex] = await Promise.all([
-         fetchDB('sscTheoryDatabase'),
-         fastFetchQuizIndex()
-      ]);
-      window
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+  <script src="/footer.js"></script>
+  <script src="/global-navbar.js"></script>
+</body>
+</html>
