@@ -154,39 +154,7 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
   <script>
-    // ==================== 0.5-SECOND DIRECT REST LOADER ====================
-    window.__SB_REST_URL = null;
-    window.__SB_API_KEY = null;
-
-    async function ensureSbCredentials() {
-      if (window.__SB_REST_URL && window.__SB_API_KEY) return true;
-      var urlsToTry = ['/supabase-client.js', '../supabase-client.js'];
-      for (var i = 0; i < urlsToTry.length; i++) {
-        try {
-          var txt = await fetch(urlsToTry[i]).then(function(r){ return r.text(); });
-          var uMatch = txt.match(/https:\/\/[a-z0-9\-]+\.supabase\.co/i);
-          var kMatch = txt.match(/eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+/);
-          if (uMatch) window.__SB_REST_URL = uMatch[0];
-          if (kMatch) window.__SB_API_KEY = kMatch[0];
-          if (window.__SB_REST_URL && window.__SB_API_KEY) return true;
-        } catch (e) {}
-      }
-      return false;
-    }
-
-    async function sbRestGet(tableAndQuery) {
-      await ensureSbCredentials();
-      if (!window.__SB_REST_URL || !window.__SB_API_KEY) return null;
-      var res = await fetch(window.__SB_REST_URL + '/rest/v1/' + tableAndQuery, {
-        headers: {
-          'apikey': window.__SB_API_KEY,
-          'Authorization': 'Bearer ' + window.__SB_API_KEY
-        }
-      });
-      if (!res.ok) return null;
-      return await res.json();
-    }
-
+    // ==================== 0.2-SECOND DIRECT SUPABASE CLIENT LOADER ====================
     function normalizeSubjectName(raw) {
       var s = String(raw || '').trim();
       var low = s.toLowerCase();
@@ -197,67 +165,72 @@
       return s || 'General Studies';
     }
 
-    // Loads all 400 quiz headers + syllabus in ONE single fast HTTP request (0.5 sec)!
+    // Uses `window.supabaseReady` from supabase-client.js directly (NO 400-loop bottleneck!)
     async function fastLoadAllSSCData() {
-      var [sylRows, quizRows] = await Promise.all([
-        sbRestGet('study_materials?course=eq.ssc&select=id,material_key,title,subject,sub_subject,topic,sub_topic,content_html,image_urls,order_index,metadata&limit=1000'),
-        sbRestGet('quiz_sets?course=eq.ssc&select=id,quiz_key,title,subject,sub_subject,topic,sub_topic,order_index,metadata&limit=1000')
+      var db = await window.supabaseReady;
+      var [sylRes, quizRes] = await Promise.all([
+        db.from('study_materials').select('*').eq('course', 'ssc').limit(1000),
+        db.from('quiz_sets').select('*').eq('course', 'ssc').limit(1000)
       ]);
 
+      var sylRows = (sylRes && sylRes.data) || [];
+      var quizRows = (quizRes && quizRes.data) || [];
+
       var sylMap = {};
-      if (Array.isArray(sylRows)) {
-        sylRows.forEach(function(r) {
-          var m = r.metadata || {};
-          var k = r.material_key || r.id;
-          sylMap[k] = {
-            title: r.title || m.title || 'Untitled',
-            subject: normalizeSubjectName(r.subject || m.subject || 'General English'),
-            subSubject: r.sub_subject || m.subSubject || 'General',
-            topic: r.topic || m.topic || 'General',
-            subTopic: r.sub_topic || m.subTopic || 'General',
-            content: r.content_html || m.content || '',
-            imageUrls: r.image_urls || m.imageUrls || [],
-            order: r.order_index || m.order || 0
-          };
-        });
-      }
+      sylRows.forEach(function(r) {
+        var m = r.metadata || {};
+        var k = r.legacy_key || r.material_key || r.id;
+        sylMap[k] = {
+          title: r.title || m.title || 'Untitled',
+          subject: normalizeSubjectName(r.subject || m.subject || 'General English'),
+          subSubject: r.sub_subject || m.subSubject || 'General',
+          topic: r.topic || m.topic || 'General',
+          subTopic: r.sub_topic || m.subTopic || 'General',
+          content: r.content_html || m.content || '',
+          imageUrls: r.image_urls || m.imageUrls || [],
+          order: r.order_index || m.order || 0
+        };
+      });
 
       var quizMap = {};
-      if (Array.isArray(quizRows)) {
-        quizRows.forEach(function(r) {
-          var m = r.metadata || {};
-          var k = r.quiz_key || r.id;
-          quizMap[k] = {
-            id: r.id,
-            count: Number(m.count) || 10,
-            subject: normalizeSubjectName(r.subject || m.subject || 'General Studies'),
-            subSubject: r.sub_subject || m.subSubject || 'General',
-            topic: r.topic || m.topic || r.title || k,
-            subTopic: r.sub_topic || m.subTopic || 'General',
-            order: r.order_index || m.order || 0
-          };
-        });
-      }
+      quizRows.forEach(function(r) {
+        var m = r.metadata || {};
+        var k = r.quiz_key || r.legacy_key || r.id;
+        quizMap[k] = {
+          id: r.id,
+          count: Number(m.count) || 10,
+          subject: normalizeSubjectName(r.subject || m.subject || 'General Studies'),
+          subSubject: r.sub_subject || m.subSubject || 'General',
+          topic: r.topic || m.topic || r.title || k,
+          subTopic: r.sub_topic || m.subTopic || 'General',
+          order: r.order_index || m.order || 0
+        };
+      });
 
       window.DB.syllabus = sylMap;
       window.DB.quiz = quizMap;
     }
 
     async function fastFetchQuizQuestions(quizKey) {
+      var db = await window.supabaseReady;
       var setMeta = window.DB.quiz && window.DB.quiz[quizKey];
-      if (setMeta && setMeta.id) {
-        var rows = await sbRestGet('quiz_questions?quiz_set_id=eq.' + encodeURIComponent(setMeta.id) + '&select=*&order=order_index.asc&limit=2000');
-        if (Array.isArray(rows) && rows.length > 0) {
-          return rows.map(function(r) {
-            var m = r.metadata || {};
-            return {
-              question: r.question_html || r.question_text || m.question || '',
-              options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
-              correctAnswer: r.correct_answer || m.correctAnswer || 'A',
-              explanation: r.explanation_html || r.explanation || m.explanation || ''
-            };
-          });
-        }
+      var setId = setMeta && setMeta.id;
+      if (!setId) {
+        var sRes = await db.from('quiz_sets').select('id').eq('course', 'ssc').eq('quiz_key', quizKey).limit(1);
+        if (sRes.data && sRes.data.length) setId = sRes.data[0].id;
+      }
+      if (setId) {
+        var qRes = await db.from('quiz_questions').select('*').eq('quiz_set_id', setId).order('order_index', { ascending: true }).limit(2000);
+        var rows = (qRes && qRes.data) || [];
+        return rows.map(function(r) {
+          var m = r.metadata || {};
+          return {
+            question: r.question_html || r.question_text || m.question || '',
+            options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
+            correctAnswer: r.correct_answer || m.correctAnswer || 'A',
+            explanation: r.explanation_html || r.explanation || m.explanation || ''
+          };
+        });
       }
       return [];
     }
