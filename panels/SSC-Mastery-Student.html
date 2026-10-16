@@ -3,119 +3,163 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SSC Mastery | Admin Panel</title>
+  <title>SSC Mastery | Smart Learning Platform</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
   <style>
     :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px}
     body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
     *,::before,::after{margin:0;padding:0;box-sizing:border-box}
-    html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
-    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:background .3s,color .3s}
-    .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important}
+    html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;min-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important;top:0px!important}
+    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;font-size:18px;}
+    
+    .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important;-ms-user-select:none!important}
     input,textarea,select{user-select:auto!important;-webkit-user-select:auto!important}
-    #editForm,#editForm *,#groupView,#groupView *,#hierarchyManager,#hierarchyManager *{user-select:auto!important}
+    img{user-drag:none}.img-th,.modal img{pointer-events:auto!important;cursor:pointer}
+    :target{scroll-margin-top:70px}
     .notranslate{translate:no!important}
-    @keyframes redBlink{0%,100%{box-shadow:0 0 5px rgba(255,0,0,.4)}50%{box-shadow:0 0 20px rgba(255,0,0,.9)}}
-    .lang-select{padding:6px 10px;border-radius:16px;border:2px solid rgba(255,0,0,.5);background:var(--srf);color:var(--txt);font-weight:700;font-size:.78rem;cursor:pointer;animation:redBlink 1s ease-in-out infinite;flex-shrink:0;min-width:100px;z-index:10}
+
+    .top-info-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd);min-height:50px;flex-wrap:wrap}
+    .news-ticker-wrap{flex:1;min-width:150px;overflow:hidden;background:rgba(0,0,0,.3);border-radius:20px;padding:8px 15px;border:1px solid rgba(255,215,0,.3);display:flex;align-items:center;gap:10px}
+    .news-icon{flex-shrink:0;font-size:1.2rem;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+    .ticker-container{width:100%;overflow:hidden;white-space:nowrap;flex:1}
+    #newsTicker{display:inline-block;white-space:nowrap;animation:scrollTicker 40s linear infinite}
+    #newsTicker:hover{animation-play-state:paused}
+    @keyframes scrollTicker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    .news-link{color:#ffd700;font-weight:800;font-size:1.05rem;cursor:pointer;margin:0 12px;pointer-events:auto!important;user-select:auto!important}
+    .news-link:hover{color:#fff}
+
+    @keyframes redBlink{0%,100%{box-shadow:0 0 5px rgba(255,0,0,.4);border-color:rgba(255,0,0,.5)}50%{box-shadow:0 0 20px rgba(255,0,0,.9);border-color:rgba(255,0,0,.9)}}
+    .lang-select{padding:8px 14px;border-radius:16px;border:2px solid rgba(255,0,0,.5);background:var(--srf);color:var(--txt);font-weight:800;font-size:1.05rem;cursor:pointer;animation:redBlink 1s ease-in-out infinite;flex-shrink:0;min-width:110px;z-index:10}
     .goog-te-banner-frame,#goog-gt-tt,.goog-tooltip,.goog-text-highlight,.goog-te-spinner-pos,.goog-logo-link,.goog-te-gadget span,.VIpgJd-ZVi9od-ORHb,.VIpgJd-ZVi9od-l4eHX,.goog-te-gadget img,.skiptranslate{display:none!important}
     #google_translate_element{position:absolute!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important}
-    .top-bar{background:var(--srf);border-bottom:1px solid var(--brd);padding:0 12px;position:sticky;top:0;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.5)}
-    .top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;justify-content:space-between}
-    .logo{font-family:'Fredoka One',cursive;font-size:1.2rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:700;font-size:.75rem;cursor:pointer;padding:5px 10px;border-radius:50px}
-    .btn{padding:8px 16px;border:none;border-radius:50px;cursor:pointer;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:.78rem;transition:.2s}
-    .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
-    .btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-orange{background:#f59e0b}.btn-teal{background:#0d9488}.btn-purple{background:#8b5cf6}.btn-pink{background:#ec4899}.btn-yellow{background:#eab308;color:#000}
-    .btn-sm{padding:5px 12px;font-size:.72rem}.btn-xs{padding:3px 8px;font-size:.68rem}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .main-wrap{max-width:100%!important;width:100%!important;padding:15px 8px 50px!important;margin:0 auto}
-    .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
-    .banner{padding:8px 16px!important;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 3px 8px rgba(0,0,0,.2);flex-wrap:wrap;text-align:center}
-    .banner h1{font-size:1.1rem!important;font-weight:800!important;color:#fff!important}
-    .admin-tabs{display:flex;gap:4px;padding:8px 12px;background:rgba(0,0,0,.15);border-bottom:1px solid var(--brd);flex-wrap:wrap;justify-content:center;overflow-x:auto}
-    .admin-tab-btn{padding:6px 14px;border-radius:50px;border:1px solid var(--brd);background:0 0;color:var(--mut);font-weight:700;font-size:.75rem;cursor:pointer;transition:.2s;white-space:nowrap}
-    .admin-tab-btn:hover{color:var(--txt)}.admin-tab-btn.active{background:#ef4444;color:#fff;border-color:#ef4444}
-    .admin-content{padding:15px;background:var(--srf);min-height:400px}
-    .form-group{margin-bottom:10px}.form-group label{display:block;font-weight:700;margin-bottom:3px;color:var(--txt);font-size:.8rem}
-    .form-inp{width:100%;padding:8px 12px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:6px;color:var(--txt);font-size:.85rem;outline:0;margin-bottom:6px}
-    textarea.form-inp{min-height:50px;resize:vertical}select.form-inp{appearance:none;cursor:pointer}
-    .card{background:rgba(255,255,255,.03);border:1px solid var(--brd);border-radius:var(--r-md);padding:15px;margin-bottom:12px}
-    .info-banner{background:rgba(139,92,246,.1);border:1px solid #8b5cf6;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:.78rem;color:#a78bfa}
-    .csv-box{background:rgba(14,165,233,.08);border:2px dashed #0ea5e9;border-radius:var(--r-md);padding:15px;margin-bottom:15px}.csv-box h3{color:#38bdf8;font-size:.9rem}
-    .csv-fmt{background:rgba(0,0,0,.3);border-radius:6px;padding:10px;font-size:.7rem;color:var(--mut);line-height:1.5;margin:8px 0;overflow-x:auto;white-space:pre-wrap;font-family:monospace}
-    .toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:6px;border:1px solid var(--brd)}
-    .toolbar select{min-width:140px;margin-bottom:0!important;padding:6px 10px;font-size:.78rem}
-    .list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:6px;margin-bottom:5px;flex-wrap:wrap;gap:8px;transition:.2s;cursor:grab}
-    .list-item:hover{border-color:#3b82f6}.list-item.selected{background:rgba(59,130,246,.15);border-color:#3b82f6}
-    .list-item .item-info{flex:1;min-width:150px;pointer-events:none}
-    .list-item .item-actions{display:flex;gap:4px;pointer-events:auto}
-    .drag-handle{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;cursor:grab;color:var(--mut);font-size:1rem;border-radius:4px;flex-shrink:0}
-    .tag{display:inline-block;padding:2px 7px;border-radius:14px;font-size:.65rem;font-weight:700;margin:1px}
-    .tag-green{background:#15803d;color:#fff}.tag-blue{background:#1d4ed8;color:#fff}.tag-orange{background:#c2410c;color:#fff}.tag-teal{background:#0d9488;color:#fff}.tag-purple{background:#7c3aed;color:#fff}.tag-pink{background:#ec4899;color:#fff}
-    .answer-display-box{background:rgba(34,197,94,.08);border:2px solid #22c55e;border-radius:6px;padding:10px 14px;margin-top:8px;color:#86efac;font-weight:600;line-height:1.6;font-size:.8rem}
-    .answer-display-box strong{color:#4ade80}
-    .toggle-switch{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0}
-    .toggle-switch input{opacity:0;width:0;height:0}
-    .toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#64748b;transition:.3s;border-radius:22px}
-    .toggle-slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:white;transition:.3s;border-radius:50%}
-    input:checked+.toggle-slider{background-color:#10b981}input:checked+.toggle-slider:before{transform:translateX(18px)}
-    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .toast{position:fixed;bottom:15px;right:15px;padding:10px 18px;border-radius:6px;font-weight:700;z-index:99999;animation:slideIn .3s ease;color:#fff;max-width:350px;font-size:.8rem}
-    .toast.success{background:#15803d}.toast.error{background:#b91c1c}
-    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+    .top-bar{background:var(--srf);border-bottom:1px solid var(--brd);padding:0 15px;position:sticky;top:0;z-index:999}
+    .top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 0;justify-content:space-between}
+    .logo{font-family:'Fredoka One',cursive;font-size:1.5rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .user-info{font-weight:800;font-size:1rem;color:#4ade80}
+    .theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:800;font-size:1rem;cursor:pointer;padding:8px 16px;border-radius:50px}
+
+    .main-wrap{max-width:100%!important;width:100%!important;padding:20px 10px 80px!important;margin:0 auto}
+    .shell{background:var(--srf);border-radius:12px;overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
+    .banner{padding:15px 20px!important;display:flex;align-items:center;justify-content:center;gap:15px;box-shadow:0 4px 10px rgba(0,0,0,.3);flex-wrap:wrap;text-align:center}
+    .banner h1{font-size:1.6rem!important;font-weight:900!important;color:#fff!important;margin:0}
+    .banner p{font-size:1.15rem!important;font-weight:700!important;color:#fff!important;border-left:3px solid rgba(255,255,255,.6);padding-left:12px;margin:0}
+    
+    .sub-row{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:15px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--brd)}
+    .btn-sub{padding:12px 20px;border:2px solid transparent;border-radius:8px;color:#fff;font-weight:800;font-size:1.1rem;cursor:pointer;opacity:.65;transform:scale(.95);white-space:nowrap;transition:all 0.3s;}
+    .btn-sub.active{opacity:1;transform:scale(1.05);border-color:#fff;box-shadow:0 0 15px rgba(255,255,255,.2)}
+    
+    .study-tabs-row{display:flex;gap:10px;padding:15px;background:rgba(0,0,0,.15);flex-wrap:wrap;justify-content:center}
+    .study-tab-btn{padding:10px 20px;border-radius:50px;border:2px solid var(--brd);background:0 0;color:var(--mut);font-weight:800;font-size:1.05rem;cursor:pointer;white-space:nowrap;transition:all 0.3s;}
+    .study-tab-btn.active{background:#3b82f6;color:#fff;border-color:#3b82f6;box-shadow:0 4px 10px rgba(59,130,246,.4)}
+    
+    .content{min-height:150px;background:var(--srf);padding-bottom:20px}
+    
+    .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:8px 12px 0;color:#fff;font-weight:800;font-size:1.15rem;border-radius:8px;cursor:pointer;box-shadow:0 4px 6px rgba(0,0,0,.15)}
+    .ch-row:hover{filter:brightness(1.1);transform:translateY(-1px)}
+    .ch-content{display:none;background:rgba(0,0,0,.25);border:1px solid var(--brd);margin:0 12px 10px;padding:20px;border-radius:0 0 8px 8px;line-height:1.75;font-size:1.1rem;color:#f8fafc;overflow-x:auto}
+    body.light-mode .ch-content{color:#0f172a;background:#ffffff}
+    .ch-content.show{display:block;animation:fadeIn .2s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+    
+    .img-th{max-width:220px;max-height:160px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--brd);margin:8px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:15px}
+    .q-card{border:none;border-radius:8px;padding:20px 12px;text-align:center;cursor:pointer;color:#fff;transition:all 0.3s}
+    .q-card:hover{transform:translateY(-4px);box-shadow:0 6px 15px rgba(0,0,0,.3)}
+    .q-card h4{font-weight:900;font-size:1.1rem;margin-bottom:8px;word-break:break-word}
+    .q-card small{font-size:.95rem;opacity:0.9}
+
+    .q-player{padding:25px;background:var(--srf);border:1px solid var(--brd);border-radius:12px;max-width:1400px;margin:0 auto}
+    .q-panel{border-radius:16px;padding:25px;background:rgba(0,0,0,.2)}
+    .options-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-bottom:20px}
+    .opt-btn{padding:16px 20px;background:rgba(255,255,255,.05);border:2px solid var(--brd);border-radius:12px;cursor:pointer;font-weight:800;font-size:1.2rem;color:var(--txt);display:flex;align-items:center;gap:12px;transition:all 0.2s;width:100%;word-break:break-word;text-align:left}
+    .opt-btn:hover{border-color:#3b82f6;background:rgba(59,130,246,.1)}
+    .opt-btn.correct{background:#15803d!important;border-color:#22c55e!important;color:#fff!important}
+    .opt-btn.wrong{background:#b91c1c!important;border-color:#ef4444!important;color:#fff!important}
+    .opt-btn.reveal{border-color:#22c55e!important;background:rgba(34,197,94,.2)!important}
+    .feedback{display:none;padding:16px;border-radius:10px;font-weight:800;font-size:1.15rem;color:#fff!important;margin-bottom:20px;line-height:1.6}
+    .feedback.show{display:block}.feedback.correct{background:#15803d}.feedback.wrong{background:#b91c1c}
+
+    .btn{padding:12px 22px;border:none;border-radius:50px;cursor:pointer;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:8px;font-size:1.1rem;transition:all 0.2s}
+    .btn:hover{filter:brightness(1.15);transform:translateY(-2px)}
+    .btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-orange{background:#f59e0b}
+    .btn-sm{padding:8px 18px;font-size:1rem}
+
     #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:none;align-items:center;justify-content:center}
-    .login-box{background:var(--srf);padding:28px 22px;border-radius:var(--r-lg);box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:340px;border:1px solid var(--brd);text-align:center}
-    .login-inp{width:100%;padding:10px;margin-bottom:10px;border-radius:6px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:.85rem;outline:0}
-    .file-upload-area{border:2px dashed #0ea5e9;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(14,165,233,.05);margin-bottom:10px}
-    .edit-question-card{border:1px solid var(--brd);border-radius:8px;padding:15px;margin-bottom:12px;background:rgba(0,0,0,.2)}
-    .ad-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 12px;margin:4px 0;color:#fff;font-weight:700;font-size:.78rem;border-radius:4px;cursor:pointer;flex-wrap:wrap;user-select:none}
-    .ad-h-sub{border-left:3px solid #3b82f6;margin-left:12px;font-size:.74rem}
-    .ad-h-topic{border-left:3px solid #f59e0b;margin-left:26px;font-size:.7rem}
-    .ad-h-st{border-left:3px solid #ec4899;margin-left:40px;font-size:.66rem}
-    .ad-body{display:block}.ad-body.collapsed{display:none}
+    .login-box{background:var(--srf);padding:40px 30px;border-radius:var(--r-lg);box-shadow:0 15px 40px rgba(0,0,0,.6);width:90%;max-width:420px;border:1px solid var(--brd);text-align:center}
+    .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:10px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1.1rem;font-weight:600;outline:0}
+
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;display:none;justify-content:center;align-items:center}
+    .modal.show{display:flex}.modal img{max-width:92%;max-height:92%;border-radius:8px}
+    .modal-close{position:absolute;top:20px;right:25px;color:#fff;font-size:2.5rem;cursor:pointer;font-weight:900}
+    .spinner{display:inline-block;width:24px;height:24px;border:4px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .item-count-badge{font-size:.95rem;padding:4px 14px;background:rgba(0,0,0,.25);border-radius:20px;white-space:nowrap}
+    .item-count-badge span{font-weight:900;color:#fbbf24}
+    .syl-iframe{width:100%;min-height:600px;border:none;border-radius:8px;background:transparent;display:block}
+
+    @media(max-width:768px){
+      body{font-size:16px}
+      .options-grid{grid-template-columns:1fr;gap:10px}
+    }
   </style>
 </head>
 <body class="protected-mode">
-<script src="/supabase-client.js"></script>
+  <script src="/supabase-client.js"></script>
+
+  <div id="login-overlay">
+    <div class="login-box">
+      <div class="logo notranslate" style="margin-bottom:20px;font-size:2rem;">⭐ SSC Mastery</div>
+      <h2 style="margin-bottom:25px;color:var(--txt);font-size:1.4rem;">Student Login</h2>
+      <input type="text" id="login-phone" class="login-inp" placeholder="User ID / Phone" autocomplete="off">
+      <input type="password" id="login-pass" class="login-inp" placeholder="Password" autocomplete="off">
+      <button class="btn btn-blue" style="width:100%;margin-top:10px;" onclick="window.attemptLogin()">🔐 Login</button>
+      <button class="btn btn-orange" style="width:100%;margin-top:12px;" onclick="window.loginAsGuest()">👤 Study as Guest</button>
+    </div>
+  </div>
+
+  <div class="top-info-bar">
+    <div class="news-ticker-wrap"><span class="news-icon">📢</span><div class="ticker-container"><span id="newsTicker"></span></div></div>
+    <div id="google_translate_element"></div>
+    <select class="lang-select notranslate" translate="no" id="lang-select" onchange="window.changeLanguage(this.value)">
+      <option value="en">🌐 English</option><option value="te">🔴 తెలుగు</option><option value="hi">🔴 हिन्दी</option><option value="ta">🔴 தமிழ்</option><option value="ml">🔴 മലയാളം</option><option value="kn">🔴 ಕನ್ನಡ</option>
+    </select>
+  </div>
 
   <div class="top-bar">
     <div class="top-inner">
-      <div class="logo notranslate">⚙️ SSC Admin Panel</div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <div id="google_translate_element"></div>
-        <select class="lang-select notranslate" translate="no" id="lang-select" onchange="window.changeLanguage(this.value)">
-          <option value="en">🌐 English</option><option value="te">🔴 తెలుగు</option><option value="hi">🔴 हिन्दी</option><option value="ta">🔴 தமிழ்</option><option value="ml">🔴 മലയാളം</option><option value="kn">🔴 ಕನ್ನಡ</option>
-        </select>
-        <span id="admin-info" style="font-weight:700;font-size:.78rem;color:#4ade80;">Admin: admin</span>
+      <div class="logo notranslate">⭐ SSC Mastery</div>
+      <div style="display:flex;align-items:center;gap:15px;flex-wrap:wrap;">
+        <span id="user-display" class="user-info">👤 Guest</span>
         <button class="theme-btn notranslate" id="theme-toggle" onclick="window.toggleTheme()">Light Mode</button>
+        <button class="btn btn-dark btn-sm" onclick="document.getElementById('login-overlay').style.display='flex'">🔐 Switch User</button>
       </div>
     </div>
   </div>
 
   <div class="main-wrap">
-    <div class="shell" id="shell">
-      <div class="banner notranslate" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">
-        <h1>⚙️ SSC Admin Control Panel</h1>
-      </div>
-      <div class="admin-tabs" id="admin-tabs">
-        <button class="admin-tab-btn active notranslate" onclick="window.switchTab('quiz')">📝 Quiz</button>
-        <button class="admin-tab-btn notranslate" onclick="window.switchTab('syllabus')">📖 Syllabus</button>
-      </div>
-      <div class="admin-content" id="admin-content">
-        <div style="padding:30px;text-align:center;"><span class="spinner"></span> Loading Data Instantly...</div>
+    <div id="shell" class="shell">
+      <div class="sub-row" id="sub-row"></div>
+      <div class="content" id="content-area">
+        <div style="padding:50px;text-align:center;"><span class="spinner"></span> Loading SSC Study Materials & Quizzes...</div>
       </div>
     </div>
+    <div id="quiz-player" class="q-player" style="display:none;"></div>
   </div>
 
+  <div id="img-modal" class="modal" onclick="window.closeModal()"><span class="modal-close">×</span><img id="modal-img" src=""></div>
+
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
   <script>
-    // ============ 0.5-SECOND DIRECT SUPABASE REST LOADER ============
+    // ==================== 0.5-SECOND DIRECT REST LOADER ====================
     window.__SB_REST_URL = null;
     window.__SB_API_KEY = null;
 
-    async function ensureSbCreds() {
-      if (window.__SB_REST_URL && window.__SB_API_KEY) return;
+    async function ensureSbCredentials() {
+      if (window.__SB_REST_URL && window.__SB_API_KEY) return true;
       var urlsToTry = ['/supabase-client.js', '../supabase-client.js'];
       for (var i = 0; i < urlsToTry.length; i++) {
         try {
@@ -124,252 +168,380 @@
           var kMatch = txt.match(/eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+/);
           if (uMatch) window.__SB_REST_URL = uMatch[0];
           if (kMatch) window.__SB_API_KEY = kMatch[0];
-          if (window.__SB_REST_URL && window.__SB_API_KEY) return;
+          if (window.__SB_REST_URL && window.__SB_API_KEY) return true;
         } catch (e) {}
       }
+      return false;
     }
 
-    async function fetchDB(key) {
-      await ensureSbCreds();
-      if (window.__SB_REST_URL && window.__SB_API_KEY) {
-        var hdrs = { 'apikey': window.__SB_API_KEY, 'Authorization': 'Bearer ' + window.__SB_API_KEY };
-        if (key === 'sscQuestionBank_index') {
-          var res = await fetch(window.__SB_REST_URL + '/rest/v1/quiz_sets?course=eq.ssc&select=id,quiz_key,title,subject,sub_subject,topic,sub_topic,order_index,metadata&limit=1000', { headers: hdrs });
-          if (res.ok) {
-            var rows = await res.json();
-            var idx = {};
-            rows.forEach(function(r) {
-              var m = r.metadata || {};
-              var k = r.quiz_key || r.id;
-              idx[k] = {
-                id: r.id,
-                count: Number(m.count) || 10,
-                subject: r.subject || m.subject || 'General Studies',
-                subSubject: r.sub_subject || m.subSubject || 'General',
-                topic: r.topic || m.topic || r.title || k,
-                subTopic: r.sub_topic || m.subTopic || 'General',
-                order: r.order_index || m.order || 0
-              };
-            });
-            return idx;
-          }
+    async function sbRestGet(tableAndQuery) {
+      await ensureSbCredentials();
+      if (!window.__SB_REST_URL || !window.__SB_API_KEY) return null;
+      var res = await fetch(window.__SB_REST_URL + '/rest/v1/' + tableAndQuery, {
+        headers: {
+          'apikey': window.__SB_API_KEY,
+          'Authorization': 'Bearer ' + window.__SB_API_KEY
         }
-        if (key === 'sscTheoryDatabase') {
-          var sRes = await fetch(window.__SB_REST_URL + '/rest/v1/study_materials?course=eq.ssc&select=id,material_key,title,subject,sub_subject,topic,sub_topic,content_html,image_urls,order_index,metadata&limit=1000', { headers: hdrs });
-          if (sRes.ok) {
-            var sRows = await sRes.json();
-            var sMap = {};
-            sRows.forEach(function(r) {
-              var m = r.metadata || {};
-              var k = r.material_key || r.id;
-              sMap[k] = {
-                title: r.title || m.title || 'Untitled',
-                subject: r.subject || m.subject || 'General English',
-                subSubject: r.sub_subject || m.subSubject || 'General',
-                topic: r.topic || m.topic || 'General',
-                subTopic: r.sub_topic || m.subTopic || 'General',
-                content: r.content_html || m.content || '',
-                order: r.order_index || m.order || 0
-              };
-            });
-            return sMap;
-          }
-        }
-        if (key.indexOf('qb_') === 0) {
-          var qKey = key.substring(3);
-          var qSet = allData.quiz && allData.quiz[qKey];
-          var setId = qSet && qSet.id;
-          if (!setId) {
-            var stRes = await fetch(window.__SB_REST_URL + '/rest/v1/quiz_sets?course=eq.ssc&quiz_key=eq.' + encodeURIComponent(qKey) + '&select=id&limit=1', { headers: hdrs });
-            if (stRes.ok) {
-              var stRows = await stRes.json();
-              if (stRows && stRows.length) setId = stRows[0].id;
-            }
-          }
-          if (setId) {
-            var qRes = await fetch(window.__SB_REST_URL + '/rest/v1/quiz_questions?quiz_set_id=eq.' + encodeURIComponent(setId) + '&select=*&order=order_index.asc&limit=2000', { headers: hdrs });
-            if (qRes.ok) {
-              var qRows = await qRes.json();
-              return qRows.map(function(r) {
-                var m = r.metadata || {};
-                return {
-                  question: r.question_html || r.question_text || m.question || '',
-                  options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
-                  correctAnswer: r.correct_answer || m.correctAnswer || 'A',
-                  explanation: r.explanation_html || r.explanation || m.explanation || '',
-                  subject: m.subject || 'General',
-                  subSubject: m.subSubject || 'General',
-                  topic: m.topic || qKey,
-                  subTopic: m.subTopic || 'General'
-                };
-              });
-            }
-          }
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    }
+
+    function normalizeSubjectName(raw) {
+      var s = String(raw || '').trim();
+      var low = s.toLowerCase();
+      if (low.indexOf('english') !== -1) return 'General English';
+      if (low.indexOf('quant') !== -1 || low.indexOf('aptitude') !== -1 || low.indexOf('math') !== -1 || low.indexOf('arith') !== -1) return 'Quantitative Aptitude';
+      if (low.indexOf('reason') !== -1 || low.indexOf('intelligence') !== -1) return 'Reasoning & Intelligence';
+      if (low.indexOf('studies') !== -1 || low.indexOf('awareness') !== -1 || low === 'gk' || low === 'gs') return 'General Studies';
+      return s || 'General Studies';
+    }
+
+    // Loads all 400 quiz headers + syllabus in ONE single fast HTTP request (0.5 sec)!
+    async function fastLoadAllSSCData() {
+      var [sylRows, quizRows] = await Promise.all([
+        sbRestGet('study_materials?course=eq.ssc&select=id,material_key,title,subject,sub_subject,topic,sub_topic,content_html,image_urls,order_index,metadata&limit=1000'),
+        sbRestGet('quiz_sets?course=eq.ssc&select=id,quiz_key,title,subject,sub_subject,topic,sub_topic,order_index,metadata&limit=1000')
+      ]);
+
+      var sylMap = {};
+      if (Array.isArray(sylRows)) {
+        sylRows.forEach(function(r) {
+          var m = r.metadata || {};
+          var k = r.material_key || r.id;
+          sylMap[k] = {
+            title: r.title || m.title || 'Untitled',
+            subject: normalizeSubjectName(r.subject || m.subject || 'General English'),
+            subSubject: r.sub_subject || m.subSubject || 'General',
+            topic: r.topic || m.topic || 'General',
+            subTopic: r.sub_topic || m.subTopic || 'General',
+            content: r.content_html || m.content || '',
+            imageUrls: r.image_urls || m.imageUrls || [],
+            order: r.order_index || m.order || 0
+          };
+        });
+      }
+
+      var quizMap = {};
+      if (Array.isArray(quizRows)) {
+        quizRows.forEach(function(r) {
+          var m = r.metadata || {};
+          var k = r.quiz_key || r.id;
+          quizMap[k] = {
+            id: r.id,
+            count: Number(m.count) || 10,
+            subject: normalizeSubjectName(r.subject || m.subject || 'General Studies'),
+            subSubject: r.sub_subject || m.subSubject || 'General',
+            topic: r.topic || m.topic || r.title || k,
+            subTopic: r.sub_topic || m.subTopic || 'General',
+            order: r.order_index || m.order || 0
+          };
+        });
+      }
+
+      window.DB.syllabus = sylMap;
+      window.DB.quiz = quizMap;
+    }
+
+    async function fastFetchQuizQuestions(quizKey) {
+      var setMeta = window.DB.quiz && window.DB.quiz[quizKey];
+      if (setMeta && setMeta.id) {
+        var rows = await sbRestGet('quiz_questions?quiz_set_id=eq.' + encodeURIComponent(setMeta.id) + '&select=*&order=order_index.asc&limit=2000');
+        if (Array.isArray(rows) && rows.length > 0) {
+          return rows.map(function(r) {
+            var m = r.metadata || {};
+            return {
+              question: r.question_html || r.question_text || m.question || '',
+              options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
+              correctAnswer: r.correct_answer || m.correctAnswer || 'A',
+              explanation: r.explanation_html || r.explanation || m.explanation || ''
+            };
+          });
         }
       }
-      return (await window.supabaseDb.ref(key).once('value')).val();
+      return [];
     }
 
-    async function saveDB(key, value) {
-      return window.supabaseDb.ref(key).set(value);
-    }
+    var MAIN_SUBJECTS = ['General English', 'General Studies', 'Reasoning & Intelligence', 'Quantitative Aptitude'];
+    var sssColorMap={};var sssColorIndex=0;
+    var SSS_COLORS=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)','linear-gradient(135deg,#06b6d4,#0891b2)','linear-gradient(135deg,#ec4899,#db2777)','linear-gradient(135deg,#84cc16,#65a30d)'];
+    function getSSSColor(sss){if(!sssColorMap[sss]){sssColorMap[sss]=SSS_COLORS[sssColorIndex%SSS_COLORS.length];sssColorIndex++;}return sssColorMap[sss];}
+
+    var newsWithLinks=[
+      {text:'📝 General English - 2,715 Questions',action:function(){window.switchSubject('General English');studyType='quiz';window.refreshUI()}},
+      {text:'🌍 General Studies - 12,293 MCQs',action:function(){window.switchSubject('General Studies');studyType='quiz';window.refreshUI()}},
+      {text:'🎓 Reasoning - 16,184 Practice Questions',action:function(){window.switchSubject('Reasoning & Intelligence');studyType='quiz';window.refreshUI()}},
+      {text:'📚 Quantitative Aptitude - 3,502 Questions',action:function(){window.switchSubject('Quantitative Aptitude');studyType='quiz';window.refreshUI()}}
+    ];
+    window.buildNewsTicker = function(){var t=document.getElementById('newsTicker');if(!t)return;var h='';newsWithLinks.forEach(function(i,idx){h+='<a class="news-link" onclick="event.stopPropagation();window.handleNewsClick('+idx+')">'+i.text+'</a>';if(idx<newsWithLinks.length-1)h+='<span style="color:rgba(255,255,255,.3);margin:0 6px">|</span>'});t.innerHTML=h+h}
+    window.handleNewsClick = function(i){var n=newsWithLinks[i%newsWithLinks.length];if(n&&n.action)n.action()}
+    window.buildNewsTicker();
 
     window.googleTranslateElementInit=function(){new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'te,hi,ta,ml,kn,en',layout:google.translate.TranslateElement.InlineLayout.HORIZONTAL,autoDisplay:false},'google_translate_element');};
-    window.changeLanguage = function(l){var gc=document.querySelector('.goog-te-combo');if(gc){gc.value=l;gc.dispatchEvent(new Event('change',{bubbles:true}));}}
+    window.changeLanguage = function(l){var gc=document.querySelector('.goog-te-combo');if(gc){gc.value=l;gc.dispatchEvent(new Event('change',{bubbles:true}));}else{document.cookie="googtrans=/en/"+l+"; path=/";location.reload();}}
 
-    var currentTab='quiz';
-    var allData={syllabus:{},quiz:{}},selectedItems={};
-    var currentFilters={subject:'ALL',subSubject:'ALL',topic:'ALL',subTopic:'ALL',sort:'manual'};
+    window.DB = { syllabus: {}, quiz: {} };
+    var studyType = 'quiz';
+    var subject = 'General English';
+    var qActive=[],qIdx=0,qTimer=null,qSec=0,qAns=[];
+    var SYL_CONTENT_MAP = {};
+    var sylCounter = 0;
 
-    var SSC_HIERARCHY={
-      'General English':{ 'General':{ 'General':['General'] } },
-      'General Studies':{ 'General':{ 'General':['General'] } },
-      'Reasoning & Intelligence':{ 'General':{ 'General':['General'] } },
-      'Quantitative Aptitude':{ 'General':{ 'General':['General'] } }
-    };
-
-    function getMainSubjects(){return Object.keys(SSC_HIERARCHY)}
-    function getSavedSubSubject(item){return item.subSubject||item.subsubject||'General'}
-    function getSavedTopic(item){return item.topic||'General'}
-    function getSavedSubTopic(item){return item.subTopic||item.subtopic||'General'}
     function sanitizeHTML(s){if(!s)return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
-    function scrubHtml(s){return s||''}
-    function escapeAttr(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;')}
-    function escHTML(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
-    
-    window.initTheme = function(){var t=localStorage.getItem('ssc_ad_th')||'dark',b=document.getElementById('theme-toggle');t==='light'?(document.body.classList.add('light-mode'),b.innerText='Dark Mode'):(document.body.classList.remove('light-mode'),b.innerText='Light Mode')}
+    window.initTheme = function(){var t=localStorage.getItem('ssc_st_th')||'dark',b=document.getElementById('theme-toggle');t==='light'?(document.body.classList.add('light-mode'),b.innerText='Dark Mode'):(document.body.classList.remove('light-mode'),b.innerText='Light Mode')}
     window.initTheme();
-    window.toggleTheme = function(){var l=document.body.classList.toggle('light-mode');localStorage.setItem('ssc_ad_th',l?'light':'dark');document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode'}
-    function toast(msg,type){var t=document.createElement('div');t.className='toast '+(type||'success');t.innerText=msg;document.body.appendChild(t);setTimeout(function(){t.remove()},3000)}
-
-    window.switchTab = function(tab){
-      currentTab=tab;selectedItems={};
-      var btns=document.querySelectorAll('.admin-tab-btn');
-      for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');
-      var ab=document.querySelector('.admin-tab-btn[onclick*="\''+tab+'\'"]');
-      if(ab)ab.classList.add('active');
-      window.refreshUI();
+    window.toggleTheme = function(){var l=document.body.classList.toggle('light-mode');localStorage.setItem('ssc_st_th',l?'light':'dark');document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode'}
+    window.getArr = function(o){
+      if(!o)return[];
+      var r=Object.keys(o).map(function(k){return o[k];}).filter(Boolean);
+      r.sort(function(a,b){return (a.order||0)-(b.order||0);});
+      return r;
     }
+    window.getImgs = function(u){if(!u||!Array.isArray(u)||!u.length)return'';var h='';u.forEach(function(url){if(url)h+='<img src="'+url+'" class="img-th" onclick="window.openModal(\''+encodeURIComponent(url)+'\')">'});return h}
 
-    window.refreshUI = async function(){
-      var ac=document.getElementById('admin-content');
-      var refMap={syllabus:'sscTheoryDatabase',quiz:'sscQuestionBank_index'};
-      var keyMap={syllabus:'syllabus',quiz:'quiz'};
-      ac.innerHTML='<div style="padding:30px;text-align:center;"><span class="spinner"></span> Loading Data...</div>';
-      try {
-        const data = await fetchDB(refMap[currentTab]);
-        allData[keyMap[currentTab]] = data || {};
-        window.renderContent(keyMap[currentTab]);
-      } catch (err) {
-        ac.innerHTML='<div style="padding:30px;text-align:center;color:#ef4444;"><p>⚠️ Error loading data</p><button class="btn btn-blue btn-sm" onclick="window.refreshUI()">🔄 Retry</button></div>';
+    window.tog = function(id){
+      var el = document.getElementById(id);
+      if(!el) return;
+      var isShowing = el.classList.toggle('show');
+      if(isShowing && SYL_CONTENT_MAP[id] !== undefined){
+        var raw = SYL_CONTENT_MAP[id];
+        if(!raw || !String(raw).trim()){
+          el.innerHTML = '<p style="color:var(--mut);">No content inside this topic yet.</p>';
+          return;
+        }
+        if(/<!doctype|<html|<head|<style|<script/i.test(raw)){
+          var ifr = document.createElement('iframe');
+          ifr.className = 'syl-iframe';
+          ifr.setAttribute('sandbox','allow-scripts allow-same-origin allow-modals allow-popups allow-forms');
+          var helper = '<style>html,body{margin:0;padding:12px;overflow-x:hidden;font-family:sans-serif;line-height:1.6;}</style><script>function fH(){try{var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,500);if(window.frameElement)window.frameElement.style.height=(h+40)+"px";}catch(e){}}window.addEventListener("load",function(){setTimeout(fH,100);setTimeout(fH,600);});document.addEventListener("click",function(){setTimeout(fH,150);});<\/script>';
+          ifr.srcdoc = /<!doctype|<html/i.test(raw) ? (raw+helper) : ('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">'+helper+'</head><body style="color:#e2e8f0;background:#0f172a;">'+raw+'</body></html>');
+          el.innerHTML = '';
+          el.appendChild(ifr);
+        } else {
+          el.innerHTML = raw;
+        }
       }
     }
 
-    window.togAdm = function(id){var el=document.getElementById(id);if(el)el.classList.toggle('collapsed')}
+    window.openModal = function(d){var m=document.getElementById('img-modal');document.getElementById('modal-img').src=decodeURIComponent(d);m.classList.add('show')}
+    window.closeModal = function(){document.getElementById('img-modal').classList.remove('show')}
+    window.loginAsGuest = function(){document.getElementById('login-overlay').style.display='none';window.refreshUI();}
+    window.attemptLogin = function(){document.getElementById('login-overlay').style.display='none';window.refreshUI();}
 
-    function admItemRow(k,i,item,isQuiz){
-      var h='<div class="list-item" data-key="'+escapeAttr(k)+'">';
-      h+='<div class="item-info">';
-      if(isQuiz){
-        var cnt = item.count || 0;
-        h+='<strong>'+sanitizeHTML(k.replace(/_/g,' '))+'</strong> <span class="tag tag-teal">'+cnt+' Qs</span>';
-        if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
-        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="window.viewQuizGroup(\''+escapeAttr(k)+'\')">👁 View</button>';
-      }else{
-        h+='<strong>'+(item.title?sanitizeHTML(item.title):'Untitled')+'</strong> ';
-        if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
-        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="window.editSyllabusItem(\''+escapeAttr(k)+'\')">✏️ Edit</button>';
-      }
-      h+='</div></div>';
+    window.refreshUI = function(){
+      var sr=document.getElementById('sub-row'),ca=document.getElementById('content-area');
+      sr.innerHTML=MAIN_SUBJECTS.map(function(s){return'<button class="btn-sub '+(subject===s?'active':'')+'" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)" onclick="window.switchSubject(\''+s.replace(/'/g,"\\'")+'\')">'+(subject===s?'✔ ':'')+s+'</button>'}).join('');
+      
+      var tn={quiz:'📝 Practice Quiz', syllabus:'📖 Syllabus / Study Material'};
+      var tabsHTML='<div class="study-tabs-row">'+Object.keys(tn).map(function(t){return'<button class="study-tab-btn '+(studyType===t?'active':'')+'" onclick="window.setStudyType(\''+t+'\')">'+tn[t]+'</button>'}).join('')+'</div>';
+      var fullHTML='<div class="banner" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><h1>'+subject+'</h1><p>SSC Mastery Preparation</p></div>'+tabsHTML;
+      if(studyType==='quiz')fullHTML+=window.renderQuizHTML();
+      else fullHTML+=window.renderSyllabusHTML();
+      ca.innerHTML=fullHTML;
+    }
+
+    window.switchSubject = function(s){subject=s;window.refreshUI()}
+    window.setStudyType = function(t){studyType=t;window.refreshUI()}
+
+    window.renderQuizHTML = function(){
+      var targetSubj = normalizeSubjectName(subject);
+      var quizKeys=Object.keys(window.DB.quiz).filter(function(k){
+          var qMeta = window.DB.quiz[k];
+          if(!qMeta) return false;
+          return normalizeSubjectName(qMeta.subject) === targetSubj;
+      });
+      if(!quizKeys.length)return'<div style="padding:40px;text-align:center;color:var(--mut);font-size:1.25rem;font-weight:700;">No quizzes found for <strong>'+subject+'</strong>.<br><br><button class="btn btn-blue btn-sm" onclick="window.setStudyType(\'syllabus\')">📖 View Study Material Instead</button></div>';
+      
+      var grouped={};
+      quizKeys.forEach(function(k){
+        var qMeta = window.DB.quiz[k];
+        var ss=qMeta.subSubject||'General';
+        var tp=qMeta.topic||'General';
+        var st=qMeta.subTopic||'General';
+        var cnt = Number(qMeta.count) || 10;
+        if(!grouped[ss])grouped[ss]={};
+        if(!grouped[ss][tp])grouped[ss][tp]={};
+        if(!grouped[ss][tp][st])grouped[ss][tp][st]=[];
+        grouped[ss][tp][st].push({key:k, count:cnt, subTopic:st, topic:tp});
+      });
+      
+      var h='',ci=0;var subColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)'];
+      
+      Object.keys(grouped).sort().forEach(function(ss, sIdx){
+        var sColor=subColors[ci%subColors.length];ci++;var ssid='qz_ss_'+sIdx;
+        var topicCount = Object.keys(grouped[ss]).length;
+        h+='<div class="ch-row" style="background:'+sColor+';" onclick="window.tog(\''+ssid+'\')"><span>📝 '+sanitizeHTML(ss)+'</span><span class="item-count-badge"><span>'+topicCount+'</span> Topics ▼</span></div>';
+        h+='<div id="'+ssid+'" class="ch-content show" style="padding:10px">';
+        
+        Object.keys(grouped[ss]).sort().forEach(function(tp, tIdx){
+          var tpColor=getSSSColor(tp);var tpid=ssid+'_tp_'+tIdx;
+          h+='<div class="ch-row" style="background:'+tpColor+';margin:4px 0;padding:10px 15px;font-size:1.05rem;margin-left:12px;" onclick="window.tog(\''+tpid+'\')"><span>📌 '+sanitizeHTML(tp)+'</span><span>▼</span></div>';
+          h+='<div id="'+tpid+'" class="ch-content" style="padding:8px;margin-left:12px;">';
+          
+          Object.keys(grouped[ss][tp]).sort().forEach(function(st, stIdx){
+            var stColor=getSSSColor(st);var stid=tpid+'_st_'+stIdx,topicTests=grouped[ss][tp][st];
+            h+='<div class="ch-row" style="background:'+stColor+';margin:6px 0;padding:8px 14px;font-size:1rem;margin-left:20px;" onclick="window.tog(\''+stid+'\')"><span>🔹 '+sanitizeHTML(st)+'</span><span>▼</span></div>';
+            h+='<div id="'+stid+'" class="ch-content show" style="padding:8px;margin-left:20px;"><div class="grid">';
+            topicTests.forEach(function(qz){
+                var totalQs=qz.count||10,tc=Math.max(1,Math.ceil(totalQs/10));
+                var displayTitle = (st && st !== 'General') ? st : tp;
+                for(var t=1;t<=tc;t++){
+                    var st2=(t-1)*10,end=Math.min(st2+10,totalQs);
+                    h+='<div class="q-card" style="background:'+stColor+';" onclick="window.launchQ(\''+qz.key.replace(/'/g,"\\'")+'\','+st2+','+end+',\''+stColor.replace(/'/g,"\\'")+'\')"><h4>'+sanitizeHTML(displayTitle)+'</h4><small>Test '+t+' ('+(end-st2)+' Qs)</small></div>';
+                }
+            });
+            h+='</div></div>';
+          });
+          h+='</div>';
+        });
+        h+='</div>';
+      });
       return h;
     }
 
-    function renderItemsList(dk,fk,data,isQuiz){
-      var tree={};
-      fk.forEach(function(k){
-        var item=data[k];
-        var s=item.subject||'General', sub=item.subSubject||'General', tp=item.topic||'General', st=item.subTopic||'General';
-        if(!tree[s])tree[s]={};
-        if(!tree[s][sub])tree[s][sub]={};
-        if(!tree[s][sub][tp])tree[s][sub][tp]={};
-        if(!tree[s][sub][tp][st])tree[s][sub][tp][st]=[];
-        tree[s][sub][tp][st].push(k);
-      });
-      var h='',tick=0;
-      var subjColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)'];
-      function san(s){return String(s).replace(/[^a-zA-Z0-9]/g,'_')}
+    window.renderSyllabusHTML = function(){
+      SYL_CONTENT_MAP = {};
+      sylCounter = 0;
+      var targetSubj = normalizeSubjectName(subject);
+      var items=window.getArr(window.DB.syllabus).filter(function(item){return normalizeSubjectName(item.subject)===targetSubj;});
+      if(!items.length)return'<div style="padding:40px;text-align:center;color:var(--mut);font-size:1.3rem;font-weight:700;">No syllabus items for '+subject+'</div>';
       
-      Object.keys(tree).sort().forEach(function(subject){
-        var sBodyId='ad_subj_'+tick+'_'+san(subject);var sTot=0;
-        Object.keys(tree[subject]).forEach(function(sub){var subObj=tree[subject][sub];Object.keys(subObj).forEach(function(tp){Object.keys(subObj[tp]).forEach(function(st){sTot+=subObj[tp][st].length})})});
-        h+='<div class="ad-h" style="background:'+subjColors[tick%subjColors.length]+';" onclick="window.togAdm(\''+sBodyId+'\')"><span>📚 '+sanitizeHTML(subject)+'</span><span class="tag tag-teal">'+sTot+' group(s) ▼</span></div>';
-        // Collapsed by default so 400 groups render in 0.1s without lagging DOM!
-        h+='<div class="ad-body collapsed" id="'+sBodyId+'">';
-        Object.keys(tree[subject]).sort().forEach(function(sub){
-          var ssBodyId=sBodyId+'_ss_'+san(sub);var subObj=tree[subject][sub];var ssT=0;
-          Object.keys(subObj).forEach(function(tp){Object.keys(subObj[tp]).forEach(function(st){ssT+=subObj[tp][st].length})});
-          h+='<div class="ad-h ad-h-sub" style="background:rgba(59,130,246,.25);" onclick="window.togAdm(\''+ssBodyId+'\')"><span>📂 '+sanitizeHTML(sub)+' ('+ssT+')</span><span>▼</span></div>';
-          h+='<div class="ad-body collapsed" id="'+ssBodyId+'">';
-          Object.keys(subObj).sort().forEach(function(tp){
-            var tpBodyId=ssBodyId+'_tp_'+san(tp);var tpT=0;
-            Object.keys(subObj[tp]).forEach(function(st){tpT+=subObj[tp][st].length});
-            h+='<div class="ad-h ad-h-topic" style="background:rgba(245,158,11,.22);" onclick="window.togAdm(\''+tpBodyId+'\')"><span>📌 '+sanitizeHTML(tp)+' ('+tpT+')</span><span>▼</span></div>';
-            h+='<div class="ad-body collapsed" id="'+tpBodyId+'">';
-            Object.keys(subObj[tp]).sort().forEach(function(st){
-              var stBodyId=tpBodyId+'_st_'+san(st);
-              h+='<div class="ad-h ad-h-st" style="background:rgba(236,72,153,.2);" onclick="window.togAdm(\''+stBodyId+'\')"><span>🔹 '+sanitizeHTML(st)+' ('+subObj[tp][st].length+')</span><span>▼</span></div>';
-              h+='<div class="ad-body" id="'+stBodyId+'">';
-              subObj[tp][st].forEach(function(k, idx){h+=admItemRow(k,idx,data[k],isQuiz)});
-              h+='</div>';
+      sssColorMap={};sssColorIndex=0;
+      var grouped={};
+      items.forEach(function(item){
+        var ss=item.subSubject||'General',tp=item.topic||'General',st=item.subTopic||'General';
+        if(!grouped[ss])grouped[ss]={};
+        if(!grouped[ss][tp])grouped[ss][tp]={};
+        if(!grouped[ss][tp][st])grouped[ss][tp][st]=[];
+        grouped[ss][tp][st].push(item);
+      });
+      
+      var h='',ci=0;var subColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)'];
+      
+      Object.keys(grouped).sort().forEach(function(ss, sIdx){
+        var sColor=subColors[ci%subColors.length];ci++;var ssid='ss_box_'+sIdx;
+        var ssTotalItems=0;
+        Object.keys(grouped[ss]).forEach(function(tp){
+          Object.keys(grouped[ss][tp]).forEach(function(st){ ssTotalItems+=grouped[ss][tp][st].length; });
+        });
+        
+        h+='<div class="ch-row" style="background:'+sColor+';" onclick="window.tog(\''+ssid+'\')"><span>📂 '+sanitizeHTML(ss)+'</span><span class="item-count-badge"><span>'+ssTotalItems+'</span> chapters</span> <span>▼</span></div>';
+        h+='<div id="'+ssid+'" class="ch-content show" style="padding:10px">';
+        
+        Object.keys(grouped[ss]).sort().forEach(function(tp, tIdx){
+          var tpColor=getSSSColor(tp);var tpid=ssid+'_tp_'+tIdx;
+          h+='<div class="ch-row" style="background:'+tpColor+';margin:4px 0;padding:10px 15px;font-size:1.05rem;margin-left:12px;" onclick="window.tog(\''+tpid+'\')"><span>📌 '+sanitizeHTML(tp)+'</span><span>▼</span></div>';
+          h+='<div id="'+tpid+'" class="ch-content show" style="padding:6px;margin-left:12px;">';
+          
+          Object.keys(grouped[ss][tp]).sort().forEach(function(st, stIdx){
+            var stColor=getSSSColor(st);var stid=tpid+'_st_'+stIdx;
+            h+='<div class="ch-row" style="background:'+stColor+';margin:6px 0;padding:8px 14px;font-size:1rem;margin-left:20px;" onclick="window.tog(\''+stid+'\')"><span>🔹 '+sanitizeHTML(st)+'</span><span class="item-count-badge"><span>'+grouped[ss][tp][st].length+'</span> items</span> <span>▼</span></div>';
+            h+='<div id="'+stid+'" class="ch-content show" style="padding:6px;margin-left:20px;">';
+            grouped[ss][tp][st].forEach(function(item,idx){
+              sylCounter++;
+              var itid = 'syl_item_' + sylCounter;
+              var rawBody = (item.content || '') + window.getImgs(item.imageUrls);
+              SYL_CONTENT_MAP[itid] = rawBody;
+              h+='<div class="ch-row" style="background:rgba(255,255,255,.06);border:1px solid var(--brd);margin:6px 0;padding:12px 16px;font-size:1.05rem;margin-left:24px;" onclick="window.tog(\''+itid+'\')"><span>📖 '+sanitizeHTML(item.title||'Item '+(idx+1))+'</span><span style="color:#fbbf24;">View Content [+]</span></div>';
+              h+='<div id="'+itid+'" class="ch-content" style="padding:16px;font-size:1.15rem;margin-left:24px;line-height:1.7;"></div>';
             });
             h+='</div>';
           });
           h+='</div>';
         });
         h+='</div>';
-        tick++;
       });
       return h;
     }
 
-    window.renderContent = function(dk){
-      var ac=document.getElementById('admin-content'),data=allData[dk]||{},keys=Object.keys(data),isQuiz=(dk==='quiz'),h='';
-      h+='<div class="toolbar"><span style="color:var(--txt);font-weight:800;">Total Groups Loaded: <strong style="color:#4ade80;">'+keys.length+'</strong> (Click any subject bar below to expand)</span></div>';
-      h+='<div id="groupView" style="display:none;margin-bottom:15px;"></div><div id="editForm" style="display:none;margin-bottom:15px;"></div>';
-      h+='<div id="itemsList">';
-      if(keys.length===0)h+='<div style="padding:25px;text-align:center;color:var(--mut);">No data yet.</div>';
-      else h+=renderItemsList(dk,keys,data,isQuiz);
-      h+='</div>';
-      ac.innerHTML=h;
+    window.launchQ = async function(k,s,e,c){
+      document.getElementById('shell').style.display='none';
+      var p=document.getElementById('quiz-player');
+      p.style.display='block';
+      p.dataset.theme=c;
+      p.innerHTML = '<div style="padding:60px;text-align:center;font-size:1.3rem;font-weight:800;"><span class="spinner"></span> Loading Questions...</div>';
+      
+      var data = await fastFetchQuizQuestions(k);
+      if(!data||!Array.isArray(data)||!data.length){alert('Quiz questions not found for this set!'); window.closeQ(); return}
+      
+      qActive=data.slice(s,e);
+      qIdx=0;
+      qAns=new Array(qActive.length).fill(null);
+      qSec=0;
+      window.stopQT();
+      qTimer=setInterval(function(){
+          qSec++;
+          var el=document.getElementById('qt');
+          if(el)el.innerText='Timer: '+String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');
+      },1000);
+      window.renderQ();
     }
 
-    window.viewQuizGroup = async function(key){
-      var gv=document.getElementById('groupView');
-      gv.innerHTML='<div style="padding:20px;text-align:center;"><span class="spinner"></span> Loading questions...</div>';
-      gv.style.display='block'; gv.scrollIntoView({behavior:'smooth'});
-      var qs = await fetchDB('qb_' + key);
-      if(!qs||!Array.isArray(qs)){gv.innerHTML='<p>No data</p>';return}
-      var h='<div class="card"><h3>📝 '+sanitizeHTML(key.replace(/_/g,' '))+' ('+qs.length+' Qs) <button class="btn btn-dark btn-sm" style="float:right;" onclick="document.getElementById(\'groupView\').style.display=\'none\'">✕ Close</button></h3><br>';
-      for(var i=0;i<qs.length;i++){
-        var q=qs[i];
-        h+='<div class="answer-display-box"><strong>Q'+(i+1)+':</strong> '+scrubHtml(q.question)+'<br><strong>✅ Answer:</strong> '+sanitizeHTML(q.correctAnswer)+') '+scrubHtml((q.options&&q.options[q.correctAnswer])||'');
-        if(q.explanation)h+='<br><small style="color:#fbbf24;">💡 '+scrubHtml(q.explanation)+'</small>';
-        h+='</div>';
+    window.renderQ = function() {
+      var q = qActive[qIdx], pa = qAns[qIdx], c = document.getElementById('quiz-player').dataset.theme || '';
+      var m = String(Math.floor(qSec / 60)).padStart(2, '0'), s = String(qSec % 60).padStart(2, '0');
+      var opts = q.options || {};
+      var corr = q.correctAnswer || 'A';
+
+      function oc(o) {
+        if (!pa) return '';
+        if (pa.sel === o) return pa.ok ? 'correct' : 'wrong';
+        if (corr === o && !pa.ok) return 'reveal';
+        return '';
       }
-      h+='</div>';
-      gv.innerHTML=h;
+
+      var fb = '';
+      if (pa) {
+        fb = '<div class="feedback show ' + (pa.ok ? 'correct' : 'wrong') + '">' +
+          (pa.ok ? '✅ Correct!' : '❌ Incorrect!') +
+          '<br>Correct: <b>' + sanitizeHTML(corr) + ') ' + (opts[corr] || '') + '</b>' +
+          (q.explanation ? '<br>💡 ' + q.explanation : '') + '</div>';
+      }
+
+      var html = '<div class="q-panel">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;">';
+      html += '<button class="btn btn-dark btn-sm notranslate" onclick="window.closeQ()">← Back</button>';
+      html += '<span class="btn" style="background:' + c + ';font-size:1.1rem;padding:8px 16px;">Q ' + (qIdx + 1) + '/' + qActive.length + '</span>';
+      html += '<span class="btn btn-dark notranslate" id="qt" style="font-size:1.1rem;padding:8px 16px;">Timer: ' + m + ':' + s + '</span>';
+      html += '</div>';
+
+      html += '<div style="font-size:1.45rem;font-weight:800;margin-bottom:25px;line-height:1.7;">' + (q.question || '') + '</div>';
+
+      html += '<div class="options-grid">';
+      ['A', 'B', 'C', 'D'].forEach(function(o) {
+        if (opts && opts[o]) {
+          html += '<button class="opt-btn ' + oc(o) + '" onclick="window.answerQ(\'' + o + '\')" ' + (pa ? 'disabled' : '') + '>';
+          html += '<b>' + o + ')</b> <span style="flex:1;">' + opts[o] + '</span>';
+          html += '</button>';
+        }
+      });
+      html += '</div>';
+
+      html += fb;
+      html += '<div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:20px;">';
+      html += '<button class="btn btn-dark" onclick="window.prevQ()" ' + (qIdx === 0 ? 'disabled' : '') + '>◀ Prev</button>';
+      html += '<button class="btn btn-green" onclick="window.nextQ()" ' + (!pa ? 'disabled' : '') + '>' + (qIdx === qActive.length - 1 ? '🏁 Finish' : 'Next ▶') + '</button>';
+      html += '</div></div>';
+
+      document.getElementById('quiz-player').innerHTML = html;
     }
 
-    window.editSyllabusItem = function(key){
-      var item=allData.syllabus[key];if(!item)return;
-      var ef=document.getElementById('editForm');ef.style.display='block';
-      ef.innerHTML='<div class="card"><h3>📖 '+sanitizeHTML(item.title||key)+' <button class="btn btn-dark btn-sm" style="float:right;" onclick="document.getElementById(\'editForm\').style.display=\'none\'">✕ Close</button></h3><div style="margin-top:12px;padding:12px;background:rgba(0,0,0,.3);border-radius:8px;">'+(item.content||'No content')+'</div></div>';
-      ef.scrollIntoView({behavior:'smooth'});
+    window.answerQ = function(s){
+      var corr = qActive[qIdx].correctAnswer || 'A';
+      qAns[qIdx]={sel:s,ok:s===corr};
+      window.renderQ();
     }
+    window.prevQ = function(){if(qIdx>0){qIdx--;window.renderQ();}}
+    window.nextQ = function(){if(qIdx<qActive.length-1){qIdx++;window.renderQ();}else{window.closeQ();}}
+    window.stopQT = function(){if(qTimer){clearInterval(qTimer);qTimer=null;}}
+    window.closeQ = function(){window.stopQT();document.getElementById('quiz-player').style.display='none';document.getElementById('shell').style.display='block';window.refreshUI();}
 
-    window.addEventListener('DOMContentLoaded', function(){
+    async function initApp(){
+      document.getElementById('login-overlay').style.display = 'none';
+      await fastLoadAllSSCData();
       window.refreshUI();
-    });
+    }
+    window.addEventListener('DOMContentLoaded', initApp);
   </script>
   <script src="/footer.js"></script>
   <script src="/global-navbar.js"></script>
