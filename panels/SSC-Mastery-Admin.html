@@ -27,7 +27,6 @@
     .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
     .btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-orange{background:#f59e0b}.btn-teal{background:#0d9488}.btn-purple{background:#8b5cf6}.btn-pink{background:#ec4899}.btn-yellow{background:#eab308;color:#000}
     .btn-sm{padding:5px 12px;font-size:.72rem}.btn-xs{padding:3px 8px;font-size:.68rem}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
     .main-wrap{max-width:100%!important;width:100%!important;padding:15px 8px 50px!important;margin:0 auto}
     .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
     .banner{padding:8px 16px!important;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 3px 8px rgba(0,0,0,.2);flex-wrap:wrap;text-align:center}
@@ -38,41 +37,21 @@
     .admin-content{padding:15px;background:var(--srf);min-height:400px}
     .form-group{margin-bottom:10px}.form-group label{display:block;font-weight:700;margin-bottom:3px;color:var(--txt);font-size:.8rem}
     .form-inp{width:100%;padding:8px 12px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:6px;color:var(--txt);font-size:.85rem;outline:0;margin-bottom:6px}
-    textarea.form-inp{min-height:50px;resize:vertical}select.form-inp{appearance:none;cursor:pointer}
+    textarea.form-inp{min-height:50px;resize:vertical}
     .card{background:rgba(255,255,255,.03);border:1px solid var(--brd);border-radius:var(--r-md);padding:15px;margin-bottom:12px}
-    .info-banner{background:rgba(139,92,246,.1);border:1px solid #8b5cf6;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:.78rem;color:#a78bfa}
-    .csv-box{background:rgba(14,165,233,.08);border:2px dashed #0ea5e9;border-radius:var(--r-md);padding:15px;margin-bottom:15px}.csv-box h3{color:#38bdf8;font-size:.9rem}
-    .csv-fmt{background:rgba(0,0,0,.3);border-radius:6px;padding:10px;font-size:.7rem;color:var(--mut);line-height:1.5;margin:8px 0;overflow-x:auto;white-space:pre-wrap;font-family:monospace}
     .toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:6px;border:1px solid var(--brd)}
-    .toolbar select{min-width:140px;margin-bottom:0!important;padding:6px 10px;font-size:.78rem}
-    .list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:6px;margin-bottom:5px;flex-wrap:wrap;gap:8px;transition:.2s;cursor:grab}
-    .list-item:hover{border-color:#3b82f6}.list-item.selected{background:rgba(59,130,246,.15);border-color:#3b82f6}
-    .list-item .item-info{flex:1;min-width:150px;pointer-events:none}
-    .list-item .item-actions{display:flex;gap:4px;pointer-events:auto}
-    .drag-handle{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;cursor:grab;color:var(--mut);font-size:1rem;border-radius:4px;flex-shrink:0}
+    .list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:6px;margin-bottom:5px;flex-wrap:wrap;gap:8px}
+    .list-item .item-info{flex:1;min-width:150px}
+    .list-item .item-actions{display:flex;gap:4px}
     .tag{display:inline-block;padding:2px 7px;border-radius:14px;font-size:.65rem;font-weight:700;margin:1px}
-    .tag-green{background:#15803d;color:#fff}.tag-blue{background:#1d4ed8;color:#fff}.tag-orange{background:#c2410c;color:#fff}.tag-teal{background:#0d9488;color:#fff}.tag-purple{background:#7c3aed;color:#fff}.tag-pink{background:#ec4899;color:#fff}
+    .tag-blue{background:#1d4ed8;color:#fff}.tag-teal{background:#0d9488;color:#fff}
     .answer-display-box{background:rgba(34,197,94,.08);border:2px solid #22c55e;border-radius:6px;padding:10px 14px;margin-top:8px;color:#86efac;font-weight:600;line-height:1.6;font-size:.8rem}
-    .answer-display-box strong{color:#4ade80}
-    .toggle-switch{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0}
-    .toggle-switch input{opacity:0;width:0;height:0}
-    .toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#64748b;transition:.3s;border-radius:22px}
-    .toggle-slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:white;transition:.3s;border-radius:50%}
-    input:checked+.toggle-slider{background-color:#10b981}input:checked+.toggle-slider:before{transform:translateX(18px)}
     .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .toast{position:fixed;bottom:15px;right:15px;padding:10px 18px;border-radius:6px;font-weight:700;z-index:99999;animation:slideIn .3s ease;color:#fff;max-width:350px;font-size:.8rem}
-    .toast.success{background:#15803d}.toast.error{background:#b91c1c}
-    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-    #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:10000;display:none;align-items:center;justify-content:center}
-    .login-box{background:var(--srf);padding:28px 22px;border-radius:var(--r-lg);box-shadow:0 10px 30px rgba(0,0,0,.5);width:90%;max-width:340px;border:1px solid var(--brd);text-align:center}
-    .login-inp{width:100%;padding:10px;margin-bottom:10px;border-radius:6px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:.85rem;outline:0}
-    .file-upload-area{border:2px dashed #0ea5e9;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(14,165,233,.05);margin-bottom:10px}
-    .edit-question-card{border:1px solid var(--brd);border-radius:8px;padding:15px;margin-bottom:12px;background:rgba(0,0,0,.2)}
-    .ad-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 12px;margin:4px 0;color:#fff;font-weight:700;font-size:.78rem;border-radius:4px;cursor:pointer;flex-wrap:wrap;user-select:none}
-    .ad-h-sub{border-left:3px solid #3b82f6;margin-left:12px;font-size:.74rem}
-    .ad-h-topic{border-left:3px solid #f59e0b;margin-left:26px;font-size:.7rem}
-    .ad-h-st{border-left:3px solid #ec4899;margin-left:40px;font-size:.66rem}
+    .ad-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 14px;margin:5px 0;color:#fff;font-weight:800;font-size:.85rem;border-radius:6px;cursor:pointer;flex-wrap:wrap;user-select:none}
+    .ad-h-sub{border-left:3px solid #3b82f6;margin-left:12px;font-size:.78rem}
+    .ad-h-topic{border-left:3px solid #f59e0b;margin-left:24px;font-size:.74rem}
+    .ad-h-st{border-left:3px solid #ec4899;margin-left:36px;font-size:.7rem}
     .ad-body{display:block}.ad-body.collapsed{display:none}
   </style>
 </head>
@@ -99,7 +78,7 @@
         <h1>⚙️ SSC Admin Control Panel</h1>
       </div>
       <div class="admin-tabs" id="admin-tabs">
-        <button class="admin-tab-btn active notranslate" onclick="window.switchTab('quiz')">📝 Quiz</button>
+        <button class="admin-tab-btn active notranslate" onclick="window.switchTab('quiz')">📝 Quiz (400 Sets)</button>
         <button class="admin-tab-btn notranslate" onclick="window.switchTab('syllabus')">📖 Syllabus</button>
       </div>
       <div class="admin-content" id="admin-content">
@@ -110,140 +89,87 @@
 
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <script>
-    // ============ 0.5-SECOND DIRECT SUPABASE REST LOADER ============
-    window.__SB_REST_URL = null;
-    window.__SB_API_KEY = null;
-
-    async function ensureSbCreds() {
-      if (window.__SB_REST_URL && window.__SB_API_KEY) return;
-      var urlsToTry = ['/supabase-client.js', '../supabase-client.js'];
-      for (var i = 0; i < urlsToTry.length; i++) {
-        try {
-          var txt = await fetch(urlsToTry[i]).then(function(r){ return r.text(); });
-          var uMatch = txt.match(/https:\/\/[a-z0-9\-]+\.supabase\.co/i);
-          var kMatch = txt.match(/eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+/);
-          if (uMatch) window.__SB_REST_URL = uMatch[0];
-          if (kMatch) window.__SB_API_KEY = kMatch[0];
-          if (window.__SB_REST_URL && window.__SB_API_KEY) return;
-        } catch (e) {}
-      }
-    }
-
+    // ============ 0.2-SECOND DIRECT SUPABASE CLIENT LOADER ============
     async function fetchDB(key) {
-      await ensureSbCreds();
-      if (window.__SB_REST_URL && window.__SB_API_KEY) {
-        var hdrs = { 'apikey': window.__SB_API_KEY, 'Authorization': 'Bearer ' + window.__SB_API_KEY };
-        if (key === 'sscQuestionBank_index') {
-          var res = await fetch(window.__SB_REST_URL + '/rest/v1/quiz_sets?course=eq.ssc&select=id,quiz_key,title,subject,sub_subject,topic,sub_topic,order_index,metadata&limit=1000', { headers: hdrs });
-          if (res.ok) {
-            var rows = await res.json();
-            var idx = {};
-            rows.forEach(function(r) {
-              var m = r.metadata || {};
-              var k = r.quiz_key || r.id;
-              idx[k] = {
-                id: r.id,
-                count: Number(m.count) || 10,
-                subject: r.subject || m.subject || 'General Studies',
-                subSubject: r.sub_subject || m.subSubject || 'General',
-                topic: r.topic || m.topic || r.title || k,
-                subTopic: r.sub_topic || m.subTopic || 'General',
-                order: r.order_index || m.order || 0
-              };
-            });
-            return idx;
-          }
+      var db = await window.supabaseReady;
+      if (key === 'sscQuestionBank_index') {
+        var res = await db.from('quiz_sets').select('*').eq('course', 'ssc').limit(1000);
+        var rows = (res && res.data) || [];
+        var idx = {};
+        rows.forEach(function(r) {
+          var m = r.metadata || {};
+          var k = r.quiz_key || r.legacy_key || r.id;
+          idx[k] = {
+            id: r.id,
+            count: Number(m.count) || 10,
+            subject: r.subject || m.subject || 'General Studies',
+            subSubject: r.sub_subject || m.subSubject || 'General',
+            topic: r.topic || m.topic || r.title || k,
+            subTopic: r.sub_topic || m.subTopic || 'General',
+            order: r.order_index || m.order || 0
+          };
+        });
+        return idx;
+      }
+      if (key === 'sscTheoryDatabase') {
+        var sRes = await db.from('study_materials').select('*').eq('course', 'ssc').limit(1000);
+        var sRows = (sRes && sRes.data) || [];
+        var sMap = {};
+        sRows.forEach(function(r) {
+          var m = r.metadata || {};
+          var k = r.legacy_key || r.material_key || r.id;
+          sMap[k] = {
+            title: r.title || m.title || 'Untitled',
+            subject: r.subject || m.subject || 'General English',
+            subSubject: r.sub_subject || m.subSubject || 'General',
+            topic: r.topic || m.topic || 'General',
+            subTopic: r.sub_topic || m.subTopic || 'General',
+            content: r.content_html || m.content || '',
+            order: r.order_index || m.order || 0
+          };
+        });
+        return sMap;
+      }
+      if (key.indexOf('qb_') === 0) {
+        var qKey = key.substring(3);
+        var qSet = allData.quiz && allData.quiz[qKey];
+        var setId = qSet && qSet.id;
+        if (!setId) {
+          var stRes = await db.from('quiz_sets').select('id').eq('course', 'ssc').eq('quiz_key', qKey).limit(1);
+          if (stRes.data && stRes.data.length) setId = stRes.data[0].id;
         }
-        if (key === 'sscTheoryDatabase') {
-          var sRes = await fetch(window.__SB_REST_URL + '/rest/v1/study_materials?course=eq.ssc&select=id,material_key,title,subject,sub_subject,topic,sub_topic,content_html,image_urls,order_index,metadata&limit=1000', { headers: hdrs });
-          if (sRes.ok) {
-            var sRows = await sRes.json();
-            var sMap = {};
-            sRows.forEach(function(r) {
-              var m = r.metadata || {};
-              var k = r.material_key || r.id;
-              sMap[k] = {
-                title: r.title || m.title || 'Untitled',
-                subject: r.subject || m.subject || 'General English',
-                subSubject: r.sub_subject || m.subSubject || 'General',
-                topic: r.topic || m.topic || 'General',
-                subTopic: r.sub_topic || m.subTopic || 'General',
-                content: r.content_html || m.content || '',
-                order: r.order_index || m.order || 0
-              };
-            });
-            return sMap;
-          }
-        }
-        if (key.indexOf('qb_') === 0) {
-          var qKey = key.substring(3);
-          var qSet = allData.quiz && allData.quiz[qKey];
-          var setId = qSet && qSet.id;
-          if (!setId) {
-            var stRes = await fetch(window.__SB_REST_URL + '/rest/v1/quiz_sets?course=eq.ssc&quiz_key=eq.' + encodeURIComponent(qKey) + '&select=id&limit=1', { headers: hdrs });
-            if (stRes.ok) {
-              var stRows = await stRes.json();
-              if (stRows && stRows.length) setId = stRows[0].id;
-            }
-          }
-          if (setId) {
-            var qRes = await fetch(window.__SB_REST_URL + '/rest/v1/quiz_questions?quiz_set_id=eq.' + encodeURIComponent(setId) + '&select=*&order=order_index.asc&limit=2000', { headers: hdrs });
-            if (qRes.ok) {
-              var qRows = await qRes.json();
-              return qRows.map(function(r) {
-                var m = r.metadata || {};
-                return {
-                  question: r.question_html || r.question_text || m.question || '',
-                  options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
-                  correctAnswer: r.correct_answer || m.correctAnswer || 'A',
-                  explanation: r.explanation_html || r.explanation || m.explanation || '',
-                  subject: m.subject || 'General',
-                  subSubject: m.subSubject || 'General',
-                  topic: m.topic || qKey,
-                  subTopic: m.subTopic || 'General'
-                };
-              });
-            }
-          }
+        if (setId) {
+          var qRes = await db.from('quiz_questions').select('*').eq('quiz_set_id', setId).order('order_index', { ascending: true }).limit(2000);
+          var qRows = (qRes && qRes.data) || [];
+          return qRows.map(function(r) {
+            var m = r.metadata || {};
+            return {
+              question: r.question_html || r.question_text || m.question || '',
+              options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
+              correctAnswer: r.correct_answer || m.correctAnswer || 'A',
+              explanation: r.explanation_html || r.explanation || m.explanation || ''
+            };
+          });
         }
       }
-      return (await window.supabaseDb.ref(key).once('value')).val();
-    }
-
-    async function saveDB(key, value) {
-      return window.supabaseDb.ref(key).set(value);
+      return {};
     }
 
     window.googleTranslateElementInit=function(){new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'te,hi,ta,ml,kn,en',layout:google.translate.TranslateElement.InlineLayout.HORIZONTAL,autoDisplay:false},'google_translate_element');};
     window.changeLanguage = function(l){var gc=document.querySelector('.goog-te-combo');if(gc){gc.value=l;gc.dispatchEvent(new Event('change',{bubbles:true}));}}
 
     var currentTab='quiz';
-    var allData={syllabus:{},quiz:{}},selectedItems={};
-    var currentFilters={subject:'ALL',subSubject:'ALL',topic:'ALL',subTopic:'ALL',sort:'manual'};
+    var allData={syllabus:{},quiz:{}};
 
-    var SSC_HIERARCHY={
-      'General English':{ 'General':{ 'General':['General'] } },
-      'General Studies':{ 'General':{ 'General':['General'] } },
-      'Reasoning & Intelligence':{ 'General':{ 'General':['General'] } },
-      'Quantitative Aptitude':{ 'General':{ 'General':['General'] } }
-    };
-
-    function getMainSubjects(){return Object.keys(SSC_HIERARCHY)}
-    function getSavedSubSubject(item){return item.subSubject||item.subsubject||'General'}
-    function getSavedTopic(item){return item.topic||'General'}
-    function getSavedSubTopic(item){return item.subTopic||item.subtopic||'General'}
     function sanitizeHTML(s){if(!s)return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
-    function scrubHtml(s){return s||''}
     function escapeAttr(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;')}
-    function escHTML(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
     
     window.initTheme = function(){var t=localStorage.getItem('ssc_ad_th')||'dark',b=document.getElementById('theme-toggle');t==='light'?(document.body.classList.add('light-mode'),b.innerText='Dark Mode'):(document.body.classList.remove('light-mode'),b.innerText='Light Mode')}
     window.initTheme();
     window.toggleTheme = function(){var l=document.body.classList.toggle('light-mode');localStorage.setItem('ssc_ad_th',l?'light':'dark');document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode'}
-    function toast(msg,type){var t=document.createElement('div');t.className='toast '+(type||'success');t.innerText=msg;document.body.appendChild(t);setTimeout(function(){t.remove()},3000)}
 
     window.switchTab = function(tab){
-      currentTab=tab;selectedItems={};
+      currentTab=tab;
       var btns=document.querySelectorAll('.admin-tab-btn');
       for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');
       var ab=document.querySelector('.admin-tab-btn[onclick*="\''+tab+'\'"]');
@@ -272,13 +198,13 @@
       h+='<div class="item-info">';
       if(isQuiz){
         var cnt = item.count || 0;
-        h+='<strong>'+sanitizeHTML(k.replace(/_/g,' '))+'</strong> <span class="tag tag-teal">'+cnt+' Qs</span>';
+        h+='<strong>'+sanitizeHTML(k.replace(/_/g,' '))+'</strong> <span class="tag tag-teal">'+cnt+' Qs</span> ';
         if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
-        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="window.viewQuizGroup(\''+escapeAttr(k)+'\')">👁 View</button>';
+        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="window.viewQuizGroup(\''+escapeAttr(k)+'\')">👁 View Questions</button>';
       }else{
         h+='<strong>'+(item.title?sanitizeHTML(item.title):'Untitled')+'</strong> ';
         if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
-        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="window.editSyllabusItem(\''+escapeAttr(k)+'\')">✏️ Edit</button>';
+        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="window.editSyllabusItem(\''+escapeAttr(k)+'\')">👁 View Content</button>';
       }
       h+='</div></div>';
       return h;
@@ -303,7 +229,6 @@
         var sBodyId='ad_subj_'+tick+'_'+san(subject);var sTot=0;
         Object.keys(tree[subject]).forEach(function(sub){var subObj=tree[subject][sub];Object.keys(subObj).forEach(function(tp){Object.keys(subObj[tp]).forEach(function(st){sTot+=subObj[tp][st].length})})});
         h+='<div class="ad-h" style="background:'+subjColors[tick%subjColors.length]+';" onclick="window.togAdm(\''+sBodyId+'\')"><span>📚 '+sanitizeHTML(subject)+'</span><span class="tag tag-teal">'+sTot+' group(s) ▼</span></div>';
-        // Collapsed by default so 400 groups render in 0.1s without lagging DOM!
         h+='<div class="ad-body collapsed" id="'+sBodyId+'">';
         Object.keys(tree[subject]).sort().forEach(function(sub){
           var ssBodyId=sBodyId+'_ss_'+san(sub);var subObj=tree[subject][sub];var ssT=0;
@@ -334,7 +259,7 @@
 
     window.renderContent = function(dk){
       var ac=document.getElementById('admin-content'),data=allData[dk]||{},keys=Object.keys(data),isQuiz=(dk==='quiz'),h='';
-      h+='<div class="toolbar"><span style="color:var(--txt);font-weight:800;">Total Groups Loaded: <strong style="color:#4ade80;">'+keys.length+'</strong> (Click any subject bar below to expand)</span></div>';
+      h+='<div class="toolbar"><span style="color:var(--txt);font-weight:800;">✅ Total Groups Loaded Instantly: <strong style="color:#4ade80;font-size:1.1rem;">'+keys.length+'</strong> (Click any subject below to expand)</span></div>';
       h+='<div id="groupView" style="display:none;margin-bottom:15px;"></div><div id="editForm" style="display:none;margin-bottom:15px;"></div>';
       h+='<div id="itemsList">';
       if(keys.length===0)h+='<div style="padding:25px;text-align:center;color:var(--mut);">No data yet.</div>';
@@ -352,8 +277,8 @@
       var h='<div class="card"><h3>📝 '+sanitizeHTML(key.replace(/_/g,' '))+' ('+qs.length+' Qs) <button class="btn btn-dark btn-sm" style="float:right;" onclick="document.getElementById(\'groupView\').style.display=\'none\'">✕ Close</button></h3><br>';
       for(var i=0;i<qs.length;i++){
         var q=qs[i];
-        h+='<div class="answer-display-box"><strong>Q'+(i+1)+':</strong> '+scrubHtml(q.question)+'<br><strong>✅ Answer:</strong> '+sanitizeHTML(q.correctAnswer)+') '+scrubHtml((q.options&&q.options[q.correctAnswer])||'');
-        if(q.explanation)h+='<br><small style="color:#fbbf24;">💡 '+scrubHtml(q.explanation)+'</small>';
+        h+='<div class="answer-display-box"><strong>Q'+(i+1)+':</strong> '+(q.question||'')+'<br><strong>✅ Answer:</strong> '+sanitizeHTML(q.correctAnswer)+') '+((q.options&&q.options[q.correctAnswer])||'');
+        if(q.explanation)h+='<br><small style="color:#fbbf24;">💡 '+q.explanation+'</small>';
         h+='</div>';
       }
       h+='</div>';
