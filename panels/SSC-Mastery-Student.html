@@ -395,9 +395,12 @@
     window.setStudyType = function(t){studyType=t;window.refreshUI()}
 
     window.renderQuizHTML = function(){
-      var quizKeys=Object.keys(window.DB.quiz).filter(function(k){
+    var quizKeys=Object.keys(window.DB.quiz).filter(function(k){
           var qMeta = window.DB.quiz[k];
-          return qMeta && qMeta.subject === subject;
+          if(!qMeta) return false;
+          var dbSubj = (qMeta.subject || (qMeta.metadata && qMeta.metadata.subject) || '').trim().toLowerCase();
+          var targetSubj = (subject || '').trim().toLowerCase();
+          return dbSubj === targetSubj || dbSubj.indexOf(targetSubj) !== -1 || targetSubj.indexOf(dbSubj) !== -1;
       });
       if(!quizKeys.length)return'<div style="padding:40px;text-align:center;color:var(--mut);font-size:1.25rem;font-weight:700;">No quizzes found for <strong>'+subject+'</strong>.<br><br><button class="btn btn-blue btn-sm" onclick="window.setStudyType(\'syllabus\')">📖 View Study Material Instead</button></div>';
       
