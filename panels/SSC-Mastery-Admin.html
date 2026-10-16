@@ -46,48 +46,83 @@
     body.copy-allowed, body.copy-allowed * { user-select: auto !important; -webkit-user-select: auto !important; -ms-user-select: auto !important; }
     input, textarea, select { user-select: auto !important; -webkit-user-select: auto !important; }
     #editForm, #editForm *, #groupView, #groupView * { user-select: auto !important; -webkit-user-select: auto !important; }
+    .notranslate { translate: no !important; }
+
     .top-bar { background: var(--srf); border-bottom: 1px solid var(--brd); padding: 0 15px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 20px rgba(0, 0, 0, .5); }
     body.light-mode .top-bar { box-shadow: 0 4px 20px rgba(0, 0, 0, .05); }
     .top-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; padding: 12px 0; justify-content: space-between; }
     .logo { font-family: 'Fredoka One', cursive; font-size: 1.5rem; background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; flex-shrink: 0; }
     .theme-btn { background: var(--bg); color: var(--txt); border: 1px solid var(--brd); font-weight: 700; font-size: .85rem; cursor: pointer; padding: 6px 12px; border-radius: 50px; font-family: var(--font); }
+    
     .btn { padding: 10px 20px; border: none; border-radius: 50px; cursor: pointer; font-weight: 800; color: #fff; font-family: var(--font); display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: .2s; }
     .btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
     .btn-blue { background: #3b82f6; } .btn-green { background: #10b981; } .btn-red { background: #ef4444; } .btn-dark { background: #334155; } .btn-orange { background: #f59e0b; } .btn-teal { background: #0d9488; } .btn-purple { background: #8b5cf6; } .btn-pink { background: #ec4899; }
-    .btn-sm { padding: 6px 14px; font-size: .8rem; } .btn-xs { padding: 4px 10px; font-size: .7rem; }
+    .btn-sm { padding: 6px 14px; font-size: .8rem; } .btn-xs { padding: 4px 10px; font-size: .72rem; }
     .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
     .main-wrap { max-width: 100% !important; width: 100% !important; padding: 20px 10px 80px !important; margin: 0 auto; }
     .shell { background: var(--srf); border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--brd); width: 100%; max-width: 1400px; margin: 0 auto; }
     .banner { padding: 12px 20px !important; display: flex; align-items: center; justify-content: center; gap: 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, .2); flex-wrap: wrap; text-align: center; }
     .banner h1 { font-size: 1.4rem !important; font-weight: 900 !important; color: #fff !important; }
     .banner p { color: rgba(255,255,255,.9); font-weight: 700; font-size: .95rem; }
-    .admin-tabs { display: flex; gap: 6px; padding: 12px 15px; background: rgba(0, 0, 0, .15); border-bottom: 1px solid var(--brd); flex-wrap: wrap; justify-content: center; overflow-x: auto; }
-    .admin-tab-btn { padding: 8px 18px; border-radius: 50px; border: 1px solid var(--brd); background: 0 0; color: var(--mut); font-weight: 700; font-size: .85rem; cursor: pointer; font-family: var(--font); transition: .2s; white-space: nowrap; }
+
+    /* Subject Filter Buttons Row */
+    .sub-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 14px; background: rgba(0, 0, 0, .22); border-bottom: 1px solid var(--brd); }
+    .btn-sub { padding: 9px 18px; border: 2px solid transparent; border-radius: 8px; color: #fff; font-weight: 800; font-size: .88rem; cursor: pointer; opacity: .7; transform: scale(.96); white-space: nowrap; font-family: var(--font); transition: .2s; }
+    .btn-sub:hover { opacity: .95; transform: scale(1); }
+    .btn-sub.active { opacity: 1; transform: scale(1.04); border-color: #fff; box-shadow: 0 0 14px rgba(255, 255, 255, .3); }
+
+    .admin-tabs { display: flex; gap: 8px; padding: 12px 15px; background: rgba(0, 0, 0, .15); border-bottom: 1px solid var(--brd); flex-wrap: wrap; justify-content: center; overflow-x: auto; }
+    .admin-tab-btn { padding: 8px 20px; border-radius: 50px; border: 1px solid var(--brd); background: 0 0; color: var(--mut); font-weight: 800; font-size: .85rem; cursor: pointer; font-family: var(--font); transition: .2s; white-space: nowrap; }
     .admin-tab-btn:hover { color: var(--txt); border-color: var(--txt); }
     .admin-tab-btn.active { background: #ef4444; color: #fff; border-color: #ef4444; box-shadow: 0 2px 8px rgba(239, 68, 68, .4); }
+
     .admin-content { padding: 20px; background: var(--srf); }
-    .form-group { margin-bottom: 20px; }
+    .form-group { margin-bottom: 18px; }
     .form-group label { display: block; font-weight: 700; margin-bottom: 6px; color: var(--txt); font-size: .9rem; }
-    .form-inp { width: 100%; padding: 12px 16px; background: rgba(0, 0, 0, .2); border: 1px solid var(--brd); border-radius: 8px; font-family: var(--font); color: var(--txt); font-size: .95rem; outline: 0; margin-bottom: 10px; }
+    .form-inp { width: 100%; padding: 11px 14px; background: rgba(0, 0, 0, .2); border: 1px solid var(--brd); border-radius: 8px; font-family: var(--font); color: var(--txt); font-size: .92rem; outline: 0; margin-bottom: 8px; }
     textarea.form-inp { min-height: 80px; resize: vertical; }
     select.form-inp { appearance: none; cursor: pointer; }
     .card { background: rgba(255, 255, 255, .03); border: 1px solid var(--brd); border-radius: var(--r-md); padding: 20px; margin-bottom: 16px; }
-    .csv-box { background: rgba(14, 165, 233, .08); border: 2px dashed #0ea5e9; border-radius: var(--r-md); padding: 20px; margin-bottom: 20px; }
-    .csv-box h3 { color: #38bdf8; }
-    .csv-fmt { background: rgba(0, 0, 0, .3); border-radius: 8px; padding: 12px; font-size: .75rem; color: var(--mut); line-height: 1.6; margin: 12px 0; overflow-x: auto; white-space: pre; font-family: monospace; }
+    
+    .csv-box { background: rgba(14, 165, 233, .08); border: 2px dashed #0ea5e9; border-radius: var(--r-md); padding: 18px; margin-bottom: 20px; }
+    .csv-box h3 { color: #38bdf8; font-size: 1.05rem; }
+    .csv-fmt { background: rgba(0, 0, 0, .3); border-radius: 8px; padding: 10px 12px; font-size: .75rem; color: var(--mut); line-height: 1.6; margin: 10px 0; overflow-x: auto; white-space: pre; font-family: monospace; }
+    
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; padding: 12px; background: rgba(0, 0, 0, .2); border-radius: 8px; border: 1px solid var(--brd); }
-    .toolbar select { min-width: 160px; }
-    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(0, 0, 0, .2); border: 1px solid var(--brd); border-radius: 8px; margin-bottom: 8px; flex-wrap: wrap; gap: 10px; }
-    .list-item:hover { border-color: #3b82f6; } .list-item.selected { background: rgba(59, 130, 246, .15); border-color: #3b82f6; }
+    .toolbar select { min-width: 150px; }
+
+    /* Collapsible Subject & Topic Bars with Alternating Light/Dark Shades */
+    .subj-header-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; margin: 14px 0 0; color: #fff; font-weight: 900; font-size: 1.08rem; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.2); transition: .2s; }
+    .subj-header-bar:hover { filter: brightness(1.1); }
+    .subj-body-wrap { display: none; padding: 10px 12px 14px; background: rgba(0,0,0,.18); border: 1px solid var(--brd); border-top: none; border-radius: 0 0 8px 8px; margin-bottom: 10px; }
+    .subj-body-wrap.show { display: block; animation: fadeIn .2s ease; }
+
+    .topic-drop-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; margin: 8px 0 0; color: #fff; font-weight: 800; font-size: .96rem; border-radius: 8px; cursor: pointer; transition: .2s; box-shadow: 0 3px 6px rgba(0,0,0,.22); border-left: 5px solid rgba(255,255,255,.75); }
+    .topic-drop-bar:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .topic-drop-body { display: none; padding: 10px; background: rgba(0,0,0,.25); border: 1px solid var(--brd); border-top: none; border-radius: 0 0 8px 8px; margin-bottom: 8px; }
+    .topic-drop-body.show { display: block; animation: fadeIn .2s ease; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .badge-pill { background: rgba(0,0,0,.38); padding: 4px 12px; border-radius: 20px; font-size: .78rem; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,.18); }
+    .badge-pill b { color: #fde047; }
+
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0, 0, 0, .25); border: 1px solid var(--brd); border-radius: 8px; margin-bottom: 7px; flex-wrap: wrap; gap: 10px; transition: .15s; }
+    .list-item:hover { border-color: #3b82f6; background: rgba(59, 130, 246, .08); }
+    .list-item.selected { background: rgba(59, 130, 246, .18); border-color: #3b82f6; }
     .list-item .item-check { width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6; }
     .list-item .item-info { flex: 1; min-width: 200px; }
-    .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+
+    .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: .74rem; font-weight: 700; }
     .tag-green { background: #15803d; color: #fff; } .tag-red { background: #b91c1c; color: #fff; } .tag-blue { background: #1d4ed8; color: #fff; } .tag-orange { background: #c2410c; color: #fff; } .tag-teal { background: #0d9488; color: #fff; } .tag-purple { background: #7c3aed; color: #fff; }
+    
     .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, .3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .toast { position: fixed; bottom: 20px; right: 20px; padding: 14px 24px; border-radius: 8px; font-weight: 700; z-index: 99999; animation: slideIn .3s ease; color: #fff; max-width: 400px; }
     .toast.success { background: #15803d; } .toast.error { background: #b91c1c; } .toast.info { background: #1d4ed8; }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
     #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: none; align-items: center; justify-content: center; }
     .login-box { background: var(--srf); padding: 40px 30px; border-radius: var(--r-lg); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); width: 90%; max-width: 380px; border: 1px solid var(--brd); text-align: center; }
     .login-inp { width: 100%; padding: 14px; margin-bottom: 16px; border-radius: 8px; border: 1px solid var(--brd); background: rgba(0, 0, 0, .2); color: var(--txt); font-family: var(--font); font-size: 1rem; outline: 0; }
@@ -97,13 +132,19 @@
     .checkbox-label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(0,0,0,.2); border: 1px solid var(--brd); border-radius: 16px; font-size: .85rem; cursor: pointer; }
 
     /* Upload Box Styles */
-    .file-upload-area{border:2px dashed #0ea5e9;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(14,165,233,.05);margin-bottom:10px}
+    .file-upload-area{border:2px dashed #0ea5e9;border-radius:8px;padding:18px;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(14,165,233,.05);margin-bottom:10px}
     .file-upload-area:hover{border-color:#38bdf8;background:rgba(14,165,233,.1)}
     .file-upload-area.drag-over{border-color:#22c55e;background:rgba(34,197,94,.1)}
-    .file-upload-icon{font-size:2rem;margin-bottom:8px}
-    .file-types-info{font-size:.7rem;color:var(--mut);margin-top:5px}
+    .file-upload-icon{font-size:1.8rem;margin-bottom:6px}
+    .file-types-info{font-size:.7rem;color:var(--mut);margin-top:4px}
 
-    @media(max-width: 600px) { .list-item { flex-direction: column; align-items: flex-start; } .admin-tabs { gap: 4px; padding: 8px; } .admin-tab-btn { padding: 6px 14px; font-size: .75rem; } .toolbar { flex-direction: column; } }
+    @media(max-width: 600px) {
+      .list-item { flex-direction: column; align-items: flex-start; }
+      .admin-tabs { gap: 4px; padding: 8px; }
+      .admin-tab-btn { padding: 6px 14px; font-size: .75rem; }
+      .toolbar { flex-direction: column; }
+      .subj-header-bar, .topic-drop-bar { flex-direction: column; align-items: flex-start; gap: 6px; }
+    }
   </style>
 </head>
 <body class="protected-mode">
@@ -125,7 +166,7 @@
     <div class="top-inner">
       <div class="logo">⚙️ SSC Admin Panel</div>
       <div style="display:flex;align-items:center;gap:15px;flex-wrap:wrap;">
-        <span id="admin-info" style="font-weight:700;font-size:.9rem;">Admin: admin</span>
+        <span id="admin-info" style="font-weight:700;font-size:.9rem;color:#4ade80;">Admin: admin</span>
         <button class="theme-btn" id="theme-toggle" onclick="window.toggleTheme()">Light Mode</button>
         <button class="btn btn-red btn-sm" onclick="window.logout()">Logout</button>
       </div>
@@ -134,14 +175,21 @@
 
   <div class="main-wrap">
     <div id="shell" class="shell">
-      <div class="banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);"><h1>⚙️ Admin Control Panel</h1><p>Manage SSC Syllabus & Quiz Content</p></div>
+      <div class="banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">
+        <h1>⚙️ SSC Admin Control Panel</h1>
+        <p>Manage SSC Quiz &amp; Syllabus Content</p>
+      </div>
+      <!-- ✅ TAB ORDER: 1. Quiz -> 2. Syllabus -> 3. Users -> 4. Settings -->
       <div class="admin-tabs" id="admin-tabs">
-        <button class="admin-tab-btn" onclick="window.switchTab('syllabus', event)">📖 Syllabus</button>
         <button class="admin-tab-btn active" onclick="window.switchTab('quiz', event)">📝 Quiz</button>
+        <button class="admin-tab-btn" onclick="window.switchTab('syllabus', event)">📖 Syllabus</button>
         <button class="admin-tab-btn" onclick="window.switchTab('users', event)">👥 Users</button>
         <button class="admin-tab-btn" onclick="window.switchTab('settings', event)">⚙️ Settings</button>
       </div>
-      <div class="admin-content" id="admin-content"><div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div></div>
+      <div class="sub-row" id="admin-sub-row"></div>
+      <div class="admin-content" id="admin-content">
+        <div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div>
+      </div>
     </div>
   </div>
 
@@ -151,7 +199,35 @@
   </script>
 
   <script>
-    // ============ 0.2-SECOND DIRECT SUPABASE HELPERS (BYPASSES 400-LOOP HANG) ============
+    // ============ SUBJECT COLOR PALETTES (ALTERNATING LIGHT & DARK SHADES) ============
+    var SUBJECT_THEMES = {
+      'General English': {
+        name: 'General English',
+        grad: 'linear-gradient(135deg,#2563eb,#1d4ed8)',
+        lightGrad: 'linear-gradient(135deg,#3b82f6,#2563eb)',
+        darkGrad:  'linear-gradient(135deg,#1e40af,#172554)'
+      },
+      'General Studies': {
+        name: 'General Studies',
+        grad: 'linear-gradient(135deg,#10b981,#059669)',
+        lightGrad: 'linear-gradient(135deg,#10b981,#059669)',
+        darkGrad:  'linear-gradient(135deg,#047857,#064e3b)'
+      },
+      'Reasoning & Intelligence': {
+        name: 'Reasoning & Intelligence',
+        grad: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+        lightGrad: 'linear-gradient(135deg,#8b5cf6,#7c3aed)',
+        darkGrad:  'linear-gradient(135deg,#5b21b6,#3b0764)'
+      },
+      'Quantitative Aptitude': {
+        name: 'Quantitative Aptitude',
+        grad: 'linear-gradient(135deg,#ea580c,#c2410c)',
+        lightGrad: 'linear-gradient(135deg,#f97316,#ea580c)',
+        darkGrad:  'linear-gradient(135deg,#c2410c,#7c2d12)'
+      }
+    };
+    var SSC_SUBJECTS = Object.keys(SUBJECT_THEMES);
+
     function normalizeSubjectName(raw) {
       var s = String(raw || '').trim();
       var low = s.toLowerCase();
@@ -162,6 +238,7 @@
       return s || 'General Studies';
     }
 
+    // ============ 0.2-SECOND DIRECT SUPABASE HELPERS ============
     async function fetchDB(key) {
       var db = await window.supabaseReady;
       if (key === 'sscQuestionBank_index') {
@@ -243,14 +320,14 @@
     }
 
     // ============ GLOBAL STATE & CONFIG ============
-    var DEFAULT_ADMIN_ID = 'admin', DEFAULT_ADMIN_PASS = 'admin123', adminPhone = 'admin', adminToken = '';
-    var settings = { loginEnabled: true, users: {}, adminPass: DEFAULT_ADMIN_PASS, copyEnabled: false }, activeSessions = {}, currentTab = 'quiz';
+    // ✅ Default tab is 'quiz'
+    var DEFAULT_ADMIN_ID = 'admin', DEFAULT_ADMIN_PASS = 'admin123', adminPhone = 'admin';
+    var settings = { loginEnabled: true, users: {}, adminPass: DEFAULT_ADMIN_PASS, copyEnabled: false };
+    var currentTab = 'quiz';
     var allData = { syllabus: {}, quiz: {} }, csvRows = [], selectedItems = {};
     var currentFilters = { subject: 'ALL', subSubject: 'ALL', sort: 'manual' };
     window.skippedRowsData = "";
     window.currentEditingQs = null;
-
-    var SSC_SUBJECTS = ['General English', 'General Studies', 'Reasoning & Intelligence', 'Quantitative Aptitude'];
 
     window.initTheme = function() {
       var t = localStorage.getItem('cs_ad_th') || 'dark', b = document.getElementById('theme-toggle');
@@ -283,6 +360,11 @@
     function escHTML(s) { return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : ''; }
     function escCSV(s) { return s ? String(s).replace(/"/g, '""') : ''; }
 
+    window.togCollapse = function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('show');
+    }
+
     window.attemptLogin = function() {
       var p = document.getElementById('login-phone').value.trim(), pa = document.getElementById('login-pass').value.trim(), e = document.getElementById('login-error');
       if (!p || !pa) { e.innerText = 'Enter ID and Password'; e.style.display = 'block'; return; }
@@ -312,9 +394,35 @@
       window.refreshUI();
     }
 
+    window.selectAdminSubject = function(subj) {
+      currentFilters.subject = subj;
+      currentFilters.subSubject = 'ALL';
+      selectedItems = {};
+      window.renderSubRow();
+      window.renderContent(currentTab === 'quiz' ? 'quiz' : 'syllabus');
+    }
+
+    window.renderSubRow = function() {
+      var sr = document.getElementById('admin-sub-row');
+      if (!sr) return;
+      if (currentTab === 'users' || currentTab === 'settings') {
+        sr.style.display = 'none';
+        return;
+      }
+      sr.style.display = 'flex';
+      var h = '<button class="btn-sub ' + (currentFilters.subject === 'ALL' ? 'active' : '') + '" style="background:linear-gradient(135deg,#475569,#1e293b);" onclick="window.selectAdminSubject(\'ALL\')">' + (currentFilters.subject === 'ALL' ? '✔ ' : '') + '📚 All Subjects</button>';
+      SSC_SUBJECTS.forEach(function(s) {
+        var th = SUBJECT_THEMES[s];
+        var act = currentFilters.subject === s;
+        h += '<button class="btn-sub ' + (act ? 'active' : '') + '" style="background:' + th.grad + ';" onclick="window.selectAdminSubject(\'' + s.replace(/'/g, "\\'") + '\')">' + (act ? '✔ ' : '') + s + '</button>';
+      });
+      sr.innerHTML = h;
+    }
+
     window.refreshUI = async function() {
       var ac = document.getElementById('admin-content');
       if (!adminPhone) { document.getElementById('login-overlay').style.display = 'flex'; return; }
+      window.renderSubRow();
       if (currentTab === 'users') { window.renderUsers(); return; }
       if (currentTab === 'settings') { window.renderSettings(); return; }
 
@@ -337,12 +445,13 @@
         var it = data[k];
         if (!it) return;
         if (currentFilters.subject !== 'ALL' && it.subject !== currentFilters.subject) return;
-        var ss = it.subSubject || 'General';
+        var ss = (it.subSubject && it.subSubject !== 'General') ? it.subSubject : (it.topic || 'General');
         set[ss] = true;
       });
       return Object.keys(set).sort();
     }
 
+    // ============ RENDER CONTENT WITH COLLAPSIBLE ALTERNATING LIGHT/DARK TOPICS ============
     window.renderContent = function(dk) {
       var ac = document.getElementById('admin-content'), data = allData[dk] || {}, keys = Object.keys(data), isQuiz = (dk === 'quiz'), h = '';
 
@@ -351,7 +460,7 @@
         h += '<div class="csv-fmt"><strong>10 Columns:</strong> Subject | Sub-Subject | Topic | Sub-Topic | Question | Option A | Option B | Option C | Option D | Correct | Explanation<br>🖼 Supports 2 or 4 options (A/B/C/D). Option C &amp; D columns optional.</div>';
         h += '<div class="file-upload-area" id="fileDropZone" onclick="document.getElementById(\'csvFileInput\').click()"><div class="file-upload-icon">📁</div><div style="font-weight:700;color:#38bdf8;">Click or Drag & Drop Files</div><div class="file-types-info">.csv .tsv .txt .json .html</div></div>';
         h += '<input type="file" id="csvFileInput" style="display:none;" accept=".csv,.tsv,.txt,.json,.html,text/*" onchange="window.handleFileEvent(event)">';
-        h += '<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste Excel Data/CSV/JSON here..." style="min-height:90px;"></textarea><button class="btn btn-teal btn-sm notranslate" onclick="window.parsePastedEvent()">🔍 Parse Data</button></div>';
+        h += '<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste Excel Data/CSV/JSON here..." style="min-height:80px;"></textarea><button class="btn btn-teal btn-sm notranslate" onclick="window.parsePastedEvent()">🔍 Parse Data</button></div>';
         h += '<div id="csvPreviewArea"></div></div>';
       }
 
@@ -361,18 +470,18 @@
         var gs = currentFilters.subject === SSC_SUBJECTS[gi] ? 'selected' : '';
         go += '<option value="' + escHTML(SSC_SUBJECTS[gi]) + '" ' + gs + '>' + sanitizeHTML(SSC_SUBJECTS[gi]) + '</option>';
       }
-      h += '<select class="form-inp" id="filterSubject" onchange="window.updateFilter(\'subject\', this.value)" style="max-width:200px;margin-bottom:0;">' + go + '</select>';
+      h += '<select class="form-inp" id="filterSubject" onchange="window.selectAdminSubject(this.value)" style="max-width:190px;margin-bottom:0;">' + go + '</select>';
 
       var subSubs = getAvailableSubSubjects(data);
-      var so = '<option value="ALL">📅 All Sub-Subjects</option>';
+      var so = '<option value="ALL">📂 All Topics</option>';
       for (var si = 0; si < subSubs.length; si++) {
         var ss = currentFilters.subSubject === subSubs[si] ? 'selected' : '';
-        so += '<option value="' + escHTML(subSubs[si]) + '" ' + ss + '>' + sanitizeHTML(subSubs[si]) + '</option>';
+        so += '<option value="' + escHTML(subSubs[si]) + '" ' + ss + '>' + sanitizeHTML(subSubs[si].replace(/_/g, ' ')) + '</option>';
       }
       h += '<select class="form-inp" id="filterStage" onchange="window.updateFilter(\'subSubject\', this.value)" style="max-width:190px;margin-bottom:0;">' + so + '</select>';
 
       var sso = { 'manual': currentFilters.sort === 'manual' ? 'selected' : '', 'newest': currentFilters.sort === 'newest' ? 'selected' : '', 'az': currentFilters.sort === 'az' ? 'selected' : '', 'za': currentFilters.sort === 'za' ? 'selected' : '' };
-      h += '<select class="form-inp" id="sortOrder" onchange="window.updateFilter(\'sort\', this.value)" style="max-width:140px;margin-bottom:0;">';
+      h += '<select class="form-inp" id="sortOrder" onchange="window.updateFilter(\'sort\', this.value)" style="max-width:130px;margin-bottom:0;">';
       h += '<option value="manual" ' + sso['manual'] + '>🔢 Manual</option>';
       h += '<option value="newest" ' + sso['newest'] + '>🆕 Newest</option>';
       h += '<option value="az" ' + sso['az'] + '>🔤 A-Z</option>';
@@ -387,41 +496,109 @@
       if (!isQuiz) h += '<button class="btn btn-green btn-sm" onclick="window.showAddForm()">➕ Add New</button>';
 
       var dk2 = window.getFilteredAndSortedKeys(keys, data, isQuiz);
-      h += '<span style="color:var(--mut);margin-left:auto;">Total: <strong>' + dk2.length + '</strong></span></div>';
+      h += '<span style="color:var(--mut);margin-left:auto;">Total Groups: <strong>' + dk2.length + '</strong></span></div>';
 
-      // Place Edit Form & Group View right above the list so user sees it immediately when clicking Edit
+      // Edit Form & Group View appear right at the top when clicked
       h += '<div id="editForm" style="display:none;margin-bottom:20px;"></div><div id="groupView" style="display:none;margin-bottom:20px;"></div>';
 
       h += '<div id="itemsList">';
       if (dk2.length === 0) {
         h += '<div style="padding:40px;text-align:center;color:var(--mut);">No data found for current filter.</div>';
       } else {
-        for (var i = 0; i < dk2.length; i++) {
-          var k = dk2[i], item = data[k], checked = selectedItems[k] ? 'checked' : '', selClass = selectedItems[k] ? 'selected' : '';
-          var safeK = escHTML(k);
-          var jsK = k.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-          if (isQuiz) {
-            var cnt = item.count || (Array.isArray(item) ? item.length : 10);
-            var extractedSubject = item.subject || k.split('_')[0] || '';
-            var extractedSubSubject = item.subSubject || k.split('_')[1] || '';
-            var extractedTopic = item.topic || k.split('_')[2] || '';
+        // Group items by Subject -> Main Topic (Sub-Subject / Topic) for Collapsible Light/Dark Dropdowns!
+        var groupedTree = {};
+        dk2.forEach(function(k) {
+          var item = data[k] || {};
+          var subjName = normalizeSubjectName(item.subject || 'General Studies');
+          var mainTopic = (item.subSubject && item.subSubject !== 'General') ? item.subSubject : (item.topic || 'General');
+          mainTopic = mainTopic.replace(/_/g, ' ');
+          if (!groupedTree[subjName]) groupedTree[subjName] = {};
+          if (!groupedTree[subjName][mainTopic]) groupedTree[subjName][mainTopic] = [];
+          groupedTree[subjName][mainTopic].push(k);
+        });
 
-            h += '<div class="list-item ' + selClass + '" data-key="' + safeK + '"><input type="checkbox" class="item-check" ' + checked + ' onchange="window.toggleSelect(\'' + jsK + '\',this.checked)" onclick="event.stopPropagation()"><div class="item-info"><strong>' + sanitizeHTML(k.replace(/_/g,' ')) + '</strong><span class="tag tag-teal" style="margin-left:8px;">' + cnt + ' Qs</span>';
-            if (extractedSubject) h += '<span class="tag tag-green" style="margin-left:4px;">📚 ' + sanitizeHTML(extractedSubject) + '</span>';
-            if (extractedSubSubject && extractedSubSubject !== 'General') h += '<span class="tag tag-orange" style="margin-left:4px;">📅 ' + sanitizeHTML(extractedSubSubject) + '</span>';
-            if (extractedTopic && extractedTopic !== k) h += '<span class="tag tag-blue" style="margin-left:4px;">📘 ' + sanitizeHTML(extractedTopic) + '</span>';
-            h += '</div><div style="display:flex;gap:6px;">';
-            h += '<button class="btn btn-dark btn-xs" onclick="window.moveItem(\'' + jsK + '\',-1)">🔼</button><button class="btn btn-dark btn-xs" onclick="window.moveItem(\'' + jsK + '\',1)">🔽</button>';
-            h += '<button class="btn btn-orange btn-xs" onclick="window.editQuizGroup(\'' + jsK + '\')">✏️ Edit</button><button class="btn btn-red btn-xs" onclick="window.deleteSingle(\'' + jsK + '\')">🗑</button></div></div>';
-          } else {
-            h += '<div class="list-item ' + selClass + '" data-key="' + safeK + '"><input type="checkbox" class="item-check" ' + checked + ' onchange="window.toggleSelect(\'' + jsK + '\',this.checked)" onclick="event.stopPropagation()"><div class="item-info"><strong>' + sanitizeHTML(item.title || 'Untitled') + '</strong>';
-            if (item.subject) h += '<span class="tag tag-green" style="margin-left:8px;">📚 ' + sanitizeHTML(item.subject) + '</span>';
-            if (item.subSubject) h += '<span class="tag tag-orange" style="margin-left:4px;">📅 ' + sanitizeHTML(item.subSubject) + '</span>';
-            if (item.topic) h += '<span class="tag tag-blue" style="margin-left:4px;">📘 ' + sanitizeHTML(item.topic) + '</span>';
-            h += '</div><div style="display:flex;gap:6px;">';
-            h += '<button class="btn btn-blue btn-xs" onclick="window.editSyllabusItem(\'' + jsK + '\')">✏️ Edit</button><button class="btn btn-red btn-xs" onclick="window.deleteSingle(\'' + jsK + '\')">🗑</button></div></div>';
-          }
-        }
+        var subjList = SSC_SUBJECTS.filter(function(s) { return groupedTree[s]; });
+        Object.keys(groupedTree).forEach(function(s) {
+          if (subjList.indexOf(s) === -1) subjList.push(s);
+        });
+
+        subjList.forEach(function(subjName, sIdx) {
+          var th = SUBJECT_THEMES[subjName] || SUBJECT_THEMES['General Studies'];
+          var topicsObj = groupedTree[subjName];
+          var topicNames = Object.keys(topicsObj).sort();
+          var subjTotalGroups = 0, subjTotalQs = 0;
+          topicNames.forEach(function(tName) {
+            subjTotalGroups += topicsObj[tName].length;
+            topicsObj[tName].forEach(function(k) { subjTotalQs += (Number(data[k].count) || 1); });
+          });
+
+          var subjDomId = 'adm_subj_' + sIdx;
+          var openSubjByDefault = (currentFilters.subject !== 'ALL' || subjList.length === 1);
+
+          // Subject Collapsible Header
+          h += '<div class="subj-header-bar" style="background:' + th.grad + ';" onclick="window.togCollapse(\'' + subjDomId + '\')">';
+          h += '<span>📚 ' + sanitizeHTML(subjName) + '</span>';
+          h += '<span class="badge-pill"><b>' + topicNames.length + '</b> Topics | <b>' + subjTotalGroups + '</b> Groups' + (isQuiz ? ' (' + subjTotalQs + ' Qs)' : '') + ' ▼</span>';
+          h += '</div>';
+
+          h += '<div id="' + subjDomId + '" class="subj-body-wrap ' + (openSubjByDefault ? 'show' : '') + '">';
+
+          // Alternating Light & Dark Collapsible Topic Bars inside the Subject!
+          topicNames.forEach(function(tName, tIdx) {
+            var topicDomId = subjDomId + '_tp_' + tIdx;
+            var barGrad = (tIdx % 2 === 0) ? th.lightGrad : th.darkGrad;
+            var groupKeys = topicsObj[tName];
+            var topicQs = 0;
+            groupKeys.forEach(function(k) { topicQs += (Number(data[k].count) || 1); });
+            var openTopicByDefault = (currentFilters.subSubject !== 'ALL' || topicNames.length === 1);
+
+            h += '<div class="topic-drop-bar" style="background:' + barGrad + ';" onclick="window.togCollapse(\'' + topicDomId + '\')">';
+            h += '<span>📂 ' + sanitizeHTML(tName) + '</span>';
+            h += '<span class="badge-pill"><b>' + groupKeys.length + '</b> Sub-Topic(s)' + (isQuiz ? ' | 📝 <b>' + topicQs + '</b> Qs' : '') + ' [+]</span>';
+            h += '</div>';
+
+            h += '<div id="' + topicDomId + '" class="topic-drop-body ' + (openTopicByDefault ? 'show' : '') + '">';
+
+            groupKeys.forEach(function(k) {
+              var item = data[k], checked = selectedItems[k] ? 'checked' : '', selClass = selectedItems[k] ? 'selected' : '';
+              var safeK = escHTML(k);
+              var jsK = k.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+              if (isQuiz) {
+                var cnt = item.count || 10;
+                var displaySubTopic = (item.topic || k).replace(/_/g, ' ');
+                if (item.subTopic && item.subTopic !== 'General' && item.subTopic !== item.topic) {
+                  displaySubTopic += ' — ' + item.subTopic.replace(/_/g, ' ');
+                }
+                h += '<div class="list-item ' + selClass + '" data-key="' + safeK + '">';
+                h += '<input type="checkbox" class="item-check" ' + checked + ' onchange="window.toggleSelect(\'' + jsK + '\',this.checked)" onclick="event.stopPropagation()">';
+                h += '<div class="item-info"><strong>📌 ' + sanitizeHTML(displaySubTopic) + '</strong> <small style="color:var(--mut);margin-left:6px;">(' + sanitizeHTML(k) + ')</small>';
+                h += '<span class="tag tag-teal" style="margin-left:8px;">' + cnt + ' Qs</span>';
+                h += '<span class="tag tag-green" style="margin-left:4px;">📚 ' + sanitizeHTML(subjName) + '</span>';
+                h += '<span class="tag tag-orange" style="margin-left:4px;">📂 ' + sanitizeHTML(tName) + '</span>';
+                h += '</div><div style="display:flex;gap:6px;">';
+                h += '<button class="btn btn-dark btn-xs" onclick="window.moveItem(\'' + jsK + '\',-1)">🔼</button>';
+                h += '<button class="btn btn-dark btn-xs" onclick="window.moveItem(\'' + jsK + '\',1)">🔽</button>';
+                h += '<button class="btn btn-orange btn-xs" onclick="window.editQuizGroup(\'' + jsK + '\')">✏️ Edit</button>';
+                h += '<button class="btn btn-red btn-xs" onclick="window.deleteSingle(\'' + jsK + '\')">🗑</button>';
+                h += '</div></div>';
+              } else {
+                h += '<div class="list-item ' + selClass + '" data-key="' + safeK + '">';
+                h += '<input type="checkbox" class="item-check" ' + checked + ' onchange="window.toggleSelect(\'' + jsK + '\',this.checked)" onclick="event.stopPropagation()">';
+                h += '<div class="item-info"><strong>📖 ' + sanitizeHTML(item.title || 'Untitled') + '</strong>';
+                h += '<span class="tag tag-green" style="margin-left:8px;">📚 ' + sanitizeHTML(subjName) + '</span>';
+                h += '<span class="tag tag-orange" style="margin-left:4px;">📂 ' + sanitizeHTML(tName) + '</span>';
+                h += '</div><div style="display:flex;gap:6px;">';
+                h += '<button class="btn btn-blue btn-xs" onclick="window.editSyllabusItem(\'' + jsK + '\')">✏️ Edit</button>';
+                h += '<button class="btn btn-red btn-xs" onclick="window.deleteSingle(\'' + jsK + '\')">🗑</button>';
+                h += '</div></div>';
+              }
+            });
+
+            h += '</div>';
+          });
+
+          h += '</div>';
+        });
       }
       h += '</div>';
       ac.innerHTML = h;
@@ -459,8 +636,8 @@
       for (var i = 0; i < keys.length; i++) {
         var k = keys[i];
         var item = data[k] || {};
-        var itemSubj = item.subject || '';
-        var itemSubSubj = item.subSubject || 'General';
+        var itemSubj = normalizeSubjectName(item.subject || '');
+        var itemSubSubj = (item.subSubject && item.subSubject !== 'General') ? item.subSubject : (item.topic || 'General');
 
         if (currentFilters.subject !== 'ALL' && itemSubj !== currentFilters.subject) continue;
         if (currentFilters.subSubject !== 'ALL' && itemSubSubj !== currentFilters.subSubject) continue;
@@ -493,6 +670,7 @@
       currentFilters[type] = value;
       if (type === 'subject') currentFilters.subSubject = 'ALL';
       selectedItems = {};
+      window.renderSubRow();
       window.renderContent(currentTab === 'quiz' ? 'quiz' : 'syllabus');
     }
 
@@ -503,8 +681,8 @@
 
       ef.innerHTML = '<div class="card"><h3>➕ Add Syllabus Item</h3>' +
         '<div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp">' + subjOptions + '</select></div>' +
-        '<div class="form-group"><label>Sub-Subject *</label><input id="ef-subsubject" class="form-inp" value="General" placeholder="e.g. Arithmetic / Grammar"></div>' +
-        '<div class="form-group"><label>Topic *</label><input id="ef-topic" class="form-inp" value="General" placeholder="e.g. Number System"></div>' +
+        '<div class="form-group"><label>Sub-Subject / Main Topic *</label><input id="ef-subsubject" class="form-inp" value="General" placeholder="e.g. Arithmetic / Grammar"></div>' +
+        '<div class="form-group"><label>Sub-Topic *</label><input id="ef-topic" class="form-inp" value="General" placeholder="e.g. Number System"></div>' +
         '<div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp" placeholder="Enter title..."></div>' +
         '<div class="form-group"><label>Content (HTML allowed)</label><textarea id="ef-content" class="form-inp" style="min-height:200px;" placeholder="Enter content..."></textarea></div>' +
         '<button class="btn btn-green btn-sm" onclick="window.saveSyllabusItem(null)">💾 Save</button> ' +
@@ -521,8 +699,8 @@
 
       ef.innerHTML = '<div class="card"><h3>✏️ Edit Syllabus</h3>' +
         '<div class="form-group"><label>Subject</label><select id="ef-subject" class="form-inp">' + SSC_SUBJECTS.map(function(s) { return '<option ' + (item.subject === s ? 'selected' : '') + '>' + s + '</option>'; }).join('') + '</select></div>' +
-        '<div class="form-group"><label>Sub-Subject</label><input id="ef-subsubject" class="form-inp" value="' + escHTML(item.subSubject || 'General') + '"></div>' +
-        '<div class="form-group"><label>Topic</label><input id="ef-topic" class="form-inp" value="' + escHTML(item.topic || 'General') + '"></div>' +
+        '<div class="form-group"><label>Sub-Subject / Main Topic</label><input id="ef-subsubject" class="form-inp" value="' + escHTML(item.subSubject || 'General') + '"></div>' +
+        '<div class="form-group"><label>Sub-Topic</label><input id="ef-topic" class="form-inp" value="' + escHTML(item.topic || 'General') + '"></div>' +
         '<div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp" value="' + escHTML(item.title || '') + '"></div>' +
         '<div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:200px;">' + escHTML(item.content || '') + '</textarea></div>' +
         '<button class="btn btn-green btn-sm" onclick="window.saveSyllabusItem(\'' + jsK + '\')">💾 Update</button> ' +
@@ -602,8 +780,27 @@
     }
 
     window.toggleSelect = function(key, checked) { if (checked) selectedItems[key] = true; else delete selectedItems[key]; window.updateSelCount(); }
-    window.selectAllItems = function() { var items = document.querySelectorAll('#itemsList .list-item'); for (var i = 0; i < items.length; i++) { var key = items[i].dataset.key; selectedItems[key] = true; items[i].classList.add('selected'); items[i].querySelector('.item-check').checked = true; } window.updateSelCount(); }
-    window.deselectAllItems = function() { selectedItems = {}; var items = document.querySelectorAll('#itemsList .list-item'); for (var i = 0; i < items.length; i++) { items[i].classList.remove('selected'); items[i].querySelector('.item-check').checked = false; } window.updateSelCount(); }
+    window.selectAllItems = function() {
+      // Expand all collapsible sections and select all items
+      document.querySelectorAll('.subj-body-wrap, .topic-drop-body').forEach(function(el) { el.classList.add('show'); });
+      var items = document.querySelectorAll('#itemsList .list-item');
+      for (var i = 0; i < items.length; i++) {
+        var key = items[i].dataset.key;
+        selectedItems[key] = true;
+        items[i].classList.add('selected');
+        items[i].querySelector('.item-check').checked = true;
+      }
+      window.updateSelCount();
+    }
+    window.deselectAllItems = function() {
+      selectedItems = {};
+      var items = document.querySelectorAll('#itemsList .list-item');
+      for (var i = 0; i < items.length; i++) {
+        items[i].classList.remove('selected');
+        items[i].querySelector('.item-check').checked = false;
+      }
+      window.updateSelCount();
+    }
     window.updateSelCount = function() { var cnt = Object.keys(selectedItems).length, el = document.getElementById('selCount'); if (el) el.innerText = cnt; }
 
     // DIRECT FAST DELETE FROM SUPABASE
