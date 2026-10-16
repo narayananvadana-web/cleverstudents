@@ -96,8 +96,8 @@
     .feedback.correct{background:#15803d;border-left:4px solid #22c55e}
     .feedback.wrong{background:#b91c1c;border-left:4px solid #ef4444}
 
-    /* Results */
-    .results-container{padding:20px;max-height:80vh;overflow-y:auto}
+    /* Exact APPSC Results Model */
+    .results-container{padding:20px;max-height:78vh;overflow-y:auto}
     .results-header{text-align:center;margin-bottom:20px;padding:20px;background:rgba(0,0,0,.2);border-radius:12px}
     .results-score{font-size:4rem;font-weight:900}
     .results-summary{display:flex;justify-content:center;gap:15px;flex-wrap:wrap;margin:15px 0}
@@ -212,7 +212,7 @@
     var DB = { syllabus: {}, quiz: {}, questionsCache: {} };
     var SYL_CONTENT_MAP = {};
     var sub = 'General English', subCategory = 'ALL', studyType = 'quiz';
-    var qActive = [], qIdx = 0, qTimer = null, qSec = 0, qAns = [], qSourceInfo = [], isGrandTestMode = false;
+    var qActive = [], qIdx = 0, qTimer = null, qSec = 0, qAns = [], qSourceInfo = [];
 
     // ==================== SSC SUBJECT DEFINITIONS (APPSC MODEL) ====================
     var SUBJECTS = [
@@ -281,7 +281,6 @@
       buildDynamicSubCategories();
     }
 
-    // Automatically populates sub-category pills from real database subSubjects/topics!
     function buildDynamicSubCategories() {
       SUBJECTS.forEach(function(sObj) {
         var subCatSet = {};
@@ -306,7 +305,6 @@
       });
     }
 
-    // Loads questions of a single quiz set on-demand in 0.2 seconds!
     async function fetchQuizSetQuestions(quizKey) {
       if (DB.questionsCache[quizKey]) return DB.questionsCache[quizKey];
       var db = await window.supabaseReady;
@@ -470,7 +468,7 @@
           var qs = loadedSets[idx] || [];
           var sf = shuffleArray(qs);
           var tp = Math.min(d.count, sf.length);
-          var tName = (DB.quiz[d.key] && DB.quiz[d.key].topic) ? DB.quiz[d.key].topic : d.key.replace(/_/g, ' ');
+          var tName = d.key.replace(/_/g, ' ');
           for (var j = 0; j < tp; j++) {
             asq.push({ question: sf[j], source: d.key, subject: sn, topic: tName });
           }
@@ -483,7 +481,6 @@
         return;
       }
 
-      isGrandTestMode = true;
       asq = shuffleArray(asq);
       qActive = asq.map(function(i){ return i.question; });
       qSourceInfo = asq.map(function(i){ return { source: i.source, subject: i.subject, topic: i.topic }; });
@@ -503,7 +500,7 @@
       renderQ();
     }
 
-    // ==================== QUIZ ENGINE ====================
+    // ==================== QUIZ ENGINE (EXACT APPSC MODEL) ====================
     function renderQ(){
       var q=qActive[qIdx],pa=qAns[qIdx],c=document.getElementById('quiz-player').dataset.theme||'',m=String(Math.floor(qSec/60)).padStart(2,'0'),s=String(qSec%60).padStart(2,'0'),si=qSourceInfo[qIdx];
       var corr = q.correctAnswer || 'A';
@@ -515,8 +512,8 @@
         fb+='</div>';
       }
       var html='<div class="q-panel"><div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:8px;"><span class="btn" style="background:'+c+'">🏆 Q '+(qIdx+1)+'/'+qActive.length+'</span><span class="btn btn-dark" id="qt">⏱️ Timer: '+m+':'+s+'</span></div>';
-      if(si)html+='<div style="font-size:.8rem;color:var(--mut);margin-bottom:8px;">📘 <b>'+si.subject+'</b> | 📝 '+si.topic+'</div>';
-      html+='<div style="font-size:1.25rem;font-weight:800;margin-bottom:20px;line-height:1.6;">'+(q.question||'No Question')+'</div>';
+      if(si)html+='<div style="font-size:.78rem;color:var(--mut);margin-bottom:8px;">📘 <b>'+si.subject+'</b> | 📝 '+si.topic+'</div>';
+      html+='<div style="font-size:1.2rem;font-weight:800;margin-bottom:20px;line-height:1.5;">'+(q.question||'No Question')+'</div>';
       if(q.options){
         ['A','B','C','D'].forEach(function(o){
           if(q.options[o]){
@@ -530,23 +527,24 @@
 
     function answerQ(s){var corr=qActive[qIdx].correctAnswer||'A';qAns[qIdx]={sel:s,ok:s===corr};renderQ();}
     function prevQ(){if(qIdx>0){qIdx--;renderQ();}}
-    function nextQ(){if(qIdx<qActive.length-1){qIdx++;renderQ();}else{if(isGrandTestMode)finishGrandTest();else finishQ();}}
+    // Always calls finishGrandTest() on Finish so BOTH regular quizzes and Grand Tests show the full APPSC Performance & Topic Analysis!
+    function nextQ(){if(qIdx<qActive.length-1){qIdx++;renderQ();}else{finishGrandTest();}}
     function stopQT(){if(qTimer){clearInterval(qTimer);qTimer=null;}}
     function confirmCloseQ(){if(confirm('⚠️ Exit Quiz? Your progress will be lost.'))closeQ();}
     function closeQ(){stopQT();document.getElementById('quiz-player').style.display='none';document.getElementById('shell').style.display='block';refreshUI();}
 
-    // ==================== FINISH GRAND TEST (WITH FULL ANALYTICS) ====================
+    // ==================== EXACT APPSC RESULTS SCREEN (SUBJECT + TOPIC + QUESTION REVIEW) ====================
     function finishGrandTest(){
       stopQT();
       var total=qActive.length,ok=0,wrong=0,skipped=0;
       var subjectAnalysis={},topicAnalysis={};
       for(var i=0;i<qAns.length;i++){
-        var si=qSourceInfo[i],subj=si?si.subject:'Unknown',topic=si?si.topic:'Unknown';
-        if(!subjectAnalysis[subj])subjectAnalysis[subj]={total:0,correct:0,wrong:0,skipped:0,marks:0};
+        var si=qSourceInfo[i],subj=si?si.subject:sub,topic=si?si.topic:'Practice Quiz';
+        if(!subjectAnalysis[subj])subjectAnalysis[subj]={total:0,correct:0,wrong:0,skipped:0,marks:0,correctMarks:0};
         if(!topicAnalysis[topic])topicAnalysis[topic]={total:0,correct:0,wrong:0,skipped:0,subject:subj};
         subjectAnalysis[subj].total++;subjectAnalysis[subj].marks++;topicAnalysis[topic].total++;
         if(!qAns[i]){skipped++;subjectAnalysis[subj].skipped++;topicAnalysis[topic].skipped++;}
-        else if(qAns[i].ok){ok++;subjectAnalysis[subj].correct++;topicAnalysis[topic].correct++;}
+        else if(qAns[i].ok){ok++;subjectAnalysis[subj].correct++;subjectAnalysis[subj].correctMarks++;topicAnalysis[topic].correct++;}
         else{wrong++;subjectAnalysis[subj].wrong++;topicAnalysis[topic].wrong++;}
       }
       var percent=total>0?Math.round((ok/total)*100):0;
@@ -559,31 +557,63 @@
       var timeStr=String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');
       var c='linear-gradient(135deg,#f59e0b,#ef4444)';
       var html='<div class="results-container"><div class="results-header"><div class="results-score" style="background:'+c+';-webkit-background-clip:text;-webkit-text-fill-color:transparent;">'+percent+'%</div><p style="font-size:1.5rem;font-weight:900;color:'+gradeColor+';margin:10px 0;">'+grade+'</p><div class="results-summary"><div class="results-summary-item"><div class="val" style="color:#22c55e;">'+ok+'</div><div class="lbl">✅ Correct</div></div><div class="results-summary-item"><div class="val" style="color:#ef4444;">'+wrong+'</div><div class="lbl">❌ Wrong</div></div><div class="results-summary-item"><div class="val" style="color:#94a3b8;">'+skipped+'</div><div class="lbl">⚠️ Skipped</div></div><div class="results-summary-item"><div class="val" style="color:#60a5fa;">'+total+'</div><div class="lbl">📝 Total</div></div><div class="results-summary-item"><div class="val" style="color:#f59e0b;">'+timeStr+'</div><div class="lbl">⏱️ Time</div></div></div></div>';
+      
+      // 1. Subject-wise Performance Analysis
       html+='<h3 style="margin:20px 0 10px;color:#f59e0b;">📊 Subject-wise Performance Analysis</h3>';
       Object.keys(subjectAnalysis).sort().forEach(function(sn){
         var sa=subjectAnalysis[sn],sp=sa.total>0?Math.round((sa.correct/sa.total)*100):0,bc=sp>=70?'#22c55e':(sp>=40?'#f59e0b':'#ef4444');
-        html+='<div class="analysis-card"><h4>📘 '+sn+' <span style="float:right;font-size:.9rem;">'+sa.correct+'/'+sa.total+' ('+sp+'%)</span></h4><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+sp+'%;background:'+bc+';"></div></div><small style="color:var(--mut);">✅ '+sa.correct+' Correct | ❌ '+sa.wrong+' Wrong | ⚠️ '+sa.skipped+' Skipped</small></div>';
+        html+='<div class="analysis-card"><h4>📘 '+sn+' <span style="float:right;font-size:.9rem;">'+sa.correct+'/'+sa.total+' ('+sp+'%)</span></h4><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+sp+'%;background:'+bc+';"></div></div><small style="color:var(--mut);">✅ '+sa.correct+' Correct | ❌ '+sa.wrong+' Wrong | ⚠️ '+sa.skipped+' Skipped | 📝 '+sa.marks+' Marks</small>'+(sp<50?'<br><small style="color:#f97316;">⚠️ Focus Area: Spend more time on '+sn+'</small>':'')+(sp>=80?'<br><small style="color:#22c55e;">✅ Strength Area: Good command on '+sn+'</small>':'')+'</div>';
       });
+
+      // 2. Topic-wise Detailed Analysis
+      html+='<h3 style="margin:20px 0 10px;color:#f59e0b;">📝 Topic-wise Detailed Analysis</h3>';
+      var tks=Object.keys(topicAnalysis).sort(function(a,b){
+        var pa=topicAnalysis[a].total>0?topicAnalysis[a].correct/topicAnalysis[a].total:0;
+        var pb=topicAnalysis[b].total>0?topicAnalysis[b].correct/topicAnalysis[b].total:0;
+        return pa-pb;
+      });
+      var wt=[],st=[];
+      tks.forEach(function(tn){
+        var ta=topicAnalysis[tn],tp=ta.total>0?Math.round((ta.correct/ta.total)*100):0,bc=tp>=70?'#22c55e':(tp>=40?'#f59e0b':'#ef4444');
+        html+='<div class="analysis-card"><h4>📝 '+tn+' <small style="color:var(--mut);">('+ta.subject+')</small> <span style="float:right;font-size:.9rem;">'+ta.correct+'/'+ta.total+' ('+tp+'%)</span></h4><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+tp+'%;background:'+bc+';"></div></div><small style="color:var(--mut);">✅ '+ta.correct+' | ❌ '+ta.wrong+' | ⚠️ '+ta.skipped+'</small>';
+        if(tp<40)wt.push({name:tn,subject:ta.subject,percent:tp});
+        if(tp>=80)st.push({name:tn,subject:ta.subject,percent:tp});
+        html+='</div>';
+      });
+      if(wt.length>0){
+        html+='<div class="analysis-card" style="border-color:#ef4444;background:rgba(239,68,68,.05);"><h4 style="color:#ef4444;">⚠️ Topics Needing Immediate Attention:</h4><ul style="padding-left:20px;line-height:1.8;">';
+        wt.forEach(function(t){html+='<li><b>'+t.name+'</b> ('+t.subject+') - Score: '+t.percent+'%</li>';});
+        html+='</ul></div>';
+      }
+      if(st.length>0){
+        html+='<div class="analysis-card" style="border-color:#22c55e;background:rgba(34,197,94,.05);"><h4 style="color:#22c55e;">✅ Strong Areas - Keep It Up:</h4><ul style="padding-left:20px;line-height:1.8;">';
+        st.forEach(function(t){html+='<li><b>'+t.name+'</b> ('+t.subject+') - Score: '+t.percent+'%</li>';});
+        html+='</ul></div>';
+      }
+
+      // 3. Detailed Question Review
       html+='<h3 style="margin:20px 0 10px;color:#f59e0b;">📋 Detailed Question Review</h3>';
       for(var j=0;j<qActive.length;j++){
         var qq=qActive[j],ans=qAns[j],si=qSourceInfo[j],isC=ans&&ans.ok,isW=ans&&!ans.ok;
+        var corr=qq.correctAnswer||'A';
         var qnoClass=isC?'correct-q':(isW?'wrong-q':'skipped-q');
         var statusClass=isC?'correct':(isW?'wrong':'skipped');
         var statusText=isC?'✓ Correct':(isW?'✗ Wrong':'⚠ Skipped');
         html+='<div class="result-item"><span class="result-qno '+qnoClass+'">'+(j+1)+'</span><span class="result-status '+statusClass+'">'+statusText+'</span>';
         if(si)html+='<div class="result-source">📘 '+si.subject+' → 📝 '+si.topic+'</div>';
-        html+='<div class="result-question">'+qq.question+'</div><div class="result-option correct-answer">✅ <b>Correct Answer:</b> '+qq.correctAnswer+') '+(qq.options?qq.options[qq.correctAnswer]||'':'')+'</div>';
+        html+='<div class="result-question">'+qq.question+'</div><div class="result-option correct-answer">✅ <b>Correct Answer:</b> '+corr+') '+(qq.options?qq.options[corr]||'':'')+'</div>';
         if(isW)html+='<div class="result-option user-wrong">❌ <b>Your Answer:</b> '+ans.sel+') '+(qq.options?qq.options[ans.sel]||'':'')+'</div>';
+        if(isC)html+='<div class="result-option user-correct">✅ <b>Your Answer:</b> '+ans.sel+') '+(qq.options?qq.options[ans.sel]||'':'')+'</div>';
         if(qq.explanation)html+='<div class="result-explanation">💡 <b>Explanation:</b> '+(qq.explanation||'')+'</div>';
         html+='</div>';
       }
-      html+='<div style="text-align:center;margin-top:30px;padding:20px;"><button class="btn btn-blue" onclick="closeQ()">📚 Back to Topics</button></div></div>';
+      html+='<div style="text-align:center;margin-top:30px;padding:20px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;"><button class="btn btn-blue" onclick="closeQ()">📚 Back to Topics</button><button class="btn btn-green" onclick="retakeQuiz()">🔄 Retake Test</button></div></div>';
       document.getElementById('quiz-player').innerHTML=html;
+      document.getElementById('quiz-player').scrollIntoView({behavior:'smooth'});
     }
 
-    // ==================== REGULAR QUIZ LAUNCHER (ON-DEMAND 0.2s) ====================
+    // ==================== REGULAR QUIZ LAUNCHER ====================
     async function launchQ(k,s,e,c){
-      isGrandTestMode = false;
       document.getElementById('shell').style.display='none';
       document.getElementById('ai-shell').style.display='none';
       var p=document.getElementById('quiz-player');
@@ -593,41 +623,29 @@
 
       var data = await fetchQuizSetQuestions(k);
       if(!data||!Array.isArray(data)||!data.length){alert('Quiz questions not found for: '+k);closeQ();return;}
-      var tName = (DB.quiz[k] && DB.quiz[k].topic) ? DB.quiz[k].topic : k.replace(/_/g,' ');
+      var qMeta = DB.quiz[k] || {};
+      var fullTopicName = k.replace(/_/g, ' ');
+      if (qMeta.subSubject && qMeta.subSubject !== 'General' && qMeta.topic) {
+        fullTopicName = (qMeta.subSubject + ' ' + qMeta.topic + (qMeta.subTopic && qMeta.subTopic !== 'General' ? ' ' + qMeta.subTopic : '')).replace(/_/g, ' ');
+      }
       qActive=data.slice(s,e);
       qIdx=0;
       qAns=new Array(qActive.length).fill(null);
-      qSourceInfo=qActive.map(function(){return{source:k,subject:sub,topic:tName};});
+      qSourceInfo=qActive.map(function(){return{source:k,subject:sub,topic:fullTopicName};});
       qSec=0;
       stopQT();
       qTimer=setInterval(function(){qSec++;var el=document.getElementById('qt');if(el)el.innerText='⏱️ Timer: '+String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');},1000);
       renderQ();
     }
 
-    function finishQ(){
+    function retakeQuiz(){
+      qIdx=0;
+      qAns=new Array(qActive.length).fill(null);
+      qSec=0;
       stopQT();
-      var total=qActive.length,ok=0,wrong=0,skipped=0;
-      for(var i=0;i<qAns.length;i++){if(!qAns[i])skipped++;else if(qAns[i].ok)ok++;else wrong++;}
-      var percent=total>0?Math.round((ok/total)*100):0,c=document.getElementById('quiz-player').dataset.theme||'';
-      var grade,gradeColor;
-      if(percent>=90){grade='🏆 Excellent!';gradeColor='#22c55e';}
-      else if(percent>=75){grade='🌟 Very Good!';gradeColor='#3b82f6';}
-      else if(percent>=60){grade='👍 Good';gradeColor='#f59e0b';}
-      else{grade='💪 Keep Trying!';gradeColor='#ef4444';}
-      var timeStr=String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');
-      var html='<div class="results-container"><div class="results-header"><div class="results-score" style="background:'+c+';-webkit-background-clip:text;-webkit-text-fill-color:transparent;">'+percent+'%</div><p style="font-size:1.5rem;font-weight:900;color:'+gradeColor+';">'+grade+'</p><div class="results-summary"><div class="results-summary-item"><div class="val" style="color:#22c55e;">'+ok+'</div><div class="lbl">✅ Correct</div></div><div class="results-summary-item"><div class="val" style="color:#ef4444;">'+wrong+'</div><div class="lbl">❌ Wrong</div></div><div class="results-summary-item"><div class="val" style="color:#94a3b8;">'+skipped+'</div><div class="lbl">⚠️ Skipped</div></div><div class="results-summary-item"><div class="val">'+total+'</div><div class="lbl">📝 Total</div></div><div class="results-summary-item"><div class="val">'+timeStr+'</div><div class="lbl">⏱️ Time</div></div></div></div><h3>📋 Detailed Review:</h3>';
-      for(var j=0;j<qActive.length;j++){
-        var qq=qActive[j],ans=qAns[j],isC=ans&&ans.ok,isW=ans&&!ans.ok;
-        html+='<div class="result-item"><span class="result-qno '+(isC?'correct-q':(isW?'wrong-q':'skipped-q'))+'">'+(j+1)+'</span><span class="result-status '+(isC?'correct':(isW?'wrong':'skipped'))+'">'+(isC?'✓ Correct':(isW?'✗ Wrong':'⚠ Skipped'))+'</span><div class="result-question">'+qq.question+'</div><div class="result-option correct-answer">✅ <b>Answer:</b> '+qq.correctAnswer+') '+(qq.options?qq.options[qq.correctAnswer]||'':'')+'</div>';
-        if(isW)html+='<div class="result-option user-wrong">❌ <b>Your Answer:</b> '+ans.sel+') '+(qq.options?qq.options[ans.sel]||'':'')+'</div>';
-        if(qq.explanation)html+='<div class="result-explanation">💡 '+qq.explanation+'</div>';
-        html+='</div>';
-      }
-      html+='<div style="text-align:center;margin-top:20px;"><button class="btn btn-blue" onclick="closeQ()">📚 Back to Topics</button> <button class="btn btn-green" onclick="retakeQuiz()">🔄 Retake Test</button></div></div>';
-      document.getElementById('quiz-player').innerHTML=html;
+      qTimer=setInterval(function(){qSec++;var el=document.getElementById('qt');if(el)el.innerText='⏱️ Timer: '+String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');},1000);
+      renderQ();
     }
-
-    function retakeQuiz(){qIdx=0;qAns=new Array(qActive.length).fill(null);qSec=0;stopQT();qTimer=setInterval(function(){qSec++;var el=document.getElementById('qt');if(el)el.innerText='⏱️ Timer: '+String(Math.floor(qSec/60)).padStart(2,'0')+':'+String(qSec%60).padStart(2,'0');},1000);renderQ();}
 
     // ==================== MAIN UI RENDERER (APPSC MODEL) ====================
     function refreshUI(){
