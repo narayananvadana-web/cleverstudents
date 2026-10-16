@@ -56,17 +56,26 @@
     .banner{padding:12px 20px!important;display:flex;align-items:center;justify-content:center;gap:15px;box-shadow:0 4px 10px rgba(0,0,0,.2);text-align:center;flex-wrap:wrap}
     .banner h1{font-size:1.3rem!important;font-weight:900!important;color:#fff!important}
     .banner p{font-size:.9rem!important;font-weight:700!important;color:#fff!important}
-    .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:12px 15px 0;color:#fff;font-weight:800;font-size:1rem;border-radius:8px;cursor:pointer;transition:.2s}
-    .ch-row:hover{filter:brightness(1.15);transform:translateY(-2px)}
-    .ch-content{display:none;background:rgba(0,0,0,.25);border:1px solid var(--brd);margin:0 15px 15px;padding:20px;border-radius:0 0 8px 8px;line-height:1.8;color:#f8fafc;overflow-x:auto}
-    body.light-mode .ch-content{color:#334155;background:rgba(0,0,0,.02)}
-    .ch-content.show{display:block;animation:fadeIn .3s ease}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    
+    /* Collapsible Topic & Sub-Topic Rows */
+    .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:10px 15px 0;color:#fff;font-weight:800;font-size:1.02rem;border-radius:8px;cursor:pointer;transition:.2s;box-shadow:0 3px 8px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12)}
+    .ch-row:hover{filter:brightness(1.12);transform:translateY(-1px)}
+    .ch-sub-row{display:flex;justify-content:space-between;align-items:center;padding:11px 18px;margin:8px 10px 0;color:#fff;font-weight:800;font-size:.94rem;border-radius:8px;cursor:pointer;transition:.2s;border-left:4px solid rgba(255,255,255,.7);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+    .ch-sub-row:hover{filter:brightness(1.12)}
+    .ch-content{display:none;background:rgba(0,0,0,.28);border:1px solid var(--brd);margin:0 15px 12px;padding:15px;border-radius:0 0 8px 8px;line-height:1.8;color:#f8fafc;overflow-x:auto}
+    .ch-sub-content{display:none;background:rgba(0,0,0,.2);border:1px solid var(--brd);margin:0 10px 10px;padding:12px;border-radius:0 0 8px 8px}
+    body.light-mode .ch-content{color:#334155;background:rgba(0,0,0,.03)}
+    .ch-content.show,.ch-sub-content.show{display:block;animation:fadeIn .25s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+    
+    .badge-pill{background:rgba(0,0,0,.35);padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:800;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.15)}
+    .badge-pill b{color:#fde047}
+
     .img-th{max-width:200px;max-height:150px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid var(--brd);margin:5px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:15px}
-    .q-card{border:none;border-radius:10px;padding:20px 12px;text-align:center;cursor:pointer;color:#fff;transition:.2s}
-    .q-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.4)}
-    .q-card h4{font-weight:900;font-size:1.1rem;margin-bottom:6px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:8px}
+    .q-card{border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:18px 12px;text-align:center;cursor:pointer;color:#fff;transition:.2s;box-shadow:0 4px 10px rgba(0,0,0,.25)}
+    .q-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.45);filter:brightness(1.12)}
+    .q-card h4{font-weight:900;font-size:1.05rem;margin-bottom:6px}
 
     /* Grand Test Config */
     .gt-subject-section{background:rgba(0,0,0,.2);border-radius:8px;padding:15px;margin:12px 15px;border:1px solid var(--brd)}
@@ -157,6 +166,7 @@
       .gt-subject-header{flex-direction:column;align-items:flex-start}
       .sub-row{gap:6px;padding:10px}.btn-sub{padding:8px 14px;font-size:.8rem}
       .chat-box{width:95%;right:2.5%}
+      .ch-row,.ch-sub-row{flex-direction:column;align-items:flex-start;gap:6px}
     }
   </style>
 </head>
@@ -211,15 +221,56 @@
     // ==================== GLOBAL STATE ====================
     var DB = { syllabus: {}, quiz: {}, questionsCache: {} };
     var SYL_CONTENT_MAP = {};
+    // Default studyType is 'quiz' so Quiz opens first!
     var sub = 'General English', subCategory = 'ALL', studyType = 'quiz';
     var qActive = [], qIdx = 0, qTimer = null, qSec = 0, qAns = [], qSourceInfo = [];
 
-    // ==================== SSC SUBJECT DEFINITIONS (APPSC MODEL) ====================
+    // ==================== SSC SUBJECT DEFINITIONS WITH ALTERNATING LIGHT & DARK SHADES ====================
     var SUBJECTS = [
-      { id: 'General English', name: 'General English', grad: 'linear-gradient(135deg,#2563eb,#1d4ed8)', hasSubCats: true, subCats: [] },
-      { id: 'General Studies', name: 'General Studies', grad: 'linear-gradient(135deg,#10b981,#059669)', hasSubCats: true, subCats: [] },
-      { id: 'Reasoning & Intelligence', name: 'Reasoning & Intelligence', grad: 'linear-gradient(135deg,#7c3aed,#5b21b6)', hasSubCats: true, subCats: [] },
-      { id: 'Quantitative Aptitude', name: 'Quantitative Aptitude', grad: 'linear-gradient(135deg,#ea580c,#c2410c)', hasSubCats: true, subCats: [] }
+      {
+        id: 'General English',
+        name: 'General English',
+        grad: 'linear-gradient(135deg,#2563eb,#1d4ed8)',
+        lightGrad: 'linear-gradient(135deg,#3b82f6,#2563eb)',
+        darkGrad:  'linear-gradient(135deg,#1e40af,#172554)',
+        subLightGrad: 'linear-gradient(135deg,#60a5fa,#3b82f6)',
+        subDarkGrad:  'linear-gradient(135deg,#1d4ed8,#1e3a8a)',
+        hasSubCats: true,
+        subCats: []
+      },
+      {
+        id: 'General Studies',
+        name: 'General Studies',
+        grad: 'linear-gradient(135deg,#10b981,#059669)',
+        lightGrad: 'linear-gradient(135deg,#10b981,#059669)',
+        darkGrad:  'linear-gradient(135deg,#047857,#064e3b)',
+        subLightGrad: 'linear-gradient(135deg,#34d399,#10b981)',
+        subDarkGrad:  'linear-gradient(135deg,#059669,#065f46)',
+        hasSubCats: true,
+        subCats: []
+      },
+      {
+        id: 'Reasoning & Intelligence',
+        name: 'Reasoning & Intelligence',
+        grad: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+        lightGrad: 'linear-gradient(135deg,#8b5cf6,#7c3aed)',
+        darkGrad:  'linear-gradient(135deg,#5b21b6,#3b0764)',
+        subLightGrad: 'linear-gradient(135deg,#a78bfa,#8b5cf6)',
+        subDarkGrad:  'linear-gradient(135deg,#6d28d9,#4c1d95)',
+        hasSubCats: true,
+        subCats: []
+      },
+      {
+        id: 'Quantitative Aptitude',
+        name: 'Quantitative Aptitude',
+        grad: 'linear-gradient(135deg,#ea580c,#c2410c)',
+        lightGrad: 'linear-gradient(135deg,#f97316,#ea580c)',
+        darkGrad:  'linear-gradient(135deg,#c2410c,#7c2d12)',
+        subLightGrad: 'linear-gradient(135deg,#fb923c,#f97316)',
+        subDarkGrad:  'linear-gradient(135deg,#ea580c,#9a3412)',
+        hasSubCats: true,
+        subCats: []
+      }
     ];
 
     function normalizeSubjectName(raw) {
@@ -389,18 +440,19 @@
     function closeModal(){document.getElementById('img-modal').classList.remove('show');}
 
     // ==================== NAVIGATION ====================
+    // Clicking a subject opens Quiz first by default!
     function selectSubject(s){sub=s;subCategory='ALL';if(studyType==='grandtest')studyType='quiz';refreshUI();}
     function selectSubCategory(c){subCategory=c;refreshUI();}
     function setStudyType(t){studyType=t;refreshUI();}
     function getCurrentSubCategories(){var so=SUBJECTS.find(function(s){return s.id===sub;});return so&&so.subCats?so.subCats:[];}
 
-    // ==================== GRAND TEST CONFIG (APPSC MODEL) ====================
+    // ==================== GRAND TEST CONFIG (TAB ORDER: QUIZ -> SYLLABUS -> GRAND TEST) ====================
     function openGrandTestConfig(){
       studyType='grandtest';
       var sr=document.getElementById('sub-row'),scr=document.getElementById('sub-cat-row'),str=document.getElementById('study-tabs-row'),ca=document.getElementById('content-area');
       sr.innerHTML=SUBJECTS.map(function(s){return'<button class="btn-sub" style="background:'+s.grad+';" onclick="selectSubject(\''+s.id+'\')">'+s.name+'</button>';}).join('');
       scr.style.display='none';
-      str.innerHTML='<button class="study-tab-btn" onclick="setStudyType(\'syllabus\')">📖 Syllabus</button><button class="study-tab-btn" onclick="setStudyType(\'quiz\')">📝 Quiz</button><button class="study-tab-btn grand-test active">🏆 Grand Test</button>';
+      str.innerHTML='<button class="study-tab-btn" onclick="setStudyType(\'quiz\')">📝 Quiz</button><button class="study-tab-btn" onclick="setStudyType(\'syllabus\')">📖 Syllabus</button><button class="study-tab-btn grand-test active">🏆 Grand Test</button>';
       buildGrandTestConfigUI(ca);
     }
 
@@ -527,7 +579,6 @@
 
     function answerQ(s){var corr=qActive[qIdx].correctAnswer||'A';qAns[qIdx]={sel:s,ok:s===corr};renderQ();}
     function prevQ(){if(qIdx>0){qIdx--;renderQ();}}
-    // Always calls finishGrandTest() on Finish so BOTH regular quizzes and Grand Tests show the full APPSC Performance & Topic Analysis!
     function nextQ(){if(qIdx<qActive.length-1){qIdx++;renderQ();}else{finishGrandTest();}}
     function stopQT(){if(qTimer){clearInterval(qTimer);qTimer=null;}}
     function confirmCloseQ(){if(confirm('⚠️ Exit Quiz? Your progress will be lost.'))closeQ();}
@@ -647,7 +698,7 @@
       renderQ();
     }
 
-    // ==================== MAIN UI RENDERER (APPSC MODEL) ====================
+    // ==================== MAIN UI RENDERER (QUIZ FIRST -> SYLLABUS -> GRAND TEST) ====================
     function refreshUI(){
       if(studyType==='grandtest'){openGrandTestConfig();return;}
       var sr=document.getElementById('sub-row'),scr=document.getElementById('sub-cat-row'),str=document.getElementById('study-tabs-row'),ca=document.getElementById('content-area');
@@ -665,20 +716,22 @@
         subCategory='ALL';
       }
 
-      str.innerHTML='<button class="study-tab-btn '+(studyType==='syllabus'?'active':'')+'" onclick="setStudyType(\'syllabus\')">📖 Syllabus</button><button class="study-tab-btn '+(studyType==='quiz'?'active':'')+'" onclick="setStudyType(\'quiz\')">📝 Quiz</button><button class="study-tab-btn grand-test" onclick="openGrandTestConfig()">🏆 Grand Test</button>';
+      // ✅ Tab Order: 1. Quiz -> 2. Syllabus -> 3. Grand Test
+      str.innerHTML='<button class="study-tab-btn '+(studyType==='quiz'?'active':'')+'" onclick="setStudyType(\'quiz\')">📝 Quiz</button><button class="study-tab-btn '+(studyType==='syllabus'?'active':'')+'" onclick="setStudyType(\'syllabus\')">📖 Syllabus</button><button class="study-tab-btn grand-test" onclick="openGrandTestConfig()">🏆 Grand Test</button>';
 
       var bt=so.name;
       if(so.hasSubCats&&subCategory!=='ALL'){
         var co=getCurrentSubCategories().find(function(c){return c.id===subCategory;});
         bt=co?co.name:subCategory;
       }
-      var h='<div class="banner" style="background:'+so.grad+';"><h1>'+bt+'</h1><p>'+(studyType==='syllabus'?'📖 Study Material':'📝 Practice Tests')+'</p></div>';
+      var h='<div class="banner" style="background:'+so.grad+';"><h1>'+bt+'</h1><p>'+(studyType==='syllabus'?'📖 Study Material':'📝 Practice Tests (Click any Topic below to open)')+'</p></div>';
       if(so.hasSubCats&&subCategory!=='ALL')h+='<div class="back-btn-row"><button class="btn btn-dark btn-sm" onclick="selectSubCategory(\'ALL\')">← Back to All Topics</button></div>';
 
       if(studyType==='syllabus')renderSyllabus(so,ca,h);
       else renderQuizTopics(so,ca,h);
     }
 
+    // ==================== SYLLABUS WITH ALTERNATING LIGHT/DARK TOPIC SHADES ====================
     function renderSyllabus(so,ca,h){
       SYL_CONTENT_MAP = {};
       var items = getArr(DB.syllabus).filter(function(item){
@@ -692,8 +745,9 @@
       if(items.length){
         items.forEach(function(t,i){
           var sid='it_'+i;
+          var rowGrad = (i % 2 === 0) ? so.lightGrad : so.darkGrad;
           SYL_CONTENT_MAP[sid] = (t.content||'No content yet') + getImgs(t.imageUrls);
-          h+='<div class="ch-row" style="background:'+so.grad+';" onclick="tog(\''+sid+'\')"><span>📖 '+(t.title||'Topic')+'</span><span>View Content [+]</span></div><div id="'+sid+'" class="ch-content"></div>';
+          h+='<div class="ch-row" style="background:'+rowGrad+';" onclick="tog(\''+sid+'\')"><span>📖 '+(t.title||'Topic')+'</span><span class="badge-pill">View Content <b>[+]</b></span></div><div id="'+sid+'" class="ch-content"></div>';
         });
       } else {
         h+='<div style="padding:40px;text-align:center;color:var(--mut);">⏳ No syllabus content found for this filter. Switch to <b>📝 Quiz</b> tab to practice questions!</div>';
@@ -701,8 +755,9 @@
       ca.innerHTML=h;
     }
 
+    // ==================== COLLAPSIBLE QUIZ TOPICS WITH ALTERNATING LIGHT & DARK SHADES ====================
     function renderQuizTopics(so,ca,h){
-      var allTopics={};
+      var topicGroups = {};
       Object.keys(DB.quiz).forEach(function(key){
         var qMeta = DB.quiz[key];
         if(!qMeta || qMeta.subject !== sub) return;
@@ -710,36 +765,78 @@
           var cat = (qMeta.subSubject && qMeta.subSubject !== 'General') ? qMeta.subSubject : qMeta.topic;
           if(cat !== subCategory) return;
         }
-        var dn = '';
-        if(qMeta.subSubject && qMeta.subSubject !== 'General') dn += qMeta.subSubject + ' → ';
-        dn += (qMeta.topic || key);
-        if(qMeta.subTopic && qMeta.subTopic !== 'General' && qMeta.subTopic !== qMeta.topic) dn += ' (' + qMeta.subTopic + ')';
-        dn = dn.replace(/_/g, ' ');
-        if(!allTopics[dn]) allTopics[dn]=[];
-        allTopics[dn].push({ key: key, count: qMeta.count || 10 });
+
+        // Main Topic Name (e.g. Verbal Reasoning / Indian Polity / Grammar)
+        var mainTopic = (qMeta.subSubject && qMeta.subSubject !== 'General') ? qMeta.subSubject : (qMeta.topic || 'General');
+        // Sub-Topic Name inside the Main Topic
+        var subTopicName = (qMeta.subSubject && qMeta.subSubject !== 'General') ? (qMeta.topic || key) : (qMeta.subTopic && qMeta.subTopic !== 'General' ? qMeta.subTopic : (qMeta.topic || key));
+        if(qMeta.subTopic && qMeta.subTopic !== 'General' && qMeta.subTopic !== subTopicName && qMeta.subSubject && qMeta.subSubject !== 'General') {
+          subTopicName += ' - ' + qMeta.subTopic;
+        }
+
+        mainTopic = mainTopic.replace(/_/g, ' ');
+        subTopicName = subTopicName.replace(/_/g, ' ');
+
+        if(!topicGroups[mainTopic]) topicGroups[mainTopic] = {};
+        if(!topicGroups[mainTopic][subTopicName]) topicGroups[mainTopic][subTopicName] = [];
+        topicGroups[mainTopic][subTopicName].push({ key: key, count: qMeta.count || 10 });
       });
 
-      var tns=Object.keys(allTopics).sort();
-      if(tns.length){
-        tns.forEach(function(tn, idx){
-          var tid='qt_'+idx, tq=0;
-          allTopics[tn].forEach(function(t){tq+=t.count;});
-          h+='<div class="ch-row" style="background:'+so.grad+';" onclick="tog(\''+tid+'\')"><span>📌 '+tn+'</span><span>📝 '+tq+' Qs [+]</span></div><div id="'+tid+'" class="ch-content"><div class="grid">';
-          allTopics[tn].forEach(function(gi){
-            var totalQs = gi.count || 10;
-            var tc = Math.max(1, Math.ceil(totalQs/10));
-            var safeKey = gi.key.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-            for(var t=1;t<=tc;t++){
-              var st=(t-1)*10, end=Math.min(st+10,totalQs);
-              h+='<div class="q-card" style="background:'+so.grad+';" onclick="launchQ(\''+safeKey+'\','+st+','+end+',\''+so.grad.replace(/'/g,"\\'")+'\')"><h4>Test '+t+'</h4><small>'+(end-st)+' Questions</small></div>';
-            }
+      var mainTopicNames = Object.keys(topicGroups).sort();
+      if(mainTopicNames.length){
+        mainTopicNames.forEach(function(mTopic, tIdx){
+          var tid = 'qt_main_' + tIdx;
+          // Alternate between Light Shade and Dark Shade of the Subject's color!
+          var mainGrad = (tIdx % 2 === 0) ? so.lightGrad : so.darkGrad;
+          var subTopicsObj = topicGroups[mTopic];
+          var subTopicNames = Object.keys(subTopicsObj).sort();
+          var totalTopicQs = 0;
+          subTopicNames.forEach(function(stName){
+            subTopicsObj[stName].forEach(function(g){ totalTopicQs += g.count; });
           });
-          h+='</div></div>';
+
+          // Collapsible Main Topic Dropdown Bar
+          h += '<div class="ch-row" style="background:' + mainGrad + ';" onclick="tog(\'' + tid + '\')">';
+          h += '<span>📂 ' + mTopic + '</span>';
+          h += '<span class="badge-pill"><b>' + subTopicNames.length + '</b> Sub-Topics | 📝 <b>' + totalTopicQs + '</b> Qs ▼</span>';
+          h += '</div>';
+
+          // Collapsible Body (opens when clicked)
+          h += '<div id="' + tid + '" class="ch-content">';
+
+          subTopicNames.forEach(function(stName, sIdx){
+            var stid = tid + '_sub_' + sIdx;
+            // Alternate Light & Dark shades for Sub-Topics inside the Topic!
+            var subGrad = (sIdx % 2 === 0) ? so.subLightGrad : so.subDarkGrad;
+            var setsList = subTopicsObj[stName];
+            var subTotalQs = 0;
+            setsList.forEach(function(g){ subTotalQs += g.count; });
+
+            h += '<div class="ch-sub-row" style="background:' + subGrad + ';" onclick="tog(\'' + stid + '\')">';
+            h += '<span>📌 ' + stName + '</span>';
+            h += '<span class="badge-pill">📝 <b>' + subTotalQs + '</b> Qs [+]</span>';
+            h += '</div>';
+
+            h += '<div id="' + stid + '" class="ch-sub-content"><div class="grid">';
+            setsList.forEach(function(gi){
+              var totalQs = gi.count || 10;
+              var tc = Math.max(1, Math.ceil(totalQs / 10));
+              var safeKey = gi.key.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+              for(var t = 1; t <= tc; t++){
+                var st = (t - 1) * 10, end = Math.min(st + 10, totalQs);
+                var cardGrad = (t % 2 === 1) ? so.lightGrad : so.darkGrad;
+                h += '<div class="q-card" style="background:' + cardGrad + ';" onclick="launchQ(\'' + safeKey + '\',' + st + ',' + end + ',\'' + so.grad.replace(/'/g,"\\'") + '\')"><h4>Test ' + t + '</h4><small>' + (end - st) + ' Questions</small></div>';
+              }
+            });
+            h += '</div></div>';
+          });
+
+          h += '</div>';
         });
       } else {
-        h+='<div style="padding:40px;text-align:center;color:var(--mut);">⏳ No quizzes found for this filter.</div>';
+        h += '<div style="padding:40px;text-align:center;color:var(--mut);">⏳ No quizzes found for this filter.</div>';
       }
-      ca.innerHTML=h;
+      ca.innerHTML = h;
     }
 
     // ==================== INITIALIZE INSTANTLY ====================
