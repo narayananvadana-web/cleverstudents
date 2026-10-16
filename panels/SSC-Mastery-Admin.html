@@ -6,90 +6,162 @@
   <title>SSC Mastery | Admin Panel</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#080c14;--srf:#161b27;--brd:rgba(255,255,255,.1);--txt:#e2e8f0;--mut:#94a3b8;--font:'Nunito',sans-serif;--r-lg:16px;--r-md:8px;--r-sm:4px}
-    body.light-mode{--bg:#f8fafc;--srf:#fff;--txt:#0f172a;--brd:rgba(0,0,0,.1);--mut:#64748b}
-    *,::before,::after{margin:0;padding:0;box-sizing:border-box}
-    html,body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;background:var(--bg)!important;overflow-x:hidden!important}
-    body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:background .3s,color .3s}
-    .protected-mode,.protected-mode *{user-select:none!important;-webkit-user-select:none!important}
-    input,textarea,select{user-select:auto!important;-webkit-user-select:auto!important}
-    #editForm,#editForm *,#groupView,#groupView *,#hierarchyManager,#hierarchyManager *{user-select:auto!important}
-    .notranslate{translate:no!important}
-    @keyframes redBlink{0%,100%{box-shadow:0 0 5px rgba(255,0,0,.4)}50%{box-shadow:0 0 20px rgba(255,0,0,.9)}}
-    .lang-select{padding:6px 10px;border-radius:16px;border:2px solid rgba(255,0,0,.5);background:var(--srf);color:var(--txt);font-weight:700;font-size:.78rem;cursor:pointer;animation:redBlink 1s ease-in-out infinite;flex-shrink:0;min-width:100px;z-index:10}
-    .goog-te-banner-frame,#goog-gt-tt,.goog-tooltip,.goog-text-highlight,.goog-te-spinner-pos,.goog-logo-link,.goog-te-gadget span,.VIpgJd-ZVi9od-ORHb,.VIpgJd-ZVi9od-l4eHX,.goog-te-gadget img,.skiptranslate{display:none!important}
-    #google_translate_element{position:absolute!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important}
-    .top-bar{background:var(--srf);border-bottom:1px solid var(--brd);padding:0 12px;position:sticky;top:0;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.5)}
-    .top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;justify-content:space-between}
-    .logo{font-family:'Fredoka One',cursive;font-size:1.2rem;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .theme-btn{background:var(--bg);color:var(--txt);border:1px solid var(--brd);font-weight:700;font-size:.75rem;cursor:pointer;padding:5px 10px;border-radius:50px}
-    .btn{padding:8px 16px;border:none;border-radius:50px;cursor:pointer;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:.78rem;transition:.2s}
-    .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
-    .btn-blue{background:#3b82f6}.btn-green{background:#10b981}.btn-red{background:#ef4444}.btn-dark{background:#334155}.btn-orange{background:#f59e0b}.btn-teal{background:#0d9488}.btn-purple{background:#8b5cf6}.btn-pink{background:#ec4899}.btn-yellow{background:#eab308;color:#000}
-    .btn-sm{padding:5px 12px;font-size:.72rem}.btn-xs{padding:3px 8px;font-size:.68rem}
-    .main-wrap{max-width:100%!important;width:100%!important;padding:15px 8px 50px!important;margin:0 auto}
-    .shell{background:var(--srf);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--brd);width:100%;max-width:1400px;margin:0 auto}
-    .banner{padding:8px 16px!important;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 3px 8px rgba(0,0,0,.2);flex-wrap:wrap;text-align:center}
-    .banner h1{font-size:1.1rem!important;font-weight:800!important;color:#fff!important}
-    .admin-tabs{display:flex;gap:4px;padding:8px 12px;background:rgba(0,0,0,.15);border-bottom:1px solid var(--brd);flex-wrap:wrap;justify-content:center;overflow-x:auto}
-    .admin-tab-btn{padding:6px 14px;border-radius:50px;border:1px solid var(--brd);background:0 0;color:var(--mut);font-weight:700;font-size:.75rem;cursor:pointer;transition:.2s;white-space:nowrap}
-    .admin-tab-btn:hover{color:var(--txt)}.admin-tab-btn.active{background:#ef4444;color:#fff;border-color:#ef4444}
-    .admin-content{padding:15px;background:var(--srf);min-height:400px}
-    .form-group{margin-bottom:10px}.form-group label{display:block;font-weight:700;margin-bottom:3px;color:var(--txt);font-size:.8rem}
-    .form-inp{width:100%;padding:8px 12px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:6px;color:var(--txt);font-size:.85rem;outline:0;margin-bottom:6px}
-    textarea.form-inp{min-height:50px;resize:vertical}
-    .card{background:rgba(255,255,255,.03);border:1px solid var(--brd);border-radius:var(--r-md);padding:15px;margin-bottom:12px}
-    .toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:6px;border:1px solid var(--brd)}
-    .list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.2);border:1px solid var(--brd);border-radius:6px;margin-bottom:5px;flex-wrap:wrap;gap:8px}
-    .list-item .item-info{flex:1;min-width:150px}
-    .list-item .item-actions{display:flex;gap:4px}
-    .tag{display:inline-block;padding:2px 7px;border-radius:14px;font-size:.65rem;font-weight:700;margin:1px}
-    .tag-blue{background:#1d4ed8;color:#fff}.tag-teal{background:#0d9488;color:#fff}
-    .answer-display-box{background:rgba(34,197,94,.08);border:2px solid #22c55e;border-radius:6px;padding:10px 14px;margin-top:8px;color:#86efac;font-weight:600;line-height:1.6;font-size:.8rem}
-    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .ad-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 14px;margin:5px 0;color:#fff;font-weight:800;font-size:.85rem;border-radius:6px;cursor:pointer;flex-wrap:wrap;user-select:none}
-    .ad-h-sub{border-left:3px solid #3b82f6;margin-left:12px;font-size:.78rem}
-    .ad-h-topic{border-left:3px solid #f59e0b;margin-left:24px;font-size:.74rem}
-    .ad-h-st{border-left:3px solid #ec4899;margin-left:36px;font-size:.7rem}
-    .ad-body{display:block}.ad-body.collapsed{display:none}
+    :root {
+      --bg: #080c14;
+      --srf: #161b27;
+      --brd: rgba(255, 255, 255, .1);
+      --txt: #e2e8f0;
+      --mut: #94a3b8;
+      --font: 'Nunito', sans-serif;
+      --r-lg: 16px;
+      --r-md: 8px;
+      --r-sm: 4px;
+    }
+    body.light-mode {
+      --bg: #f8fafc;
+      --srf: #fff;
+      --txt: #0f172a;
+      --brd: rgba(0, 0, 0, .1);
+      --mut: #64748b;
+    }
+    *, ::before, ::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 100% !important;
+      background: var(--bg) !important;
+      overflow-x: hidden !important;
+    }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background .3s, color .3s;
+    }
+    body.protected-mode, body.protected-mode * { user-select: none !important; -webkit-user-select: none !important; -ms-user-select: none !important; }
+    body.copy-allowed, body.copy-allowed * { user-select: auto !important; -webkit-user-select: auto !important; -ms-user-select: auto !important; }
+    input, textarea, select { user-select: auto !important; -webkit-user-select: auto !important; }
+    #editForm, #editForm *, #groupView, #groupView * { user-select: auto !important; -webkit-user-select: auto !important; }
+    .top-bar { background: var(--srf); border-bottom: 1px solid var(--brd); padding: 0 15px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 20px rgba(0, 0, 0, .5); }
+    body.light-mode .top-bar { box-shadow: 0 4px 20px rgba(0, 0, 0, .05); }
+    .top-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; padding: 12px 0; justify-content: space-between; }
+    .logo { font-family: 'Fredoka One', cursive; font-size: 1.5rem; background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; flex-shrink: 0; }
+    .theme-btn { background: var(--bg); color: var(--txt); border: 1px solid var(--brd); font-weight: 700; font-size: .85rem; cursor: pointer; padding: 6px 12px; border-radius: 50px; font-family: var(--font); }
+    .btn { padding: 10px 20px; border: none; border-radius: 50px; cursor: pointer; font-weight: 800; color: #fff; font-family: var(--font); display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: .2s; }
+    .btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .btn-blue { background: #3b82f6; } .btn-green { background: #10b981; } .btn-red { background: #ef4444; } .btn-dark { background: #334155; } .btn-orange { background: #f59e0b; } .btn-teal { background: #0d9488; } .btn-purple { background: #8b5cf6; } .btn-pink { background: #ec4899; }
+    .btn-sm { padding: 6px 14px; font-size: .8rem; } .btn-xs { padding: 4px 10px; font-size: .7rem; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .main-wrap { max-width: 100% !important; width: 100% !important; padding: 20px 10px 80px !important; margin: 0 auto; }
+    .shell { background: var(--srf); border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--brd); width: 100%; max-width: 1400px; margin: 0 auto; }
+    .banner { padding: 12px 20px !important; display: flex; align-items: center; justify-content: center; gap: 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, .2); flex-wrap: wrap; text-align: center; }
+    .banner h1 { font-size: 1.4rem !important; font-weight: 900 !important; color: #fff !important; }
+    .banner p { color: rgba(255,255,255,.9); font-weight: 700; font-size: .95rem; }
+    .admin-tabs { display: flex; gap: 6px; padding: 12px 15px; background: rgba(0, 0, 0, .15); border-bottom: 1px solid var(--brd); flex-wrap: wrap; justify-content: center; overflow-x: auto; }
+    .admin-tab-btn { padding: 8px 18px; border-radius: 50px; border: 1px solid var(--brd); background: 0 0; color: var(--mut); font-weight: 700; font-size: .85rem; cursor: pointer; font-family: var(--font); transition: .2s; white-space: nowrap; }
+    .admin-tab-btn:hover { color: var(--txt); border-color: var(--txt); }
+    .admin-tab-btn.active { background: #ef4444; color: #fff; border-color: #ef4444; box-shadow: 0 2px 8px rgba(239, 68, 68, .4); }
+    .admin-content { padding: 20px; background: var(--srf); }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-weight: 700; margin-bottom: 6px; color: var(--txt); font-size: .9rem; }
+    .form-inp { width: 100%; padding: 12px 16px; background: rgba(0, 0, 0, .2); border: 1px solid var(--brd); border-radius: 8px; font-family: var(--font); color: var(--txt); font-size: .95rem; outline: 0; margin-bottom: 10px; }
+    textarea.form-inp { min-height: 80px; resize: vertical; }
+    select.form-inp { appearance: none; cursor: pointer; }
+    .card { background: rgba(255, 255, 255, .03); border: 1px solid var(--brd); border-radius: var(--r-md); padding: 20px; margin-bottom: 16px; }
+    .csv-box { background: rgba(14, 165, 233, .08); border: 2px dashed #0ea5e9; border-radius: var(--r-md); padding: 20px; margin-bottom: 20px; }
+    .csv-box h3 { color: #38bdf8; }
+    .csv-fmt { background: rgba(0, 0, 0, .3); border-radius: 8px; padding: 12px; font-size: .75rem; color: var(--mut); line-height: 1.6; margin: 12px 0; overflow-x: auto; white-space: pre; font-family: monospace; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; padding: 12px; background: rgba(0, 0, 0, .2); border-radius: 8px; border: 1px solid var(--brd); }
+    .toolbar select { min-width: 160px; }
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(0, 0, 0, .2); border: 1px solid var(--brd); border-radius: 8px; margin-bottom: 8px; flex-wrap: wrap; gap: 10px; }
+    .list-item:hover { border-color: #3b82f6; } .list-item.selected { background: rgba(59, 130, 246, .15); border-color: #3b82f6; }
+    .list-item .item-check { width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6; }
+    .list-item .item-info { flex: 1; min-width: 200px; }
+    .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+    .tag-green { background: #15803d; color: #fff; } .tag-red { background: #b91c1c; color: #fff; } .tag-blue { background: #1d4ed8; color: #fff; } .tag-orange { background: #c2410c; color: #fff; } .tag-teal { background: #0d9488; color: #fff; } .tag-purple { background: #7c3aed; color: #fff; }
+    .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, .3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast { position: fixed; bottom: 20px; right: 20px; padding: 14px 24px; border-radius: 8px; font-weight: 700; z-index: 99999; animation: slideIn .3s ease; color: #fff; max-width: 400px; }
+    .toast.success { background: #15803d; } .toast.error { background: #b91c1c; } .toast.info { background: #1d4ed8; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: none; align-items: center; justify-content: center; }
+    .login-box { background: var(--srf); padding: 40px 30px; border-radius: var(--r-lg); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); width: 90%; max-width: 380px; border: 1px solid var(--brd); text-align: center; }
+    .login-inp { width: 100%; padding: 14px; margin-bottom: 16px; border-radius: 8px; border: 1px solid var(--brd); background: rgba(0, 0, 0, .2); color: var(--txt); font-family: var(--font); font-size: 1rem; outline: 0; }
+    .login-info { background: rgba(59, 130, 246, .15); border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: .85rem; color: var(--txt); text-align: left; line-height: 1.6; }
+    .optional-label { color: var(--mut); font-weight: 400; font-size: .75rem; }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+    .checkbox-label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(0,0,0,.2); border: 1px solid var(--brd); border-radius: 16px; font-size: .85rem; cursor: pointer; }
+
+    /* Upload Box Styles */
+    .file-upload-area{border:2px dashed #0ea5e9;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(14,165,233,.05);margin-bottom:10px}
+    .file-upload-area:hover{border-color:#38bdf8;background:rgba(14,165,233,.1)}
+    .file-upload-area.drag-over{border-color:#22c55e;background:rgba(34,197,94,.1)}
+    .file-upload-icon{font-size:2rem;margin-bottom:8px}
+    .file-types-info{font-size:.7rem;color:var(--mut);margin-top:5px}
+
+    @media(max-width: 600px) { .list-item { flex-direction: column; align-items: flex-start; } .admin-tabs { gap: 4px; padding: 8px; } .admin-tab-btn { padding: 6px 14px; font-size: .75rem; } .toolbar { flex-direction: column; } }
   </style>
 </head>
 <body class="protected-mode">
 <script src="/supabase-client.js"></script>
 
+  <div id="login-overlay">
+    <div class="login-box">
+      <div class="logo" style="margin-bottom:20px;">⚙️ SSC Admin Panel</div>
+      <h2 style="margin-bottom:25px;color:var(--txt);">Admin Login</h2>
+      <div class="login-info"><strong>🔑 Default Login:</strong><br>ID: admin<br>Password: admin123</div>
+      <input type="text" id="login-phone" class="login-inp" placeholder="Admin ID">
+      <input type="password" id="login-pass" class="login-inp" placeholder="Password">
+      <button class="btn btn-orange" style="width:100%;padding:14px;font-size:1.1rem;margin-top:10px;" onclick="window.attemptLogin()">Login</button>
+      <div id="login-error" style="color:#ef4444;margin-top:15px;font-weight:700;display:none;"></div>
+    </div>
+  </div>
+
   <div class="top-bar">
     <div class="top-inner">
-      <div class="logo notranslate">⚙️ SSC Admin Panel</div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <div id="google_translate_element"></div>
-        <select class="lang-select notranslate" translate="no" id="lang-select" onchange="window.changeLanguage(this.value)">
-          <option value="en">🌐 English</option><option value="te">🔴 తెలుగు</option><option value="hi">🔴 हिन्दी</option><option value="ta">🔴 தமிழ்</option><option value="ml">🔴 മലയാളം</option><option value="kn">🔴 ಕನ್ನಡ</option>
-        </select>
-        <span id="admin-info" style="font-weight:700;font-size:.78rem;color:#4ade80;">Admin: admin</span>
-        <button class="theme-btn notranslate" id="theme-toggle" onclick="window.toggleTheme()">Light Mode</button>
+      <div class="logo">⚙️ SSC Admin Panel</div>
+      <div style="display:flex;align-items:center;gap:15px;flex-wrap:wrap;">
+        <span id="admin-info" style="font-weight:700;font-size:.9rem;">Admin: admin</span>
+        <button class="theme-btn" id="theme-toggle" onclick="window.toggleTheme()">Light Mode</button>
+        <button class="btn btn-red btn-sm" onclick="window.logout()">Logout</button>
       </div>
     </div>
   </div>
 
   <div class="main-wrap">
-    <div class="shell" id="shell">
-      <div class="banner notranslate" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">
-        <h1>⚙️ SSC Admin Control Panel</h1>
-      </div>
+    <div id="shell" class="shell">
+      <div class="banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);"><h1>⚙️ Admin Control Panel</h1><p>Manage SSC Syllabus & Quiz Content</p></div>
       <div class="admin-tabs" id="admin-tabs">
-        <button class="admin-tab-btn active notranslate" onclick="window.switchTab('quiz')">📝 Quiz (400 Sets)</button>
-        <button class="admin-tab-btn notranslate" onclick="window.switchTab('syllabus')">📖 Syllabus</button>
+        <button class="admin-tab-btn" onclick="window.switchTab('syllabus', event)">📖 Syllabus</button>
+        <button class="admin-tab-btn active" onclick="window.switchTab('quiz', event)">📝 Quiz</button>
+        <button class="admin-tab-btn" onclick="window.switchTab('users', event)">👥 Users</button>
+        <button class="admin-tab-btn" onclick="window.switchTab('settings', event)">⚙️ Settings</button>
       </div>
-      <div class="admin-content" id="admin-content">
-        <div style="padding:30px;text-align:center;"><span class="spinner"></span> Loading Data Instantly...</div>
-      </div>
+      <div class="admin-content" id="admin-content"><div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div></div>
     </div>
   </div>
 
-  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <script>
-    // ============ 0.2-SECOND DIRECT SUPABASE CLIENT LOADER ============
+    document.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); }, false);
+    document.addEventListener('drop', function(e) { e.preventDefault(); e.stopPropagation(); }, false);
+  </script>
+
+  <script>
+    // ============ 0.2-SECOND DIRECT SUPABASE HELPERS (BYPASSES 400-LOOP HANG) ============
+    function normalizeSubjectName(raw) {
+      var s = String(raw || '').trim();
+      var low = s.toLowerCase();
+      if (low.indexOf('english') !== -1) return 'General English';
+      if (low.indexOf('quant') !== -1 || low.indexOf('aptitude') !== -1 || low.indexOf('math') !== -1 || low.indexOf('arith') !== -1) return 'Quantitative Aptitude';
+      if (low.indexOf('reason') !== -1 || low.indexOf('intelligence') !== -1) return 'Reasoning & Intelligence';
+      if (low.indexOf('studies') !== -1 || low.indexOf('awareness') !== -1 || low === 'gk' || low === 'gs') return 'General Studies';
+      return s || 'General Studies';
+    }
+
     async function fetchDB(key) {
       var db = await window.supabaseReady;
       if (key === 'sscQuestionBank_index') {
@@ -102,7 +174,7 @@
           idx[k] = {
             id: r.id,
             count: Number(m.count) || 10,
-            subject: r.subject || m.subject || 'General Studies',
+            subject: normalizeSubjectName(r.subject || m.subject || 'General Studies'),
             subSubject: r.sub_subject || m.subSubject || 'General',
             topic: r.topic || m.topic || r.title || k,
             subTopic: r.sub_topic || m.subTopic || 'General',
@@ -119,8 +191,9 @@
           var m = r.metadata || {};
           var k = r.legacy_key || r.material_key || r.id;
           sMap[k] = {
+            id: r.id,
             title: r.title || m.title || 'Untitled',
-            subject: r.subject || m.subject || 'General English',
+            subject: normalizeSubjectName(r.subject || m.subject || 'General English'),
             subSubject: r.sub_subject || m.subSubject || 'General',
             topic: r.topic || m.topic || 'General',
             subTopic: r.sub_topic || m.subTopic || 'General',
@@ -144,157 +217,729 @@
           return qRows.map(function(r) {
             var m = r.metadata || {};
             return {
+              id: r.id,
               question: r.question_html || r.question_text || m.question || '',
-              options: r.options || m.options || { A: r.option_a, B: r.option_b, C: r.option_c, D: r.option_d },
+              options: r.options || m.options || { A: r.option_a || '', B: r.option_b || '', C: r.option_c || '', D: r.option_d || '' },
               correctAnswer: r.correct_answer || m.correctAnswer || 'A',
-              explanation: r.explanation_html || r.explanation || m.explanation || ''
+              explanation: r.explanation_html || r.explanation || m.explanation || '',
+              subject: m.subject || (qSet && qSet.subject) || 'General Studies',
+              subSubject: m.subSubject || (qSet && qSet.subSubject) || 'General',
+              topic: m.topic || (qSet && qSet.topic) || qKey,
+              subTopic: m.subTopic || (qSet && qSet.subTopic) || 'General'
             };
           });
         }
+        return [];
       }
-      return {};
+      try {
+        return (await window.supabaseDb.ref(key).once('value')).val();
+      } catch (e) {
+        return null;
+      }
     }
 
-    window.googleTranslateElementInit=function(){new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'te,hi,ta,ml,kn,en',layout:google.translate.TranslateElement.InlineLayout.HORIZONTAL,autoDisplay:false},'google_translate_element');};
-    window.changeLanguage = function(l){var gc=document.querySelector('.goog-te-combo');if(gc){gc.value=l;gc.dispatchEvent(new Event('change',{bubbles:true}));}}
+    async function saveDB(key, value) {
+      return window.supabaseDb.ref(key).set(value);
+    }
 
-    var currentTab='quiz';
-    var allData={syllabus:{},quiz:{}};
+    // ============ GLOBAL STATE & CONFIG ============
+    var DEFAULT_ADMIN_ID = 'admin', DEFAULT_ADMIN_PASS = 'admin123', adminPhone = 'admin', adminToken = '';
+    var settings = { loginEnabled: true, users: {}, adminPass: DEFAULT_ADMIN_PASS, copyEnabled: false }, activeSessions = {}, currentTab = 'quiz';
+    var allData = { syllabus: {}, quiz: {} }, csvRows = [], selectedItems = {};
+    var currentFilters = { subject: 'ALL', subSubject: 'ALL', sort: 'manual' };
+    window.skippedRowsData = "";
+    window.currentEditingQs = null;
 
-    function sanitizeHTML(s){if(!s)return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
-    function escapeAttr(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;')}
-    
-    window.initTheme = function(){var t=localStorage.getItem('ssc_ad_th')||'dark',b=document.getElementById('theme-toggle');t==='light'?(document.body.classList.add('light-mode'),b.innerText='Dark Mode'):(document.body.classList.remove('light-mode'),b.innerText='Light Mode')}
+    var SSC_SUBJECTS = ['General English', 'General Studies', 'Reasoning & Intelligence', 'Quantitative Aptitude'];
+
+    window.initTheme = function() {
+      var t = localStorage.getItem('cs_ad_th') || 'dark', b = document.getElementById('theme-toggle');
+      t === 'light' ? (document.body.classList.add('light-mode'), b.innerText = 'Dark Mode') : (document.body.classList.remove('light-mode'), b.innerText = 'Light Mode');
+    }
     window.initTheme();
-    window.toggleTheme = function(){var l=document.body.classList.toggle('light-mode');localStorage.setItem('ssc_ad_th',l?'light':'dark');document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode'}
+    window.toggleTheme = function() {
+      var l = document.body.classList.toggle('light-mode');
+      localStorage.setItem('cs_ad_th', l ? 'light' : 'dark');
+      document.getElementById('theme-toggle').innerText = l ? 'Dark Mode' : 'Light Mode';
+    }
+    window.applyCopyProtectionState = function() {
+      if (settings.copyEnabled === true) {
+        document.body.classList.remove('protected-mode');
+        document.body.classList.add('copy-allowed');
+      } else {
+        document.body.classList.add('protected-mode');
+        document.body.classList.remove('copy-allowed');
+      }
+    }
+    function toast(msg, type) {
+      type = type || 'info';
+      var t = document.createElement('div');
+      t.className = 'toast ' + type;
+      t.innerText = msg;
+      document.body.appendChild(t);
+      setTimeout(function() { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(function() { t.remove(); }, 300); }, 3000);
+    }
+    function sanitizeHTML(s){if(!s)return'';var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+    function escHTML(s) { return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : ''; }
+    function escCSV(s) { return s ? String(s).replace(/"/g, '""') : ''; }
 
-    window.switchTab = function(tab){
-      currentTab=tab;
-      var btns=document.querySelectorAll('.admin-tab-btn');
-      for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');
-      var ab=document.querySelector('.admin-tab-btn[onclick*="\''+tab+'\'"]');
-      if(ab)ab.classList.add('active');
+    window.attemptLogin = function() {
+      var p = document.getElementById('login-phone').value.trim(), pa = document.getElementById('login-pass').value.trim(), e = document.getElementById('login-error');
+      if (!p || !pa) { e.innerText = 'Enter ID and Password'; e.style.display = 'block'; return; }
+      var cp = settings.adminPass || DEFAULT_ADMIN_PASS;
+      if (p === DEFAULT_ADMIN_ID && pa === cp) {
+        e.style.display = 'none';
+        adminPhone = p;
+        localStorage.setItem('cs_ad_ph', p);
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('admin-info').innerText = 'Admin: ' + p;
+        window.refreshUI();
+      } else { e.innerText = 'Invalid credentials'; e.style.display = 'block'; }
+    }
+
+    window.logout = function() {
+      localStorage.removeItem('cs_ad_ph');
+      adminPhone = '';
+      document.getElementById('login-overlay').style.display = 'flex';
+    }
+
+    window.switchTab = function(tab, ev) {
+      currentTab = tab; csvRows = []; selectedItems = {};
+      currentFilters = { subject: 'ALL', subSubject: 'ALL', sort: 'manual' };
+      var btns = document.querySelectorAll('.admin-tab-btn');
+      for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+      if (ev && ev.target) ev.target.classList.add('active');
       window.refreshUI();
     }
 
-    window.refreshUI = async function(){
-      var ac=document.getElementById('admin-content');
-      var refMap={syllabus:'sscTheoryDatabase',quiz:'sscQuestionBank_index'};
-      var keyMap={syllabus:'syllabus',quiz:'quiz'};
-      ac.innerHTML='<div style="padding:30px;text-align:center;"><span class="spinner"></span> Loading Data...</div>';
+    window.refreshUI = async function() {
+      var ac = document.getElementById('admin-content');
+      if (!adminPhone) { document.getElementById('login-overlay').style.display = 'flex'; return; }
+      if (currentTab === 'users') { window.renderUsers(); return; }
+      if (currentTab === 'settings') { window.renderSettings(); return; }
+
+      var refMap = { 'syllabus': 'sscTheoryDatabase', 'quiz': 'sscQuestionBank_index' };
+      var keyMap = { 'syllabus': 'syllabus', 'quiz': 'quiz' };
+      ac.innerHTML = '<div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading Data...</div>';
+
       try {
         const data = await fetchDB(refMap[currentTab]);
         allData[keyMap[currentTab]] = data || {};
         window.renderContent(keyMap[currentTab]);
       } catch (err) {
-        ac.innerHTML='<div style="padding:30px;text-align:center;color:#ef4444;"><p>⚠️ Error loading data</p><button class="btn btn-blue btn-sm" onclick="window.refreshUI()">🔄 Retry</button></div>';
+        ac.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;"><p>⚠️ Error loading data</p><button class="btn btn-blue btn-sm" onclick="window.refreshUI()">🔄 Retry</button></div>';
       }
     }
 
-    window.togAdm = function(id){var el=document.getElementById(id);if(el)el.classList.toggle('collapsed')}
-
-    function admItemRow(k,i,item,isQuiz){
-      var h='<div class="list-item" data-key="'+escapeAttr(k)+'">';
-      h+='<div class="item-info">';
-      if(isQuiz){
-        var cnt = item.count || 0;
-        h+='<strong>'+sanitizeHTML(k.replace(/_/g,' '))+'</strong> <span class="tag tag-teal">'+cnt+' Qs</span> ';
-        if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
-        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="window.viewQuizGroup(\''+escapeAttr(k)+'\')">👁 View Questions</button>';
-      }else{
-        h+='<strong>'+(item.title?sanitizeHTML(item.title):'Untitled')+'</strong> ';
-        if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
-        h+='</div><div class="item-actions"><button class="btn btn-blue btn-xs notranslate" onclick="window.editSyllabusItem(\''+escapeAttr(k)+'\')">👁 View Content</button>';
-      }
-      h+='</div></div>';
-      return h;
-    }
-
-    function renderItemsList(dk,fk,data,isQuiz){
-      var tree={};
-      fk.forEach(function(k){
-        var item=data[k];
-        var s=item.subject||'General', sub=item.subSubject||'General', tp=item.topic||'General', st=item.subTopic||'General';
-        if(!tree[s])tree[s]={};
-        if(!tree[s][sub])tree[s][sub]={};
-        if(!tree[s][sub][tp])tree[s][sub][tp]={};
-        if(!tree[s][sub][tp][st])tree[s][sub][tp][st]=[];
-        tree[s][sub][tp][st].push(k);
+    function getAvailableSubSubjects(data) {
+      var set = {};
+      Object.keys(data || {}).forEach(function(k) {
+        var it = data[k];
+        if (!it) return;
+        if (currentFilters.subject !== 'ALL' && it.subject !== currentFilters.subject) return;
+        var ss = it.subSubject || 'General';
+        set[ss] = true;
       });
-      var h='',tick=0;
-      var subjColors=['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#047857)','linear-gradient(135deg,#8b5cf6,#6d28d9)','linear-gradient(135deg,#f59e0b,#d97706)'];
-      function san(s){return String(s).replace(/[^a-zA-Z0-9]/g,'_')}
-      
-      Object.keys(tree).sort().forEach(function(subject){
-        var sBodyId='ad_subj_'+tick+'_'+san(subject);var sTot=0;
-        Object.keys(tree[subject]).forEach(function(sub){var subObj=tree[subject][sub];Object.keys(subObj).forEach(function(tp){Object.keys(subObj[tp]).forEach(function(st){sTot+=subObj[tp][st].length})})});
-        h+='<div class="ad-h" style="background:'+subjColors[tick%subjColors.length]+';" onclick="window.togAdm(\''+sBodyId+'\')"><span>📚 '+sanitizeHTML(subject)+'</span><span class="tag tag-teal">'+sTot+' group(s) ▼</span></div>';
-        h+='<div class="ad-body collapsed" id="'+sBodyId+'">';
-        Object.keys(tree[subject]).sort().forEach(function(sub){
-          var ssBodyId=sBodyId+'_ss_'+san(sub);var subObj=tree[subject][sub];var ssT=0;
-          Object.keys(subObj).forEach(function(tp){Object.keys(subObj[tp]).forEach(function(st){ssT+=subObj[tp][st].length})});
-          h+='<div class="ad-h ad-h-sub" style="background:rgba(59,130,246,.25);" onclick="window.togAdm(\''+ssBodyId+'\')"><span>📂 '+sanitizeHTML(sub)+' ('+ssT+')</span><span>▼</span></div>';
-          h+='<div class="ad-body collapsed" id="'+ssBodyId+'">';
-          Object.keys(subObj).sort().forEach(function(tp){
-            var tpBodyId=ssBodyId+'_tp_'+san(tp);var tpT=0;
-            Object.keys(subObj[tp]).forEach(function(st){tpT+=subObj[tp][st].length});
-            h+='<div class="ad-h ad-h-topic" style="background:rgba(245,158,11,.22);" onclick="window.togAdm(\''+tpBodyId+'\')"><span>📌 '+sanitizeHTML(tp)+' ('+tpT+')</span><span>▼</span></div>';
-            h+='<div class="ad-body collapsed" id="'+tpBodyId+'">';
-            Object.keys(subObj[tp]).sort().forEach(function(st){
-              var stBodyId=tpBodyId+'_st_'+san(st);
-              h+='<div class="ad-h ad-h-st" style="background:rgba(236,72,153,.2);" onclick="window.togAdm(\''+stBodyId+'\')"><span>🔹 '+sanitizeHTML(st)+' ('+subObj[tp][st].length+')</span><span>▼</span></div>';
-              h+='<div class="ad-body" id="'+stBodyId+'">';
-              subObj[tp][st].forEach(function(k, idx){h+=admItemRow(k,idx,data[k],isQuiz)});
-              h+='</div>';
-            });
-            h+='</div>';
-          });
-          h+='</div>';
+      return Object.keys(set).sort();
+    }
+
+    window.renderContent = function(dk) {
+      var ac = document.getElementById('admin-content'), data = allData[dk] || {}, keys = Object.keys(data), isQuiz = (dk === 'quiz'), h = '';
+
+      if (isQuiz) {
+        h += '<div class="csv-box"><h3>📥 Bulk Upload SSC Quiz (CSV/JSON/TXT)</h3>';
+        h += '<div class="csv-fmt"><strong>10 Columns:</strong> Subject | Sub-Subject | Topic | Sub-Topic | Question | Option A | Option B | Option C | Option D | Correct | Explanation<br>🖼 Supports 2 or 4 options (A/B/C/D). Option C &amp; D columns optional.</div>';
+        h += '<div class="file-upload-area" id="fileDropZone" onclick="document.getElementById(\'csvFileInput\').click()"><div class="file-upload-icon">📁</div><div style="font-weight:700;color:#38bdf8;">Click or Drag & Drop Files</div><div class="file-types-info">.csv .tsv .txt .json .html</div></div>';
+        h += '<input type="file" id="csvFileInput" style="display:none;" accept=".csv,.tsv,.txt,.json,.html,text/*" onchange="window.handleFileEvent(event)">';
+        h += '<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste Excel Data/CSV/JSON here..." style="min-height:90px;"></textarea><button class="btn btn-teal btn-sm notranslate" onclick="window.parsePastedEvent()">🔍 Parse Data</button></div>';
+        h += '<div id="csvPreviewArea"></div></div>';
+      }
+
+      h += '<div class="toolbar">';
+      var go = '<option value="ALL">📚 All Subjects</option>';
+      for (var gi = 0; gi < SSC_SUBJECTS.length; gi++) {
+        var gs = currentFilters.subject === SSC_SUBJECTS[gi] ? 'selected' : '';
+        go += '<option value="' + escHTML(SSC_SUBJECTS[gi]) + '" ' + gs + '>' + sanitizeHTML(SSC_SUBJECTS[gi]) + '</option>';
+      }
+      h += '<select class="form-inp" id="filterSubject" onchange="window.updateFilter(\'subject\', this.value)" style="max-width:200px;margin-bottom:0;">' + go + '</select>';
+
+      var subSubs = getAvailableSubSubjects(data);
+      var so = '<option value="ALL">📅 All Sub-Subjects</option>';
+      for (var si = 0; si < subSubs.length; si++) {
+        var ss = currentFilters.subSubject === subSubs[si] ? 'selected' : '';
+        so += '<option value="' + escHTML(subSubs[si]) + '" ' + ss + '>' + sanitizeHTML(subSubs[si]) + '</option>';
+      }
+      h += '<select class="form-inp" id="filterStage" onchange="window.updateFilter(\'subSubject\', this.value)" style="max-width:190px;margin-bottom:0;">' + so + '</select>';
+
+      var sso = { 'manual': currentFilters.sort === 'manual' ? 'selected' : '', 'newest': currentFilters.sort === 'newest' ? 'selected' : '', 'az': currentFilters.sort === 'az' ? 'selected' : '', 'za': currentFilters.sort === 'za' ? 'selected' : '' };
+      h += '<select class="form-inp" id="sortOrder" onchange="window.updateFilter(\'sort\', this.value)" style="max-width:140px;margin-bottom:0;">';
+      h += '<option value="manual" ' + sso['manual'] + '>🔢 Manual</option>';
+      h += '<option value="newest" ' + sso['newest'] + '>🆕 Newest</option>';
+      h += '<option value="az" ' + sso['az'] + '>🔤 A-Z</option>';
+      h += '<option value="za" ' + sso['za'] + '>🔤 Z-A</option>';
+      h += '</select>';
+
+      h += '<button class="btn btn-blue btn-sm" onclick="window.selectAllItems()">☑ Select All</button>';
+      h += '<button class="btn btn-dark btn-sm" onclick="window.deselectAllItems()">☐ Deselect</button>';
+      h += '<button class="btn btn-red btn-sm" onclick="window.deleteSelected()">🗑 Delete (<span id="selCount">0</span>)</button>';
+      h += '<button class="btn btn-purple btn-sm" onclick="window.downloadData(\'' + dk + '\')">📥 JSON</button>';
+      h += '<button class="btn btn-teal btn-sm" onclick="window.downloadCSV(\'' + dk + '\')">📊 CSV</button>';
+      if (!isQuiz) h += '<button class="btn btn-green btn-sm" onclick="window.showAddForm()">➕ Add New</button>';
+
+      var dk2 = window.getFilteredAndSortedKeys(keys, data, isQuiz);
+      h += '<span style="color:var(--mut);margin-left:auto;">Total: <strong>' + dk2.length + '</strong></span></div>';
+
+      // Place Edit Form & Group View right above the list so user sees it immediately when clicking Edit
+      h += '<div id="editForm" style="display:none;margin-bottom:20px;"></div><div id="groupView" style="display:none;margin-bottom:20px;"></div>';
+
+      h += '<div id="itemsList">';
+      if (dk2.length === 0) {
+        h += '<div style="padding:40px;text-align:center;color:var(--mut);">No data found for current filter.</div>';
+      } else {
+        for (var i = 0; i < dk2.length; i++) {
+          var k = dk2[i], item = data[k], checked = selectedItems[k] ? 'checked' : '', selClass = selectedItems[k] ? 'selected' : '';
+          var safeK = escHTML(k);
+          var jsK = k.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+          if (isQuiz) {
+            var cnt = item.count || (Array.isArray(item) ? item.length : 10);
+            var extractedSubject = item.subject || k.split('_')[0] || '';
+            var extractedSubSubject = item.subSubject || k.split('_')[1] || '';
+            var extractedTopic = item.topic || k.split('_')[2] || '';
+
+            h += '<div class="list-item ' + selClass + '" data-key="' + safeK + '"><input type="checkbox" class="item-check" ' + checked + ' onchange="window.toggleSelect(\'' + jsK + '\',this.checked)" onclick="event.stopPropagation()"><div class="item-info"><strong>' + sanitizeHTML(k.replace(/_/g,' ')) + '</strong><span class="tag tag-teal" style="margin-left:8px;">' + cnt + ' Qs</span>';
+            if (extractedSubject) h += '<span class="tag tag-green" style="margin-left:4px;">📚 ' + sanitizeHTML(extractedSubject) + '</span>';
+            if (extractedSubSubject && extractedSubSubject !== 'General') h += '<span class="tag tag-orange" style="margin-left:4px;">📅 ' + sanitizeHTML(extractedSubSubject) + '</span>';
+            if (extractedTopic && extractedTopic !== k) h += '<span class="tag tag-blue" style="margin-left:4px;">📘 ' + sanitizeHTML(extractedTopic) + '</span>';
+            h += '</div><div style="display:flex;gap:6px;">';
+            h += '<button class="btn btn-dark btn-xs" onclick="window.moveItem(\'' + jsK + '\',-1)">🔼</button><button class="btn btn-dark btn-xs" onclick="window.moveItem(\'' + jsK + '\',1)">🔽</button>';
+            h += '<button class="btn btn-orange btn-xs" onclick="window.editQuizGroup(\'' + jsK + '\')">✏️ Edit</button><button class="btn btn-red btn-xs" onclick="window.deleteSingle(\'' + jsK + '\')">🗑</button></div></div>';
+          } else {
+            h += '<div class="list-item ' + selClass + '" data-key="' + safeK + '"><input type="checkbox" class="item-check" ' + checked + ' onchange="window.toggleSelect(\'' + jsK + '\',this.checked)" onclick="event.stopPropagation()"><div class="item-info"><strong>' + sanitizeHTML(item.title || 'Untitled') + '</strong>';
+            if (item.subject) h += '<span class="tag tag-green" style="margin-left:8px;">📚 ' + sanitizeHTML(item.subject) + '</span>';
+            if (item.subSubject) h += '<span class="tag tag-orange" style="margin-left:4px;">📅 ' + sanitizeHTML(item.subSubject) + '</span>';
+            if (item.topic) h += '<span class="tag tag-blue" style="margin-left:4px;">📘 ' + sanitizeHTML(item.topic) + '</span>';
+            h += '</div><div style="display:flex;gap:6px;">';
+            h += '<button class="btn btn-blue btn-xs" onclick="window.editSyllabusItem(\'' + jsK + '\')">✏️ Edit</button><button class="btn btn-red btn-xs" onclick="window.deleteSingle(\'' + jsK + '\')">🗑</button></div></div>';
+          }
+        }
+      }
+      h += '</div>';
+      ac.innerHTML = h;
+      window.setupFileDropZone();
+      window.updateSelCount();
+    }
+
+    // ============ ROBUST FILE DROP ZONE ============
+    window.setupFileDropZone = function(){
+      var dropZone = document.getElementById('fileDropZone');
+      var fileInput = document.getElementById('csvFileInput');
+      if(!dropZone || !fileInput) return;
+
+      dropZone.addEventListener('dragover', function(e) {
+          e.preventDefault(); e.stopPropagation();
+          dropZone.classList.add('drag-over');
+      }, false);
+      dropZone.addEventListener('dragleave', function(e) {
+          e.preventDefault(); e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+      }, false);
+      dropZone.addEventListener('drop', function(e) {
+          e.preventDefault(); e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+          var files = e.dataTransfer.files;
+          if(files && files.length > 0) {
+              fileInput.files = files;
+              window.handleFileEvent({target: {files: files}});
+          }
+      }, false);
+    }
+
+    window.getFilteredAndSortedKeys = function(keys, data, isQuiz) {
+      var filtered = [];
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var item = data[k] || {};
+        var itemSubj = item.subject || '';
+        var itemSubSubj = item.subSubject || 'General';
+
+        if (currentFilters.subject !== 'ALL' && itemSubj !== currentFilters.subject) continue;
+        if (currentFilters.subSubject !== 'ALL' && itemSubSubj !== currentFilters.subSubject) continue;
+        filtered.push(k);
+      }
+
+      if (currentFilters.sort === 'az') {
+        filtered.sort(function(a, b) {
+          var na = (data[a] && data[a].title) ? data[a].title.toLowerCase() : a.toLowerCase();
+          var nb = (data[b] && data[b].title) ? data[b].title.toLowerCase() : b.toLowerCase();
+          return na.localeCompare(nb);
         });
-        h+='</div>';
-        tick++;
-      });
-      return h;
-    }
-
-    window.renderContent = function(dk){
-      var ac=document.getElementById('admin-content'),data=allData[dk]||{},keys=Object.keys(data),isQuiz=(dk==='quiz'),h='';
-      h+='<div class="toolbar"><span style="color:var(--txt);font-weight:800;">✅ Total Groups Loaded Instantly: <strong style="color:#4ade80;font-size:1.1rem;">'+keys.length+'</strong> (Click any subject below to expand)</span></div>';
-      h+='<div id="groupView" style="display:none;margin-bottom:15px;"></div><div id="editForm" style="display:none;margin-bottom:15px;"></div>';
-      h+='<div id="itemsList">';
-      if(keys.length===0)h+='<div style="padding:25px;text-align:center;color:var(--mut);">No data yet.</div>';
-      else h+=renderItemsList(dk,keys,data,isQuiz);
-      h+='</div>';
-      ac.innerHTML=h;
-    }
-
-    window.viewQuizGroup = async function(key){
-      var gv=document.getElementById('groupView');
-      gv.innerHTML='<div style="padding:20px;text-align:center;"><span class="spinner"></span> Loading questions...</div>';
-      gv.style.display='block'; gv.scrollIntoView({behavior:'smooth'});
-      var qs = await fetchDB('qb_' + key);
-      if(!qs||!Array.isArray(qs)){gv.innerHTML='<p>No data</p>';return}
-      var h='<div class="card"><h3>📝 '+sanitizeHTML(key.replace(/_/g,' '))+' ('+qs.length+' Qs) <button class="btn btn-dark btn-sm" style="float:right;" onclick="document.getElementById(\'groupView\').style.display=\'none\'">✕ Close</button></h3><br>';
-      for(var i=0;i<qs.length;i++){
-        var q=qs[i];
-        h+='<div class="answer-display-box"><strong>Q'+(i+1)+':</strong> '+(q.question||'')+'<br><strong>✅ Answer:</strong> '+sanitizeHTML(q.correctAnswer)+') '+((q.options&&q.options[q.correctAnswer])||'');
-        if(q.explanation)h+='<br><small style="color:#fbbf24;">💡 '+q.explanation+'</small>';
-        h+='</div>';
+      } else if (currentFilters.sort === 'za') {
+        filtered.sort(function(a, b) {
+          var na = (data[a] && data[a].title) ? data[a].title.toLowerCase() : a.toLowerCase();
+          var nb = (data[b] && data[b].title) ? data[b].title.toLowerCase() : b.toLowerCase();
+          return nb.localeCompare(na);
+        });
+      } else if (currentFilters.sort === 'newest') {
+        filtered.reverse();
+      } else {
+        filtered.sort(function(a, b) {
+          return ((data[a] && data[a].order) || 0) - ((data[b] && data[b].order) || 0);
+        });
       }
-      h+='</div>';
-      gv.innerHTML=h;
+      return filtered;
     }
 
-    window.editSyllabusItem = function(key){
-      var item=allData.syllabus[key];if(!item)return;
-      var ef=document.getElementById('editForm');ef.style.display='block';
-      ef.innerHTML='<div class="card"><h3>📖 '+sanitizeHTML(item.title||key)+' <button class="btn btn-dark btn-sm" style="float:right;" onclick="document.getElementById(\'editForm\').style.display=\'none\'">✕ Close</button></h3><div style="margin-top:12px;padding:12px;background:rgba(0,0,0,.3);border-radius:8px;">'+(item.content||'No content')+'</div></div>';
-      ef.scrollIntoView({behavior:'smooth'});
+    window.updateFilter = function(type, value) {
+      currentFilters[type] = value;
+      if (type === 'subject') currentFilters.subSubject = 'ALL';
+      selectedItems = {};
+      window.renderContent(currentTab === 'quiz' ? 'quiz' : 'syllabus');
     }
 
-    window.addEventListener('DOMContentLoaded', function(){
+    window.showAddForm = function() {
+      var ef = document.getElementById('editForm');
+      ef.style.display = 'block';
+      var subjOptions = SSC_SUBJECTS.map(function(s) { return '<option>' + s + '</option>'; }).join('');
+
+      ef.innerHTML = '<div class="card"><h3>➕ Add Syllabus Item</h3>' +
+        '<div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp">' + subjOptions + '</select></div>' +
+        '<div class="form-group"><label>Sub-Subject *</label><input id="ef-subsubject" class="form-inp" value="General" placeholder="e.g. Arithmetic / Grammar"></div>' +
+        '<div class="form-group"><label>Topic *</label><input id="ef-topic" class="form-inp" value="General" placeholder="e.g. Number System"></div>' +
+        '<div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp" placeholder="Enter title..."></div>' +
+        '<div class="form-group"><label>Content (HTML allowed)</label><textarea id="ef-content" class="form-inp" style="min-height:200px;" placeholder="Enter content..."></textarea></div>' +
+        '<button class="btn btn-green btn-sm" onclick="window.saveSyllabusItem(null)">💾 Save</button> ' +
+        '<button class="btn btn-dark btn-sm" onclick="document.getElementById(\'editForm\').style.display=\'none\'">❌ Cancel</button></div>';
+      ef.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    window.editSyllabusItem = function(key) {
+      var item = allData.syllabus[key];
+      if (!item) return;
+      var ef = document.getElementById('editForm');
+      ef.style.display = 'block';
+      var jsK = key.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+      ef.innerHTML = '<div class="card"><h3>✏️ Edit Syllabus</h3>' +
+        '<div class="form-group"><label>Subject</label><select id="ef-subject" class="form-inp">' + SSC_SUBJECTS.map(function(s) { return '<option ' + (item.subject === s ? 'selected' : '') + '>' + s + '</option>'; }).join('') + '</select></div>' +
+        '<div class="form-group"><label>Sub-Subject</label><input id="ef-subsubject" class="form-inp" value="' + escHTML(item.subSubject || 'General') + '"></div>' +
+        '<div class="form-group"><label>Topic</label><input id="ef-topic" class="form-inp" value="' + escHTML(item.topic || 'General') + '"></div>' +
+        '<div class="form-group"><label>Title *</label><input id="ef-title" class="form-inp" value="' + escHTML(item.title || '') + '"></div>' +
+        '<div class="form-group"><label>Content</label><textarea id="ef-content" class="form-inp" style="min-height:200px;">' + escHTML(item.content || '') + '</textarea></div>' +
+        '<button class="btn btn-green btn-sm" onclick="window.saveSyllabusItem(\'' + jsK + '\')">💾 Update</button> ' +
+        '<button class="btn btn-dark btn-sm" onclick="document.getElementById(\'editForm\').style.display=\'none\'">❌ Cancel</button></div>';
+      ef.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    window.saveSyllabusItem = async function(editingKey) {
+      var subject = document.getElementById('ef-subject').value;
+      var subSubject = document.getElementById('ef-subsubject').value || 'General';
+      var topic = document.getElementById('ef-topic').value || 'General';
+      var title = document.getElementById('ef-title').value;
+      var content = document.getElementById('ef-content').value;
+
+      if (!title || !subject) { toast('Title & Subject are required', 'error'); return; }
+
+      var item = { title: title, subject: subject, subSubject: subSubject, topic: topic, subTopic: 'General', content: content, order: Date.now() };
+      var finalKey = editingKey ? editingKey : "syl_" + Date.now();
+      allData.syllabus[finalKey] = item;
+
+      await saveDB('sscTheoryDatabase/' + finalKey, item);
+      toast(editingKey ? 'Updated!' : 'Added!', 'success');
+      document.getElementById('editForm').style.display = 'none';
       window.refreshUI();
-    });
+    }
+
+    // ============ ON-DEMAND QUIZ GROUP EDIT (EXACT APPSC MODEL) ============
+    window.editQuizGroup = async function(key) {
+      var gv = document.getElementById('groupView');
+      gv.style.display = 'block';
+      gv.innerHTML = '<div class="card" style="text-align:center;padding:30px;"><span class="spinner"></span> Loading questions for <strong>' + sanitizeHTML(key) + '</strong>...</div>';
+      gv.scrollIntoView({ behavior: 'smooth' });
+
+      var qs = await fetchDB('qb_' + key);
+      if (!qs || !Array.isArray(qs) || qs.length === 0) {
+        gv.style.display = 'none';
+        toast('No questions found in this group!', 'error');
+        return;
+      }
+
+      window.currentEditingQs = qs;
+      var jsK = key.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      var h = '<div class="card"><h3>✏️ Edit Quiz Group</h3>';
+      h += '<div class="form-group"><label>Group Key</label><input type="text" id="qe-title" class="form-inp" value="' + escHTML(key) + '" style="max-width:450px;" readonly></div>';
+      h += '<p style="color:var(--mut);">' + qs.length + ' Questions</p>';
+      h += '<button class="btn btn-dark btn-sm" onclick="document.getElementById(\'groupView\').style.display=\'none\'">← Back</button>';
+      h += '<button class="btn btn-green btn-sm" style="margin-left:10px;" onclick="window.saveQuizGroupEdits(\'' + jsK + '\')">💾 Save All</button><br><br>';
+      for (var i = 0; i < qs.length; i++) {
+        var q = qs[i];
+        var opts = q.options || {};
+        h += '<div class="card" style="margin-bottom:12px;padding:15px;"><strong style="color:#f59e0b;">Q' + (i + 1) + '</strong>';
+        h += '<div class="form-group"><label>Question</label><textarea class="form-inp qe-q" data-idx="' + i + '" style="min-height:50px;">' + escHTML(q.question) + '</textarea></div>';
+        h += '<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option A</label><input class="form-inp qe-a" data-idx="' + i + '" value="' + escHTML(opts.A || '') + '"></div><div class="form-group" style="flex:1;"><label>Option B</label><input class="form-inp qe-b" data-idx="' + i + '" value="' + escHTML(opts.B || '') + '"></div></div>';
+        h += '<div style="display:flex;gap:10px;"><div class="form-group" style="flex:1;"><label>Option C <span class="optional-label">(optional)</span></label><input class="form-inp qe-c-opt" data-idx="' + i + '" value="' + escHTML(opts.C || '') + '"></div><div class="form-group" style="flex:1;"><label>Option D <span class="optional-label">(optional)</span></label><input class="form-inp qe-d-opt" data-idx="' + i + '" value="' + escHTML(opts.D || '') + '"></div></div>';
+        h += '<div class="form-group"><label>Correct</label><select class="form-inp qe-c" data-idx="' + i + '" style="max-width:100px;"><option value="A" ' + (q.correctAnswer === 'A' ? 'selected' : '') + '>A</option><option value="B" ' + (q.correctAnswer === 'B' ? 'selected' : '') + '>B</option><option value="C" ' + (q.correctAnswer === 'C' ? 'selected' : '') + '>C</option><option value="D" ' + (q.correctAnswer === 'D' ? 'selected' : '') + '>D</option></select></div>';
+        h += '<div class="form-group"><label>Explanation</label><input class="form-inp qe-e" data-idx="' + i + '" value="' + escHTML(q.explanation || '') + '"></div></div>';
+      }
+      h += '<button class="btn btn-green btn-sm" onclick="window.saveQuizGroupEdits(\'' + jsK + '\')">💾 Save All</button></div>';
+      gv.innerHTML = h;
+    }
+
+    window.saveQuizGroupEdits = async function(oldKey) {
+      var qs = window.currentEditingQs;
+      if (!qs) return;
+      var qEls = document.querySelectorAll('.qe-q'), aEls = document.querySelectorAll('.qe-a'), bEls = document.querySelectorAll('.qe-b'), cOptEls = document.querySelectorAll('.qe-c-opt'), dOptEls = document.querySelectorAll('.qe-d-opt'), cEls = document.querySelectorAll('.qe-c'), eEls = document.querySelectorAll('.qe-e');
+      for (var i = 0; i < qEls.length; i++) {
+        var idx = parseInt(qEls[i].dataset.idx);
+        qs[idx].question = qEls[i].value;
+        qs[idx].options = { A: aEls[i].value, B: bEls[i].value, C: cOptEls[i].value, D: dOptEls[i].value };
+        qs[idx].correctAnswer = cEls[i].value;
+        qs[idx].explanation = eEls[i].value;
+      }
+      await saveDB('qb_' + oldKey, qs);
+      toast('✅ Updated!', 'success');
+      document.getElementById('groupView').style.display = 'none';
+      window.refreshUI();
+    }
+
+    window.toggleSelect = function(key, checked) { if (checked) selectedItems[key] = true; else delete selectedItems[key]; window.updateSelCount(); }
+    window.selectAllItems = function() { var items = document.querySelectorAll('#itemsList .list-item'); for (var i = 0; i < items.length; i++) { var key = items[i].dataset.key; selectedItems[key] = true; items[i].classList.add('selected'); items[i].querySelector('.item-check').checked = true; } window.updateSelCount(); }
+    window.deselectAllItems = function() { selectedItems = {}; var items = document.querySelectorAll('#itemsList .list-item'); for (var i = 0; i < items.length; i++) { items[i].classList.remove('selected'); items[i].querySelector('.item-check').checked = false; } window.updateSelCount(); }
+    window.updateSelCount = function() { var cnt = Object.keys(selectedItems).length, el = document.getElementById('selCount'); if (el) el.innerText = cnt; }
+
+    // DIRECT FAST DELETE FROM SUPABASE
+    window.deleteSelected = async function() {
+      var sk = Object.keys(selectedItems);
+      if (sk.length === 0) { toast('No items selected!', 'error'); return; }
+      if (!confirm('Delete ' + sk.length + ' items?')) return;
+      var db = await window.supabaseReady;
+      for (var i = 0; i < sk.length; i++) {
+        var k = sk[i];
+        if (currentTab === 'quiz') {
+          var item = allData.quiz[k];
+          if (item && item.id) await db.from('quiz_sets').delete().eq('id', item.id);
+          delete allData.quiz[k];
+        } else {
+          var sItem = allData.syllabus[k];
+          if (sItem && sItem.id) await db.from('study_materials').delete().eq('id', sItem.id);
+          delete allData.syllabus[k];
+        }
+      }
+      toast('Deleted ' + sk.length + ' items!', 'success');
+      selectedItems = {};
+      window.renderContent(currentTab === 'quiz' ? 'quiz' : 'syllabus');
+    }
+
+    window.deleteSingle = async function(id) {
+      if (!confirm('Delete permanently?')) return;
+      var db = await window.supabaseReady;
+      if (currentTab === 'quiz') {
+        var item = allData.quiz[id];
+        if (item && item.id) await db.from('quiz_sets').delete().eq('id', item.id);
+        delete allData.quiz[id];
+      } else {
+        var sItem = allData.syllabus[id];
+        if (sItem && sItem.id) await db.from('study_materials').delete().eq('id', sItem.id);
+        delete allData.syllabus[id];
+      }
+      toast('Deleted!', 'success');
+      delete selectedItems[id];
+      window.renderContent(currentTab === 'quiz' ? 'quiz' : 'syllabus');
+    }
+
+    window.moveItem = async function(key, dir) {
+      var data = allData.quiz, keys = Object.keys(data), dk2 = window.getFilteredAndSortedKeys(keys, data, true);
+      var idx = dk2.indexOf(key); if (idx === -1) return;
+      var targetIdx = idx + dir; if (targetIdx < 0 || targetIdx >= dk2.length) return;
+      var keyB = dk2[targetIdx], orderA = idx * 10, orderB = targetIdx * 10;
+      if (data[key]) data[key].order = orderB;
+      if (data[keyB]) data[keyB].order = orderA;
+      var db = await window.supabaseReady;
+      if (data[key] && data[key].id) await db.from('quiz_sets').update({ order_index: orderB }).eq('id', data[key].id);
+      if (data[keyB] && data[keyB].id) await db.from('quiz_sets').update({ order_index: orderA }).eq('id', data[keyB].id);
+      window.renderContent('quiz');
+    }
+
+    // ============ ROBUST PARSING LOGIC (SSC Format) ============
+    window.handleFileEvent = function(event){
+      var file=event.target.files[0];
+      if(!file){toast('No file selected!','error');return}
+      var reader=new FileReader();
+      reader.onload=function(e){ window.smartParse(e.target.result, file.name); };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+    window.parsePastedEvent = function(){
+      var txt=document.getElementById('csvPasteInput').value;
+      window.smartParse(txt, 'pasted');
+    }
+
+    window.smartParse = function(text, sourceName){
+      text = text ? text.trim() : '';
+      if(!text){ toast('Invalid or empty data!','error'); return; }
+
+      if(text.startsWith('[') || text.startsWith('{')){
+        try{ var parsed = JSON.parse(text); window.parseJSONData(parsed); return; }catch(e){}
+      }
+
+      var rows = window.parseCSVRows(text);
+      if(rows.length < 2){toast('Need header + data rows. Found: '+rows.length,'error');return}
+
+      var delimiter = window.detectDelimiter(rows);
+      var headers = window.smartSplitLine(rows[0], delimiter);
+
+      var colMap={subject:-1,subSubject:-1,topic:-1,subTopic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};
+      for(var hi=0;hi<headers.length;hi++){
+        var hdr=headers[hi].toLowerCase().replace(/[\s_"-]/g,'');
+        if(hdr==='subject'||hdr==='mainsubject')colMap.subject=hi;
+        else if(hdr==='subsubject'||hdr==='stage')colMap.subSubject=hi;
+        else if(hdr==='topic')colMap.topic=hi;
+        else if(hdr==='subtopic')colMap.subTopic=hi;
+        else if(hdr==='question'||hdr==='ques'||hdr==='q')colMap.question=hi;
+        else if(hdr==='optiona'||hdr==='opta'||hdr==='a')colMap.optA=hi;
+        else if(hdr==='optionb'||hdr==='optb'||hdr==='b')colMap.optB=hi;
+        else if(hdr==='optionc'||hdr==='optc'||hdr==='c')colMap.optC=hi;
+        else if(hdr==='optiond'||hdr==='optd'||hdr==='d')colMap.optD=hi;
+        else if(hdr==='correct'||hdr==='answer'||hdr==='ans')colMap.correct=hi;
+        else if(hdr==='explanation'||hdr==='exp')colMap.explanation=hi;
+      }
+
+      if(colMap.subject===-1&&headers.length>1)colMap.subject=1;
+      if(colMap.subSubject===-1&&headers.length>2)colMap.subSubject=2;
+      if(colMap.topic===-1&&headers.length>3)colMap.topic=3;
+      if(colMap.subTopic===-1&&headers.length>4)colMap.subTopic=4;
+      if(colMap.question===-1&&headers.length>5)colMap.question=5;
+      if(colMap.optA===-1&&headers.length>6)colMap.optA=6;
+      if(colMap.optB===-1&&headers.length>7)colMap.optB=7;
+      if(colMap.correct===-1&&headers.length>8)colMap.correct=8;
+
+      csvRows=[]; var errors=[];
+      window.skippedRowsData = rows[0] + delimiter + '"Error_Reason"\n';
+
+      for(var l=1;l<rows.length;l++){
+        var cols = window.smartSplitLine(rows[l], delimiter);
+        if(cols.length < 5){
+          errors.push('Row '+(l+1)+': too few columns');
+          window.skippedRowsData += rows[l] + delimiter + '"Too few columns"\n';
+          continue;
+        }
+
+        var subject=normalizeSubjectName(window.getCol(cols,colMap.subject)||'General Studies');
+        var subSubject=window.getCol(cols,colMap.subSubject)||'General';
+        var topic=window.getCol(cols,colMap.topic)||'General';
+        var subTopic=window.getCol(cols,colMap.subTopic)||'General';
+        var question=window.getCol(cols,colMap.question), optA=window.getCol(cols,colMap.optA), optB=window.getCol(cols,colMap.optB), optC=window.getCol(cols,colMap.optC), optD=window.getCol(cols,colMap.optD), ans=window.getCol(cols,colMap.correct).toUpperCase().trim().charAt(0), exp=window.getCol(cols,colMap.explanation)||'';
+
+        var errorMsg = "";
+        if(!question||!optA||!optB||!ans) errorMsg = "Missing Q/A/B/Correct";
+        else if(['A','B','C','D'].indexOf(ans)===-1) errorMsg = "Correct must be A/B/C/D";
+
+        if(errorMsg !== "") {
+          errors.push('Row '+(l+1)+': ' + errorMsg);
+          window.skippedRowsData += rows[l] + delimiter + '"' + errorMsg + '"\n';
+          continue;
+        }
+
+        var key=(subject+'_'+subSubject+'_'+topic+(subTopic&&subTopic!=='General'?'_'+subTopic:'')).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+        csvRows.push({key:key,subject:subject,subSubject:subSubject,topic:topic,subTopic:subTopic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
+      }
+      window.showCSVPreview(errors, sourceName+' ('+(delimiter==='\t'?'TSV':'CSV')+')');
+    }
+
+    window.parseJSONData = function(jsonData){
+      var rows=[];
+      if(!Array.isArray(jsonData) && typeof jsonData === 'object') {
+        Object.keys(jsonData).forEach(function(k) {
+          if(Array.isArray(jsonData[k])) { rows = rows.concat(jsonData[k]); }
+          else if(typeof jsonData[k] === 'object' && jsonData[k].question) { rows.push(jsonData[k]); }
+        });
+        if(rows.length === 0) { if(jsonData.question) rows=[jsonData]; else if(jsonData.questions) rows=jsonData.questions; }
+      } else { rows=jsonData; }
+
+      if(!rows || rows.length === 0){ toast('No valid questions found in JSON!','error'); return; }
+      csvRows=[]; var errors=[];
+      for(var i=0;i<rows.length;i++){
+        var r=rows[i];
+        var subject=normalizeSubjectName(r.subject||r.Subject||'General Studies');
+        var subSubject=r.subSubject||r.subsubject||r['Sub-Subject']||'General';
+        var topic=r.topic||r.Topic||'General';
+        var subTopic=r.subTopic||r.subtopic||r['Sub-Topic']||'General';
+        var question=r.question||r.Question||'', optA=r.optionA||r.optA||(r.options&&r.options.A)||r['Option A']||'', optB=r.optionB||r.optB||(r.options&&r.options.B)||r['Option B']||'', optC=r.optionC||r.optC||(r.options&&r.options.C)||r['Option C']||'', optD=r.optionD||r.optD||(r.options&&r.options.D)||r['Option D']||'', ans=(r.correctAnswer||r.answer||r.Answer||'').toString().toUpperCase().charAt(0), exp=r.explanation||r.Explanation||'';
+        if(!question||!optA||!optB||['A','B','C','D'].indexOf(ans)===-1){ errors.push('Row '+(i+1)); continue; }
+        var key=(subject+'_'+subSubject+'_'+topic+(subTopic&&subTopic!=='General'?'_'+subTopic:'')).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+        csvRows.push({key:key,subject:subject,subSubject:subSubject,topic:topic,subTopic:subTopic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
+      }
+      window.showCSVPreview(errors,'JSON Data');
+    }
+
+    window.smartSplitLine = function(line, delimiter) { var result = []; var current = ''; var inQuotes = false; for (var i = 0; i < line.length; i++) { var ch = line[i]; if (ch === '"') { if (inQuotes && line[i + 1] === '"') { current += '"'; i++; } else { inQuotes = !inQuotes; } } else if (ch === delimiter && !inQuotes) { result.push(current.trim()); current = ''; } else { current += ch; } } result.push(current.trim()); return result; };
+    window.getCol = function(cols, idx){ return (idx >= 0 && idx < cols.length) ? cols[idx] : ''; }
+    window.parseCSVRows = function(text){ var rows=[], current='', inQuotes=false; for(var i=0;i<text.length;i++){ var ch=text[i]; if(ch==='"'){ if(inQuotes && text[i+1]==='"'){ current+='"'; i++; continue; } inQuotes=!inQuotes; continue; } if(ch==='\n' && !inQuotes){ if(current.trim()) rows.push(current.trim()); current=''; continue; } if(ch==='\r' && !inQuotes){ if(current.trim()) rows.push(current.trim()); current=''; if(text[i+1]==='\n') i++; continue; } current+=ch; } if(current.trim()) rows.push(current.trim()); return rows; }
+    window.detectDelimiter = function(rows){ var tc=0,cc=0; for(var i=0;i<Math.min(5,rows.length);i++){ var inQ=false; for(var j=0;j<rows[i].length;j++){ var ch=rows[i][j]; if(ch==='"'){ if(inQ && rows[i][j+1]==='"') j++; else inQ=!inQ; continue; } if(ch==='\t' && !inQ) tc++; else if(ch===',' && !inQ) cc++; } } return tc>=cc ? '\t' : ','; }
+
+    window.showCSVPreview = function(errors,formatType){
+      if(csvRows.length===0){toast('No valid rows! Errors: '+errors.length,'error');return}
+      var groups={};
+      for(var i=0;i<csvRows.length;i++) groups[csvRows[i].key]=(groups[csvRows[i].key]||0)+1;
+      var pv=document.getElementById('csvPreviewArea'); pv.style.display='block';
+      var h='<div style="margin-top:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:6px;"><p><strong>✅ '+csvRows.length+' Questions</strong> in <strong>'+Object.keys(groups).length+' Groups</strong> ('+formatType+')</p>';
+      if(errors.length>0) {
+        h+='<p style="color:#f59e0b;font-size:.7rem;">⚠️ '+errors.length+' skipped due to empty/invalid fields.</p>';
+        h+='<button class="btn btn-orange btn-sm notranslate" onclick="window.downloadSkipped()">📥 Download Skipped Rows</button><br><br>';
+      }
+      h+='<button class="btn btn-green btn-sm notranslate" onclick="window.uploadCSVToFB()">🚀 Upload '+csvRows.length+' Qs</button> <button class="btn btn-dark btn-sm notranslate" onclick="window.clearCSVData()">🗑 Clear</button><div id="csvUploadStatus" style="margin-top:6px;font-size:.75rem;"></div></div>';
+      pv.innerHTML=h; pv.scrollIntoView({behavior:'smooth'});
+    }
+
+    window.downloadSkipped = function() {
+      if(!window.skippedRowsData) return;
+      var blob = new Blob([window.skippedRowsData], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href = url; a.download = 'skipped_questions_errors.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    window.clearCSVData = function(){csvRows=[];var fi=document.getElementById('csvFileInput'),pi=document.getElementById('csvPasteInput'),pv=document.getElementById('csvPreviewArea');if(fi)fi.value='';if(pi)pi.value='';if(pv){pv.style.display='none';pv.innerHTML='';}}
+
+    window.uploadCSVToFB = async function(){
+      if(!csvRows||csvRows.length===0)return;
+      var st=document.getElementById('csvUploadStatus');
+      st.innerHTML='<span class="spinner"></span> Preparing Upload...';
+
+      var groups={};
+      for(var i=0;i<csvRows.length;i++){
+        var r=csvRows[i];
+        if(!groups[r.key])groups[r.key]=[];
+        groups[r.key].push({
+          question:r.question,
+          options:{A:r.optionA,B:r.optionB,C:r.optionC||'',D:r.optionD||''},
+          correctAnswer:r.correctAnswer,
+          subject:r.subject,
+          subSubject:r.subSubject,
+          topic:r.topic,
+          subTopic:r.subTopic,
+          explanation:r.explanation||''
+        });
+      }
+
+      var gKeys = Object.keys(groups);
+      var done = 0, failed = 0;
+
+      for(var j=0; j<gKeys.length; j++){
+        var k = gKeys[j];
+        var newQs = groups[k];
+        st.innerHTML='<span class="spinner"></span> Uploading Group '+(j+1)+' of '+gKeys.length+'...';
+        try {
+          var existingQs = await fetchDB('qb_' + k) || [];
+          newQs.forEach(function(q){
+            var sig = q.question+'|'+q.options.A+'|'+q.options.B;
+            if(!existingQs.some(function(x){ return (x.question||'')+'|'+((x.options&&x.options.A)||'')+'|'+((x.options&&x.options.B)||'') === sig })){
+              existingQs.push(q);
+            }
+          });
+          await saveDB('qb_' + k, existingQs);
+          var fq = existingQs[0];
+          await saveDB('sscQuestionBank_index/' + k, {
+            count: existingQs.length,
+            subject: fq.subject,
+            subSubject: fq.subSubject,
+            topic: fq.topic,
+            subTopic: fq.subTopic,
+            order: Date.now()
+          });
+          done++;
+        } catch (err) {
+          console.error("Upload failed for group:", k, err);
+          failed++;
+        }
+      }
+
+      if(failed > 0){ st.innerHTML='<span style="color:#ef4444;">⚠️ Uploaded '+done+', Failed '+failed+' groups.</span>'; }
+      else { st.innerHTML='<span style="color:#22c55e;">✅ Done! Uploaded to '+done+' groups.</span>'; toast('Upload Complete!','success'); setTimeout(function(){window.clearCSVData();window.refreshUI()}, 1500); }
+    }
+
+    window.downloadData = function(dk) {
+      var data = allData[dk] || {}, ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data), ed = {};
+      for (var i = 0; i < ks.length; i++) { ed[ks[i]] = data[ks[i]]; }
+      var blob = new Blob([JSON.stringify(ed, null, 2)], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = 'ssc_' + dk + '_data.json'; a.click(); URL.revokeObjectURL(url); toast('Downloaded JSON!', 'success');
+    }
+
+    window.downloadCSV = async function(dk) {
+      var data = allData[dk] || {}, ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data), isQuiz = (dk == 'quiz'), csv = '';
+      if (isQuiz) {
+        toast('Preparing CSV export...', 'info');
+        csv = 'Subject,Sub-Subject,Topic,Sub-Topic,Question,Option A,Option B,Option C,Option D,Correct,Explanation\n';
+        for (var i = 0; i < ks.length; i++) {
+          var g = await fetchDB('qb_' + ks[i]);
+          if (!Array.isArray(g)) continue;
+          for (var j = 0; j < g.length; j++) {
+            var q = g[j];
+            csv += '"' + escCSV(q.subject||'') + '","' + escCSV(q.subSubject||'') + '","' + escCSV(q.topic||'') + '","' + escCSV(q.subTopic||'') + '","' + escCSV(q.question) + '","' + escCSV(q.options.A) + '","' + escCSV(q.options.B) + '","' + escCSV(q.options.C) + '","' + escCSV(q.options.D) + '","' + q.correctAnswer + '","' + escCSV(q.explanation || '') + '"\n';
+          }
+        }
+      } else {
+        csv = 'Subject,Sub-Subject,Topic,Title,Content\n';
+        for (var m = 0; m < ks.length; m++) {
+          var it = data[ks[m]];
+          csv += '"' + escCSV(it.subject || '') + '","' + escCSV(it.subSubject || '') + '","' + escCSV(it.topic || '') + '","' + escCSV(it.title || '') + '","' + escCSV((it.content || '').replace(/<[^>]*>/g, '').substring(0, 300)) + '"\n';
+        }
+      }
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = 'ssc_' + dk + '_export.csv'; a.click(); URL.revokeObjectURL(url); toast('Downloaded CSV!', 'success');
+    }
+
+    // ============ USERS & SETTINGS ============
+    window.renderUsers = function() {
+      var ac = document.getElementById('admin-content'), users = settings.users || {}, h = '<button class="btn btn-green btn-sm" onclick="window.showAddUser()">➕ Add User</button><br><br>';
+      Object.keys(users).forEach(function(ph) {
+        var u = users[ph];
+        h += '<div class="card"><strong>📱 ' + sanitizeHTML(ph) + '</strong> | Subjects: ' + (u.subjects || []).join(', ') + '<br><button class="btn btn-blue btn-xs" onclick="window.editUser(\'' + escHTML(ph) + '\')">✏️</button> <button class="btn btn-red btn-xs" onclick="window.deleteUser(\'' + escHTML(ph) + '\')">🗑</button></div>';
+      });
+      h += '<div id="userEditForm" style="display:none;"></div>';
+      ac.innerHTML = h;
+    }
+
+    window.showAddUser = function() {
+      var ef = document.getElementById('userEditForm'); ef.style.display = 'block';
+      ef.innerHTML = '<div class="card"><h3>➕ Add User</h3><input id="uf-phone" class="form-inp" placeholder="Phone/ID"><input id="uf-pass" class="form-inp" placeholder="Password"><label>Subjects:</label><div class="checkbox-group">' + SSC_SUBJECTS.map(function(s) { return '<label class="checkbox-label"><input type="checkbox" value="' + s + '" class="uf-subs" checked> ' + s + '</label>'; }).join('') + '</div><button class="btn btn-green btn-sm" onclick="window.saveUser(null)">💾 Save</button> <button class="btn btn-dark btn-sm" onclick="document.getElementById(\'userEditForm\').style.display=\'none\'">❌ Cancel</button></div>';
+    }
+
+    window.editUser = function(phone) {
+      var u = settings.users[phone]; if (!u) return;
+      var ef = document.getElementById('userEditForm'); ef.style.display = 'block';
+      ef.innerHTML = '<div class="card"><h3>✏️ Edit ' + sanitizeHTML(phone) + '</h3><input id="uf-phone" class="form-inp" value="' + escHTML(phone) + '" readonly><input id="uf-pass" class="form-inp" value="' + escHTML(u.pass || '') + '"><label>Subjects:</label><div class="checkbox-group">' + SSC_SUBJECTS.map(function(s) { return '<label class="checkbox-label"><input type="checkbox" value="' + s + '" class="uf-subs" ' + (u.subjects && u.subjects.indexOf(s) !== -1 ? 'checked' : '') + '> ' + s + '</label>'; }).join('') + '</div><button class="btn btn-green btn-sm" onclick="window.saveUser(\'' + escHTML(phone) + '\')">💾 Update</button> <button class="btn btn-dark btn-sm" onclick="document.getElementById(\'userEditForm\').style.display=\'none\'">❌ Cancel</button></div>';
+    }
+
+    window.saveUser = async function(orig) {
+      var phone = document.getElementById('uf-phone').value, pass = document.getElementById('uf-pass').value, subs = [];
+      document.querySelectorAll('.uf-subs:checked').forEach(function(c) { subs.push(c.value); });
+      if (!phone || !pass) { toast('Fill all fields', 'error'); return; }
+      settings.users[phone] = { pass: pass, modes: ['ALL'], subjects: subs, classes: ['ALL'] };
+      toast('Saved!', 'success'); document.getElementById('userEditForm').style.display = 'none'; window.renderUsers();
+    }
+
+    window.deleteUser = async function(phone) {
+      if (!confirm('Delete ' + phone + '?')) return;
+      delete settings.users[phone];
+      toast('Deleted!', 'success'); window.renderUsers();
+    }
+
+    window.renderSettings = function() {
+      var ac = document.getElementById('admin-content');
+      ac.innerHTML = '<div class="card"><h3>⚙️ Settings</h3><label class="checkbox-label"><input type="checkbox" id="set-login" ' + (settings.loginEnabled ? 'checked' : '') + '> Enable Login</label><br><br><label class="checkbox-label"><input type="checkbox" id="set-copy" ' + (settings.copyEnabled ? 'checked' : '') + '> Enable Copy</label><br><br><label>Admin Password</label><input id="set-admin-pass" class="form-inp" value="' + escHTML(settings.adminPass || DEFAULT_ADMIN_PASS) + '" style="max-width:300px;"><br><button class="btn btn-green btn-sm" onclick="window.saveSettings()">💾 Save</button></div>';
+    }
+
+    window.saveSettings = async function() {
+      var le = document.getElementById('set-login').checked, ce = document.getElementById('set-copy').checked, ap = document.getElementById('set-admin-pass').value;
+      settings.loginEnabled = le; settings.adminPass = ap; settings.copyEnabled = ce;
+      window.applyCopyProtectionState(); toast('Saved!', 'success');
+    }
+
+    // Initialize application workflow instantly!
+    async function initApp() {
+      window.applyCopyProtectionState();
+      window.refreshUI();
+    }
+    window.addEventListener('DOMContentLoaded', initApp);
   </script>
   <script src="/footer.js"></script>
   <script src="/global-navbar.js"></script>
