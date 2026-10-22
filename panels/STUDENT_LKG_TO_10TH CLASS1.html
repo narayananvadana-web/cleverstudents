@@ -187,16 +187,15 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
   <script>
+ // ==========================================
+    // ROBUST VERCEL KV / SUPABASE ADAPTER FOR STUDENTS
     // ==========================================
-    // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
-    // ==========================================
-    const legacyDb = {
+    const fallbackApiDb = {
       ref: function(path) {
         let parts = path.split('/').filter(Boolean);
         let rootKey = parts[0];
-
         return {
-          once: async function(event) {
+          once: async function() {
             try {
               const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
               const data = await res.json();
@@ -211,75 +210,12 @@
               console.error("DB Fetch Error:", err);
               return { val: () => null };
             }
-          },
-          set: async function(dataToSet) {
-            if (parts.length === 1) {
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: dataToSet }) }).then(res => res.json());
-            } else {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const fetched = await res.json();
-              let rootObj = fetched.result || {};
-              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-              let current = rootObj;
-              for (let i = 1; i < parts.length - 1; i++) {
-                if (!current[parts[i]]) current[parts[i]] = {};
-                current = current[parts[i]];
-              }
-              current[parts[parts.length - 1]] = dataToSet;
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
-            }
-          },
-          update: async function(updatesObj) {
-            if (parts.length === 1) {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const fetched = await res.json();
-              let rootObj = fetched.result || {};
-              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-
-              Object.keys(updatesObj).forEach(updPath => {
-                let updParts = updPath.split('/').filter(Boolean);
-                let current = rootObj;
-                for (let i = 0; i < updParts.length - 1; i++) {
-                  if (!current[updParts[i]]) current[updParts[i]] = {};
-                  current = current[updParts[i]];
-                }
-                current[updParts[updParts.length - 1]] = updatesObj[updPath];
-              });
-
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
-            }
-          },
-          remove: async function() {
-            if (parts.length === 1) {
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: rootKey }) }).then(res => res.json());
-            } else {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const fetched = await res.json();
-              let rootObj = fetched.result || {};
-              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-              let current = rootObj;
-              for (let i = 1; i < parts.length - 1; i++) {
-                if (!current[parts[i]]) return;
-                current = current[parts[i]];
-              }
-              delete current[parts[parts.length - 1]];
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
-            }
-          },
-          push: function() {
-            const newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-            const pushPath = path + (path.endsWith('/') ? '' : '/') + newKey;
-            return {
-              key: newKey,
-              set: function(data) {
-                 return db.ref(pushPath).set(data);
-              }
-            };
           }
         };
       }
     };
-    const db = window.supabaseDb;
+
+    const db = window.supabaseDb || fallbackApiDb;
 
     var newsWithLinks=[{text:'🎓 Class 10 Maths - New Study Materials',action:function(){switchMode('learning');sub='Maths';cls=10;studyType='theory';refreshUI()}},{text:'📚 Science Quiz - 500+ Questions',action:function(){switchMode('learning');sub='Science';studyType='quiz';refreshUI()}},{text:'💡 Explore Skills',action:function(){switchMode('skills');refreshUI()}},{text:'🎮 Play Games',action:function(){switchMode('learning');studyType='games';refreshUI()}},{text:'🔬 Science Projects',action:function(){switchMode('learning');studyType='projects';refreshUI()}}];
 
@@ -559,19 +495,22 @@
       if(b)b.style.display=settings.guestAutoLogin?'block':'none';
     }
 
-    function loadAllData(cb){
+function loadAllData(cb){
       var p={theory:'theoryDatabase',quiz:'questionBank',mindmap:'mindMapDatabase',papers:'papersDatabase',games:'gamesDatabase',projects:'projectsDatabase',videos:'videosDatabase',skills:'skillsDatabase'};
       var k=Object.keys(p);
       var promises = k.map(function(kk) {
-        return db.ref(p[kk]).once('value').then(function(s) {
-          let val = s.val();
+        var refObj = (db && typeof db.ref === 'function') ? db.ref(p[kk]) : fallbackApiDb.ref(p[kk]);
+        return refObj.once('value').then(function(s) {
+          let val = s ? s.val() : null;
           if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) { val = {}; } }
           DB[kk] = val || {};
-        }).catch(function() {
+        }).catch(function(err) {
+          console.error("Load error for " + kk, err);
           DB[kk] = {};
         });
       });
       Promise.all(promises).then(function() {
+        console.log("All DB modules loaded successfully into student panel:", DB);
         if (cb) cb();
       });
     }
