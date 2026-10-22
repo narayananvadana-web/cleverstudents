@@ -1814,9 +1814,9 @@
       uploadMappedContent();
     }
 
-    function uploadMappedQuiz(){
+function uploadMappedQuiz(){
       var st=document.getElementById('csvUploadStatus');
-      st.innerHTML='<span class="spinner"></span> Uploading...';
+      st.innerHTML='<span class="spinner"></span> Uploading Quiz...';
       var rows=mappedRows;
       var groups={};
       var allQ=[];
@@ -1833,7 +1833,7 @@
         }
         var kClass=findKey(['class','classname','classno']);
         var kSubject=findKey(['subject']);
-        var kSubSub=findKey(['subsubject','sub-subject','subsubjectname']);
+        var kSubSub=findKey(['subsubject','sub-subject','subsubjectname','chapter']);
         var kChapter=findKey(['chapter']);
         var kTopic=findKey(['topic','level','questiontype']);
         var kSubTopic=findKey(['subtopic','sub-topic','subtopic2']);
@@ -1874,7 +1874,6 @@
         if(r&&!exp&&(r.explanation!==undefined))exp=String(r.explanation||'').trim();
         if(r&&!clsTxt&&(r.class!==undefined))clsTxt=String(r.class||'').trim();
         if(r&&!chTxt&&(r.chapter!==undefined))chTxt=String(r.chapter||'').trim();
-        if(r&&!chTxt&&(r.subSubject!==undefined))chTxt=String(r.subSubject||'').trim();
 
         var cn=extractClassNumber(clsTxt);
         if(!cn||cn<1||cn>10)return;
@@ -1903,27 +1902,36 @@
       });
 
       var gKeys=Object.keys(groups);
-      if(!gKeys.length){st.innerHTML='<span style="color:#ef4444;">No valid rows found</span>';return}
+      if(!gKeys.length){st.innerHTML='<span style="color:#ef4444;">No valid quiz rows found</span>';return}
       var total=gKeys.length,done=0,upQ=0;
 
       function next(idx){
         if(idx>=total){
-          st.innerHTML='<span style="color:#22c55e;">✅ Done! '+upQ+' questions.</span>';
-          toast('Upload Complete!','success');
+          st.innerHTML='<span style="color:#22c55e;">✅ Done! '+upQ+' quiz questions uploaded.</span>';
+          toast('Quiz Upload Complete!','success');
           setTimeout(function(){clearCSVData();refreshUI()},1500);
           return;
         }
         var k=gKeys[idx];
         var qs=groups[k];
-        db.ref('questionBank/'+k).once('value').then(function(snap){
-          var ex=snap.val();
-          var fin=(settings.bulkQuizMode==='replace')?qs:((ex&&Array.isArray(ex))?ex.concat(qs):qs);
-          return db.ref('questionBank/'+k).set(fin);
-        }).then(function(){
+        
+        // Use safe db call supporting both Supabase tables and fallback adapters
+        var qRef = (db.from && typeof db.from === 'function') ? db.from('question_bank') : db.ref('questionBank/'+k);
+        
+        // Safe set fallback
+        var savePromise = (db.ref) ? db.ref('questionBank/'+k).set(qs) : db.from('question_bank').upsert({ chapter_key: k, questions: qs });
+        Promise.resolve(savePromise).then(function(){
           upQ+=qs.length;done++;
-          st.innerHTML='<span>'+upQ+'/'+allQ.length+'</span>';
+          st.innerHTML='<span>'+upQ+'/'+allQ.length+' questions uploaded</span>';
           next(idx+1);
-        }).catch(function(){done++;next(idx+1)});
+        }).catch(function(err){
+          console.error('Quiz save error:', err);
+          // Fallback direct set
+          db.ref('questionBank/'+k).set(qs).then(function(){
+            upQ+=qs.length;done++;
+            next(idx+1);
+          }).catch(function(){done++;next(idx+1);});
+        });
       }
       next(0);
     }
