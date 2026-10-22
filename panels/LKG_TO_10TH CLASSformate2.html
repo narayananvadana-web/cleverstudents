@@ -193,9 +193,15 @@
 
   <script>
     // =========================================================================
-    // ROBUST DATABASE ADAPTER: Uses window.supabaseDb if loaded, OR falls back
-    // to '/api/db' automatically so uploads NEVER fail silently with 0 files!
+    // PostgreSQL 32-Bit Integer Safe Order Generator (Max limit: 2,147,483,647)
+    // Fixes: value "1792640585934" is out of range for type integer
     // =========================================================================
+    var orderSeqOffset = 0;
+    function safeOrderInt() {
+      orderSeqOffset = (orderSeqOffset + 1) % 1000;
+      return Math.floor(Date.now() / 1000) + orderSeqOffset;
+    }
+
     const fallbackApiDb = {
       ref: function(path) {
         let parts = path.split('/').filter(Boolean);
@@ -282,7 +288,7 @@
             }
           },
           push: function() {
-            const newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            const newKey = 'item_' + safeOrderInt() + '_' + Math.random().toString(36).substr(2, 5);
             const pushPath = path + (path.endsWith('/') ? '' : '/') + newKey;
             return {
               key: newKey,
@@ -308,8 +314,8 @@
       guestId:DEFAULT_GUEST_ID,
       guestPass:DEFAULT_GUEST_PASS,
       bulkQuizMode:'append',
-      bulkDefaultClass:7,
-      bulkDefaultSubject:'Science'
+      bulkDefaultClass:9,
+      bulkDefaultSubject:'Social'
     };
     var activeSessions={},currentTab='theory',editingId=null;
     var allData={theory:{},quiz:{},mindmap:{},papers:{},games:{},projects:{},videos:{},skills:{}},csvRows=[],selectedItems={};
@@ -319,8 +325,8 @@
     var SUBJECTS=['Maths','Science','Telugu','English','Hindi','Social'],CLASSES=[1,2,3,4,5,6,7,8,9,10];
 
     function uploadDefaultsChanged(){}
-    function getUploadDefaultClass(){var s=document.getElementById('uploadClassSel');return s?(parseInt(s.value)||settings.bulkDefaultClass||7):(settings.bulkDefaultClass||7);}
-    function getUploadDefaultSubject(){var s=document.getElementById('uploadSubjectSel');return s?(s.value||settings.bulkDefaultSubject||'Science'):(settings.bulkDefaultSubject||'Science');}
+    function getUploadDefaultClass(){var s=document.getElementById('uploadClassSel');return s?(parseInt(s.value)||settings.bulkDefaultClass||9):(settings.bulkDefaultClass||9);}
+    function getUploadDefaultSubject(){var s=document.getElementById('uploadSubjectSel');return s?(s.value||settings.bulkDefaultSubject||'Social'):(settings.bulkDefaultSubject||'Social');}
     var SKILLS_CAT=["Competitive skills","Essay writing","Debate concept","Story writing","Speech","Sing a song","Skit related","Games"];
     var COMMON_TABS=['skills'];
     window.answersVisible=false;
@@ -337,15 +343,15 @@
 
     function extractClassNumber(clsTxt){
       if(clsTxt===undefined||clsTxt===null)return null;
-      var m=String(clsTxt).match(/(\d{1,2})/);
+      var s=String(clsTxt);
+      var m=s.match(/(?:class|grade|std)[_\-\s]*(\d{1,2})/i) || s.match(/^(\d{1,2})$/);
       if(m){var n=parseInt(m[1],10);if(n>=1&&n<=10)return n;}
       var tMap={'ONE':1,'TWO':2,'THREE':3,'FOUR':4,'FIVE':5,'SIX':6,'SEVEN':7,'EIGHT':8,'NINE':9,'TEN':10};
-      var up=String(clsTxt).toUpperCase();
+      var up=s.toUpperCase();
       for(var tk in tMap){if(up.indexOf(tk)!==-1)return tMap[tk];}
       return null;
     }
 
-    // Cleans emojis, "Ready?", and boilerplate prefixes from extracted chapter titles
     function cleanExtractedTitle(rawTitle){
       if(!rawTitle)return '';
       var t=String(rawTitle)
@@ -436,7 +442,7 @@
       var cp=settings.adminPass||DEFAULT_ADMIN_PASS;
       if(p===DEFAULT_ADMIN_ID&&pa===cp){
         e.style.display='none';
-        var t="adm_"+Date.now()+"_"+Math.floor(Math.random()*10000);
+        var t="adm_"+safeOrderInt()+"_"+Math.floor(Math.random()*10000);
         adminPhone=p;adminToken=t;
         localStorage.setItem('cs_ad_ph',p);
         localStorage.setItem('cs_ad_tk',t);
@@ -506,12 +512,12 @@
     }
 
     // =========================================================================
-    // NEW MASTER TAB: ALL-IN-ONE MULTI-MODULE & BULK FOLDER UPLOAD
+    // MASTER TAB: ALL-IN-ONE MULTI-MODULE & CLASS_9 / BULK FOLDER UPLOAD
     // =========================================================================
     function renderAllInOneBulkTab(){
       var ac=document.getElementById('admin-content');
-      var defCls=settings.bulkDefaultClass||7;
-      var defSub=settings.bulkDefaultSubject||'Science';
+      var defCls=settings.bulkDefaultClass||9;
+      var defSub=settings.bulkDefaultSubject||'Social';
       var qMode=settings.bulkQuizMode||'append';
 
       var h='<div class="bulk-all-box">';
@@ -527,7 +533,7 @@
       h+='</div>';
 
       h+='<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0;padding:14px;background:rgba(0,0,0,.25);border-radius:10px;border:1px solid var(--brd);">';
-      h+='<div style="font-size:12px;font-weight:800;color:#fbbf24;width:100%;">⚙️ Upload Configuration & Fallback Metadata (Folder uploads auto-detect Class, Subject & Chapter from folder names):</div>';
+      h+='<div style="font-size:12px;font-weight:800;color:#fbbf24;width:100%;">⚙️ Upload Configuration & Fallback Metadata (Selecting <code>Class_9</code> folder auto-detects Class, Subject & Chapter from folder structure):</div>';
       h+='<div><label style="font-size:12px;font-weight:700;">Fallback Class: </label><select id="bulkDefClass" class="form-inp" style="width:auto;margin-bottom:0;" onchange="recalcBulkMeta()">';
       for(var i=0;i<CLASSES.length;i++){
         h+='<option value="'+CLASSES[i]+'" '+(CLASSES[i]==defCls?'selected':'')+'>Class '+CLASSES[i]+'</option>';
@@ -538,7 +544,7 @@
         h+='<option value="'+SUBJECTS[j]+'" '+(SUBJECTS[j]===defSub?'selected':'')+'>'+SUBJECTS[j]+'</option>';
       }
       h+='</select></div>';
-      h+='<div style="flex:1;min-width:200px;"><label style="font-size:12px;font-weight:700;">Chapter / Topic Name (if uploading loose files): </label><input type="text" id="bulkDefChapter" class="form-inp" placeholder="e.g., Chapter 1 - India Size and Location" style="margin-bottom:0;" oninput="recalcBulkMeta()"></div>';
+      h+='<div style="flex:1;min-width:200px;"><label style="font-size:12px;font-weight:700;">Chapter / Topic Name (optional override): </label><input type="text" id="bulkDefChapter" class="form-inp" placeholder="Auto-detected from folder (e.g. Chapter1)" style="margin-bottom:0;" oninput="recalcBulkMeta()"></div>';
       h+='<div><label style="font-size:12px;font-weight:700;">Quiz Mode: </label><select id="bulkQuizModeSel" class="form-inp" style="width:auto;margin-bottom:0;">';
       h+='<option value="append" '+(qMode==='append'?'selected':'')+'>Append to Existing Quiz</option>';
       h+='<option value="replace" '+(qMode==='replace'?'selected':'')+'>Replace Chapter Quiz</option>';
@@ -547,16 +553,16 @@
 
       h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:15px;margin-top:15px;">';
 
-      // Box 1: Entire Folder Upload
+      // Option A: Select Class_9 Folder directly via webkitdirectory
       h+='<div class="dropzone" style="border-color:#10b981;background:rgba(16,185,129,.06);" onclick="document.getElementById(\'bulkFolderInput\').click()">';
-      h+='<div class="dz-icon">📁</div><strong style="color:#34d399;">1. Bulk Folder Upload (Select <code>final_output</code>)</strong><br>';
-      h+='<small>Select your entire <code>final_output</code> or Chapter folder.<br>Auto-detects Class, Subject, Chapter & uploads all 6 modules (including Quiz CSV/JSON)!</small>';
+      h+='<div class="dz-icon">📁</div><strong style="color:#34d399;">ఆప్షన్ A (Select Entire <code>Class_9</code> Folder)</strong><br>';
+      h+='<small>మీరు <code>webkitdirectory</code> ద్వారా నేరుగా మీ <strong><code>Class_9</code></strong> (లేదా ఏదైనా Class / Chapter) ఫోల్డర్‌ను సెలెక్ట్ చేస్తే చాలు!<br>Auto-detects Class, Subject, Chapter & uploads all 6 modules!</small>';
       h+='<input type="file" id="bulkFolderInput" webkitdirectory directory multiple style="display:none;" onchange="handleBulkMasterFiles(this.files)">';
       h+='</div>';
 
-      // Box 2: Multi-file Selection / Drag & Drop
+      // Option B: Multi-file Selection / Drag & Drop
       h+='<div class="dropzone" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="event.preventDefault();this.classList.remove(\'over\');handleBulkMasterFiles(event.dataTransfer.files)" onclick="document.getElementById(\'bulkMultiFileInput\').click()">';
-      h+='<div class="dz-icon">📄</div><strong style="color:#38bdf8;">2. Select / Drop All Module Files at Once</strong><br>';
+      h+='<div class="dz-icon">📄</div><strong style="color:#38bdf8;">ఆప్షన్ B (Select / Drop All Module Files at Once)</strong><br>';
       h+='<small>Select <code>THEORY</code>, <code>MIND_MAP</code>, <code>PAPERS</code>, <code>PROJECTS</code>, <code>GAMES</code>, <code>quiz_output.csv</code> together!</small>';
       h+='<input type="file" id="bulkMultiFileInput" multiple accept=".html,.htm,.txt,.csv,.tsv,.json,.xlsx,.xls" style="display:none;" onchange="handleBulkMasterFiles(this.files)">';
       h+='</div>';
@@ -594,13 +600,15 @@
     }
 
     function inferMetaFromRelativePath(relPath,fileName,rawContent){
-      var defCls=parseInt(getVal('bulkDefClass'),10)||settings.bulkDefaultClass||7;
-      var defSub=getVal('bulkDefSubject')||settings.bulkDefaultSubject||'Science';
+      var defCls=parseInt(getVal('bulkDefClass'),10)||settings.bulkDefaultClass||9;
+      var defSub=getVal('bulkDefSubject')||settings.bulkDefaultSubject||'Social';
       var defChap=getVal('bulkDefChapter')||'';
 
       var parts=String(relPath||'').split(/[\/\\]/).filter(Boolean);
       var detCls=null,detSub=null,detChap=null;
 
+      // Supports selecting Class_9 directly (e.g. Class_9/Social/CHAPTER1/THEORY.html)
+      // OR selecting CHAPTER1 directly OR selecting final_output
       for(var i=0;i<parts.length-1;i++){
         var p=parts[i];
         if(p.toLowerCase()==='final_output'||p.toLowerCase()==='segmented_5000')continue;
@@ -618,7 +626,6 @@
       if(defChap)detChap=defChap;
 
       if(!detChap&&rawContent){
-        // Look at <title>, then <h1>/<h2> (ignoring game word <h1 id="mm-word">Ready?</h1>)
         var titleMatch=rawContent.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
         if(titleMatch&&titleMatch[1]){
           var ct=cleanExtractedTitle(titleMatch[1].replace(/-\s*(Theory|Complete Study Guide)/i,''));
@@ -635,13 +642,13 @@
       }
       if(!detChap){
         var fnClean=fileName.replace(/\.[^.]+$/,'').replace(/(theory|mind_?map|papers|projects|games|quiz_?output)/ig,'').replace(/[_\-]+/g,' ').trim();
-        detChap=cleanExtractedTitle(fnClean)||'Chapter 1';
+        detChap=cleanExtractedTitle(fnClean)||'Chapter1';
       }
 
       return {
         class:detCls||defCls,
         subject:detSub||defSub,
-        chapter:cleanExtractedTitle(detChap)||'Chapter 1'
+        chapter:cleanExtractedTitle(detChap)||'Chapter1'
       };
     }
 
@@ -654,7 +661,6 @@
       var seenModKeys={};
       var sharedChapterTitle='';
 
-      // First pass: read all files
       var tempItems=[];
       for(var i=0;i<fileList.length;i++){
         var f=fileList[i];
@@ -671,17 +677,16 @@
 
         var rel=f.webkitRelativePath||f.name;
         var meta=inferMetaFromRelativePath(rel,f.name,text);
-        if(meta.chapter&&meta.chapter!=='Chapter 1'&&!sharedChapterTitle){
+        if(meta.chapter&&meta.chapter!=='Chapter1'&&!sharedChapterTitle){
           sharedChapterTitle=meta.chapter;
         }
         tempItems.push({f:f,mod:mod,text:text,rel:rel,meta:meta});
       }
 
-      // Second pass: unify chapter name if loose files were selected together
       for(var j=0;j<tempItems.length;j++){
         var item=tempItems[j];
         var f=item.f,mod=item.mod,text=item.text,rel=item.rel,meta=item.meta;
-        if((!meta.chapter||meta.chapter==='Chapter 1')&&sharedChapterTitle){
+        if((!meta.chapter||meta.chapter==='Chapter1')&&sharedChapterTitle){
           meta.chapter=sharedChapterTitle;
         }
 
@@ -789,8 +794,8 @@
         var kAns=findK(['answer','correctanswer','correct','ans']);
         var kExp=findK(['explanation','expl']);
 
-        var cn=extractClassNumber(kClass?r[kClass]:'')||fallbackCls||7;
-        var sub=normalizeSubjectName(kSub?r[kSub]:'')||fallbackSub||'Science';
+        var cn=extractClassNumber(kClass?r[kClass]:'')||fallbackCls||9;
+        var sub=normalizeSubjectName(kSub?r[kSub]:'')||fallbackSub||'Social';
         var ch=String((kChap?r[kChap]:'')||fallbackChap||'1').trim();
         var ques=String((kQues?r[kQues]:'')||r.question||'').trim();
         var optA=String((kA?r[kA]:'')||(r.options&&r.options.A)||'').trim();
@@ -814,13 +819,12 @@
           subtopic:'',
           explanation:exp,
           imageUrls:[],
-          order:Date.now()
+          order:safeOrderInt()
         });
       });
       return formattedQuestions;
     }
 
-    // Promise-chain based bulk uploader (identical to uploadContentItems & uploadMappedQuiz)
     function executeBulkMasterUpload(){
       if(!bulkMasterQueue.length)return;
       var btn=document.getElementById('btnStartBulkMaster');
@@ -872,7 +876,7 @@
           if(!rp){processNext(idx+1);return;}
           try{
             var nr=db.ref(rp).push();
-            var newKey=(nr&&nr.key)?nr.key:('item_'+Date.now()+'_'+Math.random().toString(36).substr(2,5));
+            var newKey=(nr&&nr.key)?nr.key:('item_'+safeOrderInt()+'_'+Math.random().toString(36).substr(2,5));
             var payload={
               title:item.chapter,
               subject:item.subject,
@@ -881,7 +885,7 @@
               content:item.rawText,
               imageUrls:[],
               key:newKey,
-              order:Date.now()
+              order:safeOrderInt()
             };
             var setPromise=(nr&&typeof nr.set==='function')?nr.set(payload):db.ref(rp+'/'+newKey).set(payload);
             Promise.resolve(setPromise).then(function(){
@@ -1473,8 +1477,8 @@
     function buildUploadBox(dk){
       var isQuiz=(dk==='quiz');
       var isSkills=(dk==='skills');
-      var defCls=settings.bulkDefaultClass||7;
-      var defSub=settings.bulkDefaultSubject||'Science';
+      var defCls=settings.bulkDefaultClass||9;
+      var defSub=settings.bulkDefaultSubject||'Social';
       var h='<div class="csv-box">';
       h+='<h3>'+((isQuiz?'🏗️ Manage Hierarchy · 📥 Bulk Upload Quiz':'📥 Bulk Upload '+dk.toUpperCase()))+'</h3>';
       h+='<div>';
@@ -1555,7 +1559,7 @@
         if(!txt.trim())continue;
         if(currentTab!=='quiz'){
           var meta=inferMetaFromRelativePath(f.name,f.name,txt);
-          var finalT=customTopic||meta.chapter||'Chapter 1';
+          var finalT=customTopic||meta.chapter||'Chapter1';
           combinedRows.push({
             Title:finalT,
             Subject:getUploadDefaultSubject(),
@@ -1893,7 +1897,7 @@
           subtopic:subTopTxt,
           explanation:exp||'',
           imageUrls:[],
-          order:Date.now()
+          order:safeOrderInt()
         });
         allQ.push(true);
       });
@@ -1938,7 +1942,7 @@
           var title=r['Title']||r['title']||r['Name']||r['name']||r['col2']||'Skill';
           var content=r['Content']||r['content']||r['Body']||r['body']||r['col3']||'';
           var cat=subMapS[String(catTxt).toUpperCase().trim()]||String(catTxt).trim()||'Competitive skills';
-          items.push({title:String(title),content:String(content),category:cat,key:'',imageUrls:[]});
+          items.push({title:String(title),content:String(content),category:cat,key:'',imageUrls:[],order:safeOrderInt()});
         });
         uploadContentItems(rp,items,st);
         return;
@@ -1956,8 +1960,8 @@
         var rowKeys=Object.keys(r),firstVal='';
         for(var rki=0;rki<rowKeys.length;rki++){if(String(r[rowKeys[rki]]||'').trim()){firstVal=String(r[rowKeys[rki]]).trim();break}}
         if(!content&&firstVal)content=firstVal;
-        if((!title||title.indexOf('Item ')===0)&&firstVal)title=cleanExtractedTitle(firstVal).substring(0,60)||'Chapter 1';
-        var item={title:String(title),content:String(content),imageUrls:imgs?String(imgs).split('\n').map(function(l){return l.trim()}).filter(Boolean):[]};
+        if((!title||title.indexOf('Item ')===0)&&firstVal)title=cleanExtractedTitle(firstVal).substring(0,60)||'Chapter1';
+        var item={title:String(title),content:String(content),imageUrls:imgs?String(imgs).split('\n').map(function(l){return l.trim()}).filter(Boolean):[],order:safeOrderInt()};
         item.subject=sub;item.class=cn;item.topic=String(topicTxt);
         item.key='';
         items.push(item);
@@ -1978,11 +1982,15 @@
         var it=items[idx];
         var nr=db.ref(rp).push();
         it.key=nr.key;
+        if(!it.order||it.order>2147483647)it.order=safeOrderInt();
         nr.set(it).then(function(){
           idx++;
           st.innerHTML='<span>'+idx+'/'+items.length+'</span>';
           nx();
-        }).catch(function(){idx++;nx()});
+        }).catch(function(err){
+          console.error('Upload error:',err);
+          idx++;nx();
+        });
       }
       nx();
     }
@@ -2125,7 +2133,7 @@
       if((ans==='C'&&!c)||(ans==='D'&&!d)){toast('Correct answer option cannot be empty','error');return}
       var chNorm=String(ch).replace(/^chapter\s*/i,'').replace(/\s+/g,'');
       var gk='Class'+cn+'_'+sub+'_Chapter'+(chNorm||'1');
-      var qObj={question:ques,options:{A:a,B:b,C:c,D:d},correctAnswer:ans,subject:sub,class:cn,chapter:chNorm||'1',topic:topic,subtopic:subt,explanation:exp,imageUrls:[],order:Date.now()};
+      var qObj={question:ques,options:{A:a,B:b,C:c,D:d},correctAnswer:ans,subject:sub,class:cn,chapter:chNorm||'1',topic:topic,subtopic:subt,explanation:exp,imageUrls:[],order:safeOrderInt()};
       db.ref('questionBank/'+gk).once('value').then(function(snap){
         var ex=snap.val();
         var fin=(ex&&Array.isArray(ex))?ex.concat([qObj]):[qObj];
@@ -2174,7 +2182,8 @@
       var item={
         title:title,
         content:content||'',
-        imageUrls:images?images.split('\n').map(function(l){return l.trim()}).filter(function(l){return l}):[]
+        imageUrls:images?images.split('\n').map(function(l){return l.trim()}).filter(function(l){return l}):[],
+        order:safeOrderInt()
       };
 
       if(isGP){
@@ -2191,6 +2200,7 @@
       if(editingId){
         var ex=allData[dk]?allData[dk][editingId]:null;
         item.key=ex?ex.key||editingId:editingId;
+        if(ex&&ex.order&&ex.order<=2147483647)item.order=ex.order;
         db.ref(rp+'/'+editingId).update(item).then(function(){
           toast('Updated!','success');
           cancelEditForm();
@@ -2325,8 +2335,8 @@
       var gid=settings.guestId||DEFAULT_GUEST_ID;
       var gpass=settings.guestPass||DEFAULT_GUEST_PASS;
       var bMode=settings.bulkQuizMode||'append';
-      var bCls=settings.bulkDefaultClass||7;
-      var bSub=settings.bulkDefaultSubject||'Science';
+      var bCls=settings.bulkDefaultClass||9;
+      var bSub=settings.bulkDefaultSubject||'Social';
 
       var clsOpts='';
       for(var ci=0;ci<CLASSES.length;ci++){
@@ -2392,8 +2402,8 @@
       var gid=getVal('set-guest-id');
       var gpass=getVal('set-guest-pass');
       var bMode=getVal('set-bulk-quiz-mode')||'append';
-      var bCls=parseInt(getVal('set-bulk-def-class'),10)||7;
-      var bSub=getVal('set-bulk-def-sub')||'Science';
+      var bCls=parseInt(getVal('set-bulk-def-class'),10)||9;
+      var bSub=getVal('set-bulk-def-sub')||'Social';
 
       if(!ap||!gid||!gpass){toast('All fields required','error');return}
 
@@ -2461,8 +2471,8 @@
         settings.guestId=v.guestId||DEFAULT_GUEST_ID;
         settings.guestPass=v.guestPass||DEFAULT_GUEST_PASS;
         settings.bulkQuizMode=v.bulkQuizMode||'append';
-        settings.bulkDefaultClass=v.bulkDefaultClass||7;
-        settings.bulkDefaultSubject=v.bulkDefaultSubject||'Science';
+        settings.bulkDefaultClass=v.bulkDefaultClass||9;
+        settings.bulkDefaultSubject=v.bulkDefaultSubject||'Social';
         if(settings.copyEnabled)document.body.classList.remove('protected-mode');
         else document.body.classList.add('protected-mode');
         checkAuth();
