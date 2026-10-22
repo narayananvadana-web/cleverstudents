@@ -203,7 +203,7 @@
 
     const fallbackApiDb = {
       ref: function(path) {
-        let parts = path.split('/').filter(Boolean);
+        let parts = String(path || '').split('/').filter(Boolean);
         let rootKey = parts[0];
         return {
           once: async function() {
@@ -371,10 +371,24 @@
     }
 
     // =========================================================================
-    // UNIVERSAL SUPABASE QUIZ SAVER (Bypasses "Unsupported legacy root questionBank")
+    // SELF-VERIFYING UNIVERSAL QUIZ SAVER
+    // Tries all adapter methods AND verifies data actually persisted in DB!
     // =========================================================================
+    async function verifyQuizSavedInDb(groupKey, expectedMinLen) {
+      try {
+        var snap = await db.ref('questionBank').once('value');
+        var val = snap ? snap.val() : null;
+        if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) { val = {}; } }
+        if (val && Array.isArray(val[groupKey]) && val[groupKey].length >= expectedMinLen) {
+          allData.quiz = val;
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
     async function saveUniversalQuizGroup(groupKey, newQuestions, mode) {
-      var currentAllQuiz = (allData && allData.quiz && typeof allData.quiz === 'object') ? allData.quiz : {};
+      var currentAllQuiz = (allData && allData.quiz && typeof allData.quiz === 'object') ? JSON.parse(JSON.stringify(allData.quiz)) : {};
       try {
         var snap = await db.ref('questionBank').once('value');
         var val = snap ? snap.val() : null;
@@ -382,36 +396,60 @@
         if (val && typeof val === 'object') currentAllQuiz = val;
       } catch (e) {}
 
+      // Remove any accidental 'Undefined' keys if present
+      delete currentAllQuiz['undefined'];
+
       var existing = Array.isArray(currentAllQuiz[groupKey]) ? currentAllQuiz[groupKey] : [];
       var finalArr = (mode === 'replace') ? newQuestions : existing.concat(newQuestions);
       currentAllQuiz[groupKey] = finalArr;
       if (allData) allData.quiz = currentAllQuiz;
 
-      // Strategy 1: Root-level update({ [groupKey]: finalArr })
+      // Method 1: Root-level db.ref('questionBank').set(currentAllQuiz)
       try {
-        var r1 = await db.ref('questionBank').update({ [groupKey]: finalArr });
-        if (!r1 || !r1.error) return finalArr.length;
-      } catch (err1) {}
+        await db.ref('questionBank').set(currentAllQuiz);
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e1) { console.warn('Method 1 (root set) failed:', e1); }
 
-      // Strategy 2: Root-level set(currentAllQuiz)
+      // Method 2: Child-level db.ref('questionBank/' + groupKey).set(finalArr)
       try {
-        var r2 = await db.ref('questionBank').set(currentAllQuiz);
-        if (!r2 || !r2.error) return finalArr.length;
-      } catch (err2) {}
+        await db.ref('questionBank/' + groupKey).set(finalArr);
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e2) { console.warn('Method 2 (child set) failed:', e2); }
 
-      // Strategy 3: Direct child set('questionBank/' + groupKey)
+      // Method 3: Root-level db.ref('questionBank').update({ [groupKey]: finalArr })
       try {
-        var r3 = await db.ref('questionBank/' + groupKey).set(finalArr);
-        if (!r3 || !r3.error) return finalArr.length;
-      } catch (err3) {}
+        await db.ref('questionBank').update({ [groupKey]: finalArr });
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e3) { console.warn('Method 3 (root update) failed:', e3); }
 
-      // Strategy 4: Fallback REST endpoint '/api/db'
-      var r4 = await fetch('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'set', path: 'questionBank', data: currentAllQuiz })
-      }).then(function(res){ return res.json(); });
-      return finalArr.length;
+      // Method 4: Push each question via db.ref('questionBank').push() if adapter treats questionBank like a table
+      try {
+        var nr = db.ref('questionBank').push();
+        if (nr && typeof nr.set === 'function') {
+          await nr.set({
+            key: groupKey,
+            title: groupKey,
+            class: newQuestions[0].class,
+            subject: newQuestions[0].subject,
+            chapter: newQuestions[0].chapter,
+            questions: finalArr,
+            order: safeOrderInt()
+          });
+          if (await verifyQuizSavedInDb(groupKey, 1)) return finalArr.length;
+        }
+      } catch (e4) { console.warn('Method 4 (push) failed:', e4); }
+
+      // Method 5: Direct '/api/db' endpoint
+      try {
+        await fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'set', path: 'questionBank', data: currentAllQuiz })
+        });
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e5) { console.warn('Method 5 (/api/db) failed:', e5); }
+
+      throw new Error('Supabase adapter rejected questionBank write. Check browser console (F12) for exact table schema.');
     }
 
     function parseQuizKey(key){
@@ -419,7 +457,7 @@
       if(parts.length>=3){
         var cls=parts[0].replace('Class','');
         var sub=parts[1];
-        var ch=parts.slice(2).join(' ').replace('Chapter','Ch ');
+        var ch=parts.slice(2).join(' ').replace(/^Chapter/i,'Ch ');
         return 'Class '+cls+' - '+sub+' - '+ch;
       }
       return key;
@@ -542,6 +580,13 @@
 
       var refMap={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var keyMap={'theory':'theory','quiz':'quiz','mindmap':'mindmap','papers':'papers','games':'games','projects':'projects','videos':'videos','skills':'skills'};
+      
+      // Guard against undefined tab keys (Prevents "Class General -> General -> Untitled" bug!)
+      if(!refMap[currentTab]){
+        renderAllInOneBulkTab();
+        return;
+      }
+
       ac.innerHTML='<div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div>';
       
       db.ref(refMap[currentTab]).once('value').then(function(snap){
@@ -664,7 +709,6 @@
         detChap=p.replace(/_/g,' ').trim();
       }
 
-      // If file is a Quiz CSV/JSON, inspect first data row to get exact Class, Subject & Chapter
       if(modType==='quiz'&&rawContent){
         var qRows=parseQuizRowsFromRawText(rawContent,detCls||defCls,detSub||defSub,detChap||'Chapter1');
         if(qRows.length){
@@ -745,7 +789,6 @@
         if((!meta.chapter||meta.chapter==='Chapter1')&&sharedChapterTitle){
           meta.chapter=sharedChapterTitle;
         }
-        // Sync subject across same chapter if folder was named General_Science by default but CSV says Social
         if(csvDetectedSub && meta.subject==='Science' && csvDetectedSub!=='Science' && rel.indexOf('General_Science')!==-1){
           meta.subject=csvDetectedSub;
         }
@@ -873,13 +916,15 @@
 
         if(!ques||!optA||!optB||['A','B','C','D'].indexOf(ans)===-1)return;
 
+        var chNorm=ch.replace(/^chapter\s*/i,'').replace(/^ch\s*/i,'').replace(/\s+/g,'')||'1';
+
         formattedQuestions.push({
           question:ques,
           options:{A:optA,B:optB,C:optC,D:optD},
           correctAnswer:ans,
           subject:sub,
           class:cn,
-          chapter:ch.replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1',
+          chapter:chNorm,
           topic:topTxt||'General',
           subtopic:subTopTxt||'All Questions',
           explanation:exp,
@@ -915,7 +960,7 @@
             }
             var qGroups={};
             qList.forEach(function(qObj){
-              var chClean=String(qObj.chapter||'1').replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1';
+              var chClean=String(qObj.chapter||'1').replace(/^chapter\s*/i,'').replace(/^ch\s*/i,'').replace(/\s+/g,'')||'1';
               var gk='Class'+qObj.class+'_'+qObj.subject+'_Chapter'+chClean;
               qObj.chapter=chClean;
               if(!qGroups[gk])qGroups[gk]=[];
@@ -973,7 +1018,7 @@
     function renderContent(dk){
       var ac=document.getElementById('admin-content');
       var data=allData[dk]||{};
-      var keys=Object.keys(data);
+      var keys=Object.keys(data).filter(function(k){return k!=='undefined'&&k!=='null';});
       var isQuiz=(dk==='quiz');
       var isCommon=isCommonTab();
       var h='';
@@ -1036,35 +1081,6 @@
       }else{
         var dk2=getFilteredAndSortedKeys(keys,data,isQuiz,isCommon);
         if(typeof renderGroupedList==='function')h+=renderGroupedList(dk2,data,dk,isQuiz);
-        else{
-          for(var i=0;i<dk2.length;i++){
-            var k=dk2[i];
-            var item=data[k];
-            var selClass=selectedItems[k]?'selected':'';
-            var isChecked=selectedItems[k]?true:false;
-            var ek=escapeAttr(k);
-            h+='<div class="list-item '+selClass+'" data-key="'+ek+'" data-index="'+i+'" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">';
-            h+='<div class="item-toggle"><label class="toggle-switch"><input type="checkbox" '+(isChecked?'checked':'')+' onchange="toggleSelect('+q(k)+',this.checked)" onclick="event.stopPropagation()"><span class="toggle-slider"></span></label></div>';
-            h+='<div class="item-info">';
-            h+='<strong>'+(item.title?sanitizeHTML(item.title.replace(/<[^>]*>/g,'')):'Untitled')+'</strong>';
-            if(dk==='games'||dk==='projects'){
-              if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
-              if(item.class)h+='<span class="tag tag-orange">Class '+sanitizeHTML(String(item.class))+'</span>';
-              if(item.topic)h+='<span class="tag tag-green">'+sanitizeHTML(item.topic)+'</span>';
-            }else if(dk==='skills'){
-              if(item.category)h+='<span class="tag tag-purple">'+sanitizeHTML(item.category)+'</span>';
-            }else{
-              if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
-              if(item.class)h+='<span class="tag tag-orange">Class '+sanitizeHTML(String(item.class))+'</span>';
-            }
-            h+='</div>';
-            h+='<div class="item-actions">';
-            h+='<button class="btn btn-blue btn-xs" onclick="event.stopPropagation();editItem('+q(dk)+','+q(ek)+')">✏️ Edit</button>';
-            h+='<button class="btn btn-red btn-xs" onclick="event.stopPropagation();deleteSingle('+q(dk)+','+q(ek)+')">🗑</button>';
-            h+='</div>';
-            h+='</div>';
-          }
-        }
       }
       h+='</div>';
       h+='<div id="editForm" style="display:none;margin-top:20px;"></div>';
@@ -1303,7 +1319,7 @@
         var cid='adgc_'+dk+'_'+(cn.replace(/\s+/g,''));
         var totalInClass=0;
         Object.keys(classes[cn]).forEach(function(s){totalInClass+=classes[cn][s].length});
-        h+='<div class="nested-row" style="background:linear-gradient(135deg,'+c+',#1e293b)" onclick="tog('+q(cid)+')"><span>'+(isQuiz?'🎓 ':cn==='💡 Skills'?'💡 ':'🎓 ')+sanitizeHTML(isQuiz||cn==='💡 Skills'?cn:'Class '+cn)+'</span><span>['+totalInClass+' Items] View [+]</span></div>';
+        h+='<div class="nested-row" style="background:linear-gradient(135deg,'+c+',#1e293b)" onclick="tog('+q(cid)+')"><span>'+(isQuiz?'🎓 ':cn==='💡 Skills'?'💡 ':'🎓 ')+sanitizeHTML(cn==='💡 Skills'?cn:'Class '+cn)+'</span><span>['+totalInClass+' Items] View [+]</span></div>';
         h+='<div id="'+cid+'" class="nested-sub"><div class="nested-list">';
         var subs=Object.keys(classes[cn]);
         subs.forEach(function(sub,si){
@@ -1417,6 +1433,7 @@
       if(!confirm('Delete '+sk.length+' items?'))return;
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var rp=rm[currentTab];
+      if(!rp){toast('Cannot delete on this tab','error');return;}
 
       toast('Deleting '+sk.length+' items instantly...','info');
 
@@ -1452,6 +1469,7 @@
     function deleteSingle(dk,id){
       if(!confirm('Delete permanently?'))return;
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
+      if(!rm[dk])return;
       if(dk==='quiz'){
         var curQ=allData.quiz||{};
         delete curQ[id];
@@ -1972,7 +1990,7 @@
         var sub=normalizeSubjectName(subTxt)||getUploadDefaultSubject()||'Social';
         if(!ques||!optA||!optB||['A','B','C','D'].indexOf(ans)===-1)return;
 
-        var chNorm=chTxt.replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1';
+        var chNorm=chTxt.replace(/^chapter\s*/i,'').replace(/^ch\s*/i,'').replace(/\s+/g,'')||'1';
         var gk='Class'+cn+'_'+sub+'_Chapter'+chNorm;
         if(!groups[gk])groups[gk]=[];
         groups[gk].push({
@@ -2002,14 +2020,14 @@
           try{
             await saveUniversalQuizGroup(k, qs, settings.bulkQuizMode||'append');
             upQ+=qs.length;
-            st.innerHTML='<span style="color:#38bdf8;">⏳ Uploaded '+upQ+'/'+allQ.length+' questions...</span>';
+            st.innerHTML='<span style="color:#38bdf8;">⏳ Verified & Uploaded '+upQ+'/'+allQ.length+' questions...</span>';
           }catch(err){
             console.error('Quiz group upload error:', err);
             st.innerHTML='<span style="color:#ef4444;">⚠️ Error: '+(err.message||err)+'</span>';
             return;
           }
         }
-        st.innerHTML='<span style="color:#22c55e;">✅ Done! '+upQ+' questions saved to database.</span>';
+        st.innerHTML='<span style="color:#22c55e;">✅ Verified! '+upQ+' questions saved to database.</span>';
         toast('Uploaded '+upQ+' Quiz Questions!','success');
         setTimeout(function(){clearCSVData();refreshUI()},1200);
       }
@@ -2219,7 +2237,7 @@
       if(!ques){toast('Enter the Question','error');return}
       if(!a||!b){toast('Option A and Option B are required','error');return}
       if((ans==='C'&&!c)||(ans==='D'&&!d)){toast('Correct answer option cannot be empty','error');return}
-      var chNorm=String(ch).replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1';
+      var chNorm=String(ch).replace(/^chapter\s*/i,'').replace(/^ch\s*/i,'').replace(/\s+/g,'')||'1';
       var gk='Class'+cn+'_'+sub+'_Chapter'+chNorm;
       var qObj={question:ques,options:{A:a,B:b,C:c,D:d},correctAnswer:ans,subject:sub,class:cn,chapter:chNorm,topic:topic,subtopic:subt,explanation:exp,imageUrls:[],order:safeOrderInt()};
       saveUniversalQuizGroup(gk, [qObj], 'append').then(function(){
