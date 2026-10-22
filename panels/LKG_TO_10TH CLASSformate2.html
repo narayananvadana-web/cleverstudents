@@ -130,6 +130,7 @@
 </head>
 <body class="protected-mode">
 <script src="../supabase-client.js"></script>
+<script src="/supabase-client.js"></script>
 
   <div id="login-overlay">
     <div class="login-box">
@@ -191,9 +192,110 @@
   </script>
 
   <script>
-    // ==========================================
-    // Data access is provided by the shared relational adapter.
-    const db = window.supabaseDb;
+    // =========================================================================
+    // ROBUST DATABASE ADAPTER: Uses window.supabaseDb if loaded, OR falls back
+    // to '/api/db' automatically so uploads NEVER fail silently with 0 files!
+    // =========================================================================
+    const fallbackApiDb = {
+      ref: function(path) {
+        let parts = path.split('/').filter(Boolean);
+        let rootKey = parts[0];
+        return {
+          once: async function() {
+            try {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const data = await res.json();
+              let val = data.result;
+              if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) {} }
+              for (let i = 1; i < parts.length; i++) {
+                if (val && typeof val === 'object') { val = val[parts[i]]; }
+                else { val = null; break; }
+              }
+              return { val: () => val };
+            } catch (err) {
+              console.error("DB Fetch Error:", err);
+              return { val: () => null };
+            }
+          },
+          set: async function(dataToSet) {
+            if (parts.length === 1) {
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: dataToSet }) }).then(res => res.json());
+            } else {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+              let current = rootObj;
+              for (let i = 1; i < parts.length - 1; i++) {
+                if (!current[parts[i]]) current[parts[i]] = {};
+                current = current[parts[i]];
+              }
+              current[parts[parts.length - 1]] = dataToSet;
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            }
+          },
+          update: async function(updatesObj) {
+            if (parts.length === 1) {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+              Object.keys(updatesObj).forEach(updPath => {
+                let updParts = updPath.split('/').filter(Boolean);
+                let current = rootObj;
+                for (let i = 0; i < updParts.length - 1; i++) {
+                  if (!current[updParts[i]]) current[updParts[i]] = {};
+                  current = current[updParts[i]];
+                }
+                current[updParts[updParts.length - 1]] = updatesObj[updPath];
+              });
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            } else {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+              let current = rootObj;
+              for (let i = 1; i < parts.length; i++) {
+                if (!current[parts[i]]) current[parts[i]] = {};
+                current = current[parts[i]];
+              }
+              Object.assign(current, updatesObj);
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            }
+          },
+          remove: async function() {
+            if (parts.length === 1) {
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: rootKey }) }).then(res => res.json());
+            } else {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+              let current = rootObj;
+              for (let i = 1; i < parts.length - 1; i++) {
+                if (!current[parts[i]]) return;
+                current = current[parts[i]];
+              }
+              delete current[parts[parts.length - 1]];
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            }
+          },
+          push: function() {
+            const newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            const pushPath = path + (path.endsWith('/') ? '' : '/') + newKey;
+            return {
+              key: newKey,
+              set: function(data) {
+                return fallbackApiDb.ref(pushPath).set(data);
+              }
+            };
+          }
+        };
+      }
+    };
+
+    const db = window.supabaseDb || fallbackApiDb;
 
     var DEFAULT_ADMIN_ID='admin',DEFAULT_ADMIN_PASS='admin123',DEFAULT_GUEST_ID='guest',DEFAULT_GUEST_PASS='guest123';
     var adminPhone='',adminToken='';
@@ -241,6 +343,26 @@
       var up=String(clsTxt).toUpperCase();
       for(var tk in tMap){if(up.indexOf(tk)!==-1)return tMap[tk];}
       return null;
+    }
+
+    // Cleans emojis, "Ready?", and boilerplate prefixes from extracted chapter titles
+    function cleanExtractedTitle(rawTitle){
+      if(!rawTitle)return '';
+      var t=String(rawTitle)
+        .replace(/<[^>]*>/g,' ')
+        .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu,'')
+        .replace(/Interactive FA-1 Question Papers:\s*/ig,'')
+        .replace(/Comprehensive Chapter Assessment:\s*/ig,'')
+        .replace(/10 Awesome (At-Home Science|Practical) Projects:\s*/ig,'')
+        .replace(/Practical Activities & Projects:\s*/ig,'')
+        .replace(/—\s*(Master Mind Map|Interactive Game Arcade!?|Interactive Learning Games)/ig,'')
+        .replace(/:\s*Rapid Sorter!?/ig,'')
+        .replace(/\(\s*Class\s*\d+[^)]*\)/ig,'')
+        .replace(/!+$/,'')
+        .replace(/\s+/g,' ')
+        .trim();
+      if(!t||/^ready\??$/i.test(t)||/^untitled$/i.test(t))return '';
+      return t;
     }
 
     function parseQuizKey(key){
@@ -406,17 +528,17 @@
 
       h+='<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0;padding:14px;background:rgba(0,0,0,.25);border-radius:10px;border:1px solid var(--brd);">';
       h+='<div style="font-size:12px;font-weight:800;color:#fbbf24;width:100%;">⚙️ Upload Configuration & Fallback Metadata (Folder uploads auto-detect Class, Subject & Chapter from folder names):</div>';
-      h+='<div><label style="font-size:12px;font-weight:700;">Fallback Class: </label><select id="bulkDefClass" class="form-inp" style="width:auto;margin-bottom:0;">';
+      h+='<div><label style="font-size:12px;font-weight:700;">Fallback Class: </label><select id="bulkDefClass" class="form-inp" style="width:auto;margin-bottom:0;" onchange="recalcBulkMeta()">';
       for(var i=0;i<CLASSES.length;i++){
         h+='<option value="'+CLASSES[i]+'" '+(CLASSES[i]==defCls?'selected':'')+'>Class '+CLASSES[i]+'</option>';
       }
       h+='</select></div>';
-      h+='<div><label style="font-size:12px;font-weight:700;">Fallback Subject: </label><select id="bulkDefSubject" class="form-inp" style="width:auto;margin-bottom:0;">';
+      h+='<div><label style="font-size:12px;font-weight:700;">Fallback Subject: </label><select id="bulkDefSubject" class="form-inp" style="width:auto;margin-bottom:0;" onchange="recalcBulkMeta()">';
       for(var j=0;j<SUBJECTS.length;j++){
         h+='<option value="'+SUBJECTS[j]+'" '+(SUBJECTS[j]===defSub?'selected':'')+'>'+SUBJECTS[j]+'</option>';
       }
       h+='</select></div>';
-      h+='<div style="flex:1;min-width:200px;"><label style="font-size:12px;font-weight:700;">Chapter / Topic Name (if uploading loose files): </label><input type="text" id="bulkDefChapter" class="form-inp" placeholder="Auto-detected from folder or H1 tag" style="margin-bottom:0;"></div>';
+      h+='<div style="flex:1;min-width:200px;"><label style="font-size:12px;font-weight:700;">Chapter / Topic Name (if uploading loose files): </label><input type="text" id="bulkDefChapter" class="form-inp" placeholder="e.g., Chapter 1 - India Size and Location" style="margin-bottom:0;" oninput="recalcBulkMeta()"></div>';
       h+='<div><label style="font-size:12px;font-weight:700;">Quiz Mode: </label><select id="bulkQuizModeSel" class="form-inp" style="width:auto;margin-bottom:0;">';
       h+='<option value="append" '+(qMode==='append'?'selected':'')+'>Append to Existing Quiz</option>';
       h+='<option value="replace" '+(qMode==='replace'?'selected':'')+'>Replace Chapter Quiz</option>';
@@ -428,14 +550,14 @@
       // Box 1: Entire Folder Upload
       h+='<div class="dropzone" style="border-color:#10b981;background:rgba(16,185,129,.06);" onclick="document.getElementById(\'bulkFolderInput\').click()">';
       h+='<div class="dz-icon">📁</div><strong style="color:#34d399;">1. Bulk Folder Upload (Select <code>final_output</code>)</strong><br>';
-      h+='<small>Select your entire <code>final_output</code> or Class/Subject folder.<br>Auto-detects Class, Subject, Chapter & uploads all 6 modules!</small>';
+      h+='<small>Select your entire <code>final_output</code> or Chapter folder.<br>Auto-detects Class, Subject, Chapter & uploads all 6 modules (including Quiz CSV/JSON)!</small>';
       h+='<input type="file" id="bulkFolderInput" webkitdirectory directory multiple style="display:none;" onchange="handleBulkMasterFiles(this.files)">';
       h+='</div>';
 
       // Box 2: Multi-file Selection / Drag & Drop
       h+='<div class="dropzone" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="event.preventDefault();this.classList.remove(\'over\');handleBulkMasterFiles(event.dataTransfer.files)" onclick="document.getElementById(\'bulkMultiFileInput\').click()">';
       h+='<div class="dz-icon">📄</div><strong style="color:#38bdf8;">2. Select / Drop All Module Files at Once</strong><br>';
-      h+='<small>Select <code>THEORY</code>, <code>MIND_MAP</code>, <code>PAPERS</code>, <code>PROJECTS</code>, <code>GAMES</code>, <code>quiz_output</code> together!</small>';
+      h+='<small>Select <code>THEORY</code>, <code>MIND_MAP</code>, <code>PAPERS</code>, <code>PROJECTS</code>, <code>GAMES</code>, <code>quiz_output.csv</code> together!</small>';
       h+='<input type="file" id="bulkMultiFileInput" multiple accept=".html,.htm,.txt,.csv,.tsv,.json,.xlsx,.xls" style="display:none;" onchange="handleBulkMasterFiles(this.files)">';
       h+='</div>';
 
@@ -443,6 +565,18 @@
       h+='<div id="bulkMasterPreview"></div>';
       h+='</div>';
       ac.innerHTML=h;
+    }
+
+    function recalcBulkMeta(){
+      if(!bulkMasterQueue||!bulkMasterQueue.length)return;
+      for(var i=0;i<bulkMasterQueue.length;i++){
+        var it=bulkMasterQueue[i];
+        var m=inferMetaFromRelativePath(it.relPath,it.fileName,it.rawText);
+        it.class=m.class;
+        it.subject=m.subject;
+        it.chapter=m.chapter;
+      }
+      renderBulkMasterPreview();
     }
 
     function detectModuleFromFileName(fname){
@@ -481,22 +615,33 @@
         detChap=p.replace(/_/g,' ').trim();
       }
 
-      if(!detChap&&defChap)detChap=defChap;
+      if(defChap)detChap=defChap;
+
       if(!detChap&&rawContent){
-        var hMatch=rawContent.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-        if(hMatch&&hMatch[1]){
-          var cleanH=hMatch[1].replace(/<[^>]*>/g,'').replace(/Interactive FA-1 Question Papers:/i,'').replace(/— Master Mind Map/i,'').trim();
-          if(cleanH&&cleanH.length<90)detChap=cleanH;
+        // Look at <title>, then <h1>/<h2> (ignoring game word <h1 id="mm-word">Ready?</h1>)
+        var titleMatch=rawContent.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        if(titleMatch&&titleMatch[1]){
+          var ct=cleanExtractedTitle(titleMatch[1].replace(/-\s*(Theory|Complete Study Guide)/i,''));
+          if(ct)detChap=ct;
+        }
+        if(!detChap){
+          var headings=rawContent.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/ig)||[];
+          for(var hi=0;hi<headings.length;hi++){
+            if(headings[hi].indexOf('mm-word')!==-1)continue;
+            var chClean=cleanExtractedTitle(headings[hi]);
+            if(chClean&&chClean.length<90){detChap=chClean;break;}
+          }
         }
       }
       if(!detChap){
-        detChap=fileName.replace(/\.[^.]+$/,'').replace(/(theory|mind_?map|papers|projects|games|quiz_?output)/ig,'').replace(/[_\-]+/g,' ').trim()||'Chapter 1';
+        var fnClean=fileName.replace(/\.[^.]+$/,'').replace(/(theory|mind_?map|papers|projects|games|quiz_?output)/ig,'').replace(/[_\-]+/g,' ').trim();
+        detChap=cleanExtractedTitle(fnClean)||'Chapter 1';
       }
 
       return {
         class:detCls||defCls,
         subject:detSub||defSub,
-        chapter:detChap
+        chapter:cleanExtractedTitle(detChap)||'Chapter 1'
       };
     }
 
@@ -507,7 +652,10 @@
 
       bulkMasterQueue=[];
       var seenModKeys={};
+      var sharedChapterTitle='';
 
+      // First pass: read all files
+      var tempItems=[];
       for(var i=0;i<fileList.length;i++){
         var f=fileList[i];
         var mod=detectModuleFromFileName(f.name);
@@ -523,8 +671,20 @@
 
         var rel=f.webkitRelativePath||f.name;
         var meta=inferMetaFromRelativePath(rel,f.name,text);
+        if(meta.chapter&&meta.chapter!=='Chapter 1'&&!sharedChapterTitle){
+          sharedChapterTitle=meta.chapter;
+        }
+        tempItems.push({f:f,mod:mod,text:text,rel:rel,meta:meta});
+      }
 
-        // If folder contains both THEORY.html and THEORY.txt, keep .html to avoid duplicate upload
+      // Second pass: unify chapter name if loose files were selected together
+      for(var j=0;j<tempItems.length;j++){
+        var item=tempItems[j];
+        var f=item.f,mod=item.mod,text=item.text,rel=item.rel,meta=item.meta;
+        if((!meta.chapter||meta.chapter==='Chapter 1')&&sharedChapterTitle){
+          meta.chapter=sharedChapterTitle;
+        }
+
         var ext=f.name.split('.').pop().toLowerCase();
         var dedupKey=meta.class+'|'+meta.subject+'|'+meta.chapter+'|'+mod;
         if(mod!=='quiz'){
@@ -532,7 +692,6 @@
           seenModKeys[dedupKey]=ext;
           bulkMasterQueue=bulkMasterQueue.filter(function(it){return it.dedupKey!==dedupKey;});
         }else{
-          // For quiz, if both quiz_output.csv and quiz_output.json are in the same folder, only upload once
           if(seenModKeys[dedupKey]&&seenModKeys[dedupKey]!==ext)continue;
           seenModKeys[dedupKey]=ext;
         }
@@ -661,7 +820,8 @@
       return formattedQuestions;
     }
 
-    async function executeBulkMasterUpload(){
+    // Promise-chain based bulk uploader (identical to uploadContentItems & uploadMappedQuiz)
+    function executeBulkMasterUpload(){
       if(!bulkMasterQueue.length)return;
       var btn=document.getElementById('btnStartBulkMaster');
       if(btn)btn.disabled=true;
@@ -670,55 +830,76 @@
       var total=bulkMasterQueue.length;
       var refMap={'theory':'theoryDatabase','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
 
-      var uploadedModules=0,uploadedQuestions=0;
+      var uploadedModules=0,uploadedQuestions=0,errorsList=[];
 
-      for(var i=0;i<total;i++){
-        var item=bulkMasterQueue[i];
-        var pct=Math.round(((i+1)/total)*100);
-        stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:'+pct+'%;">'+pct+'% ('+(i+1)+'/'+total+')</div></div><div style="font-size:.85rem;color:#38bdf8;margin-bottom:10px;">⏳ Uploading <strong>'+sanitizeHTML(item.module.toUpperCase())+'</strong>: Class '+item.class+' · '+sanitizeHTML(item.subject)+' · '+sanitizeHTML(item.chapter)+'...</div>';
+      function processNext(idx){
+        if(idx>=total){
+          if(btn)btn.disabled=false;
+          var errHtml=errorsList.length?('<div style="color:#f87171;font-size:.82rem;margin-top:6px;">⚠️ Errors: '+sanitizeHTML(errorsList.join(' | '))+'</div>'):'';
+          stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:100%;">100% COMPLETED</div></div><div style="padding:12px;background:rgba(34,197,94,.15);border:1px solid #22c55e;border-radius:8px;color:#4ade80;font-weight:800;margin-bottom:12px;">🎉 Successfully uploaded '+uploadedModules+' module files (including '+uploadedQuestions+' Quiz MCQs) across all databases!'+errHtml+'</div>';
+          toast('Uploaded '+uploadedModules+' modules!','success');
+          return;
+        }
 
-        try{
-          if(item.module==='quiz'){
-            var qList=parseQuizRowsFromRawText(item.rawText,item.class,item.subject,item.chapter);
-            if(qList.length){
-              var chClean=String(item.chapter).replace(/^chapter\s*/i,'').replace(/\s+/g,'_');
-              var gk='Class'+item.class+'_'+item.subject+'_Chapter'+chClean;
-              var fin=qList;
-              if(qMode==='append'){
-                var snap=await db.ref('questionBank/'+gk).once('value');
-                var ex=snap.val();
-                fin=(ex&&Array.isArray(ex))?ex.concat(qList):qList;
-              }
-              await db.ref('questionBank/'+gk).set(fin);
-              uploadedQuestions+=qList.length;
-              uploadedModules++;
-            }
-          }else{
-            var rp=refMap[item.module];
-            if(rp){
-              var nr=db.ref(rp).push();
-              var payload={
-                title:item.chapter,
-                subject:item.subject,
-                class:item.class,
-                topic:item.chapter,
-                content:item.rawText,
-                imageUrls:[],
-                key:nr.key,
-                order:Date.now()
-              };
-              await nr.set(payload);
-              uploadedModules++;
-            }
+        var item=bulkMasterQueue[idx];
+        var pct=Math.round(((idx+1)/total)*100);
+        stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:'+pct+'%;">'+pct+'% ('+(idx+1)+'/'+total+')</div></div><div style="font-size:.85rem;color:#38bdf8;margin-bottom:10px;">⏳ Uploading <strong>'+sanitizeHTML(item.module.toUpperCase())+'</strong>: Class '+item.class+' · '+sanitizeHTML(item.subject)+' · '+sanitizeHTML(item.chapter)+'...</div>';
+
+        if(item.module==='quiz'){
+          var qList=parseQuizRowsFromRawText(item.rawText,item.class,item.subject,item.chapter);
+          if(!qList.length){
+            errorsList.push(item.fileName+': 0 valid quiz rows');
+            processNext(idx+1);
+            return;
           }
-        }catch(err){
-          console.error('Bulk upload error on',item.fileName,err);
+          var chClean=String(item.chapter).replace(/^chapter\s*/i,'').replace(/\s+/g,'_')||'1';
+          var gk='Class'+item.class+'_'+item.subject+'_Chapter'+chClean;
+          db.ref('questionBank/'+gk).once('value').then(function(snap){
+            var ex=snap?snap.val():null;
+            var fin=(qMode==='replace')?qList:((ex&&Array.isArray(ex))?ex.concat(qList):qList);
+            return db.ref('questionBank/'+gk).set(fin);
+          }).then(function(){
+            uploadedQuestions+=qList.length;
+            uploadedModules++;
+            processNext(idx+1);
+          }).catch(function(err){
+            console.error('Quiz upload error:',err);
+            errorsList.push(item.fileName+': '+(err.message||'DB error'));
+            processNext(idx+1);
+          });
+        }else{
+          var rp=refMap[item.module];
+          if(!rp){processNext(idx+1);return;}
+          try{
+            var nr=db.ref(rp).push();
+            var newKey=(nr&&nr.key)?nr.key:('item_'+Date.now()+'_'+Math.random().toString(36).substr(2,5));
+            var payload={
+              title:item.chapter,
+              subject:item.subject,
+              class:item.class,
+              topic:item.chapter,
+              content:item.rawText,
+              imageUrls:[],
+              key:newKey,
+              order:Date.now()
+            };
+            var setPromise=(nr&&typeof nr.set==='function')?nr.set(payload):db.ref(rp+'/'+newKey).set(payload);
+            Promise.resolve(setPromise).then(function(){
+              uploadedModules++;
+              processNext(idx+1);
+            }).catch(function(err){
+              console.error('Module upload error:',err);
+              errorsList.push(item.fileName+': '+(err.message||'DB error'));
+              processNext(idx+1);
+            });
+          }catch(err){
+            errorsList.push(item.fileName+': '+(err.message||'Push error'));
+            processNext(idx+1);
+          }
         }
       }
 
-      stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:100%;">100% COMPLETED</div></div><div style="padding:12px;background:rgba(34,197,94,.15);border:1px solid #22c55e;border-radius:8px;color:#4ade80;font-weight:800;margin-bottom:12px;">🎉 Successfully uploaded '+uploadedModules+' module files (including '+uploadedQuestions+' Quiz MCQs) across all databases!</div>';
-      toast('All-in-One Bulk Upload Complete!','success');
-      if(btn)btn.disabled=false;
+      processNext(0);
     }
 
     // =========================================================================
@@ -1373,17 +1554,13 @@
         });
         if(!txt.trim())continue;
         if(currentTab!=='quiz'){
-          var titleFromFile=customTopic||f.name.replace(/\.[^.]+$/,'').replace(/[_\-]+/g,' ').trim();
-          var hMatch=txt.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/i);
-          if(!customTopic&&hMatch&&hMatch[1]){
-            var cleanH=hMatch[1].replace(/<[^>]*>/g,'').trim();
-            if(cleanH)titleFromFile=cleanH;
-          }
+          var meta=inferMetaFromRelativePath(f.name,f.name,txt);
+          var finalT=customTopic||meta.chapter||'Chapter 1';
           combinedRows.push({
-            Title:titleFromFile,
+            Title:finalT,
             Subject:getUploadDefaultSubject(),
             Class:getUploadDefaultClass(),
-            Topic:titleFromFile,
+            Topic:finalT,
             Content:txt
           });
         }else{
@@ -1436,20 +1613,10 @@
         catch(e){toast('Invalid JSON: '+e.message,'error');return}
       }
 
-      // Preserve full HTML/SVG module documents (THEORY.html, MIND_MAP.html, PAPERS.html, PROJECTS.html, GAMES.html)
       if(currentTab!=='quiz'&&(/^<!doctype\s+html/i.test(t0)||/^<html/i.test(t0)||/^<div[\s>]/i.test(t0)||/^<svg[\s>]/i.test(t0))){
         var customTitle=getVal('uploadTopicInp');
-        var extractedTitle=customTitle||'';
-        if(!extractedTitle){
-          var h1Match=t0.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/i);
-          if(h1Match&&h1Match[1]){
-            extractedTitle=h1Match[1].replace(/<[^>]*>/g,'').trim();
-          }
-        }
-        if(!extractedTitle&&fileName){
-          extractedTitle=fileName.replace(/\.[^.]+$/,'').replace(/[_\-]+/g,' ').trim();
-        }
-        if(!extractedTitle)extractedTitle=currentTab.toUpperCase()+' Module';
+        var meta=inferMetaFromRelativePath(fileName||'',fileName||'',t0);
+        var extractedTitle=customTitle||meta.chapter||(currentTab.toUpperCase()+' Module');
 
         showUploadPreview([{
           Title:extractedTitle.substring(0,100),
@@ -1546,7 +1713,7 @@
       if(matches===0&&currentTab!=='quiz'){
         var whole=lines.join('\n');
         var rec={};
-        var cTitle=getVal('uploadTopicInp')||String(lines[0]).replace(/<[^>]*>/g,'').trim().substring(0,80)||'Content';
+        var cTitle=getVal('uploadTopicInp')||cleanExtractedTitle(lines[0]).substring(0,80)||'Content';
         rec['Title']=cTitle;
         rec['Content']=whole;
         rec['Subject']=getUploadDefaultSubject();
@@ -1789,14 +1956,9 @@
         var rowKeys=Object.keys(r),firstVal='';
         for(var rki=0;rki<rowKeys.length;rki++){if(String(r[rowKeys[rki]]||'').trim()){firstVal=String(r[rowKeys[rki]]).trim();break}}
         if(!content&&firstVal)content=firstVal;
-        if((!title||title.indexOf('Item ')===0)&&firstVal)title=firstVal.replace(/<[^>]*>/g,'').trim().substring(0,60);
+        if((!title||title.indexOf('Item ')===0)&&firstVal)title=cleanExtractedTitle(firstVal).substring(0,60)||'Chapter 1';
         var item={title:String(title),content:String(content),imageUrls:imgs?String(imgs).split('\n').map(function(l){return l.trim()}).filter(Boolean):[]};
-        var isGP=(currentTab==='games'||currentTab==='projects');
-        if(isGP){
-          item.subject=sub;item.class=cn;item.topic=String(topicTxt);
-        }else{
-          item.subject=sub;item.class=cn;item.topic=String(topicTxt);
-        }
+        item.subject=sub;item.class=cn;item.topic=String(topicTxt);
         item.key='';
         items.push(item);
       });
