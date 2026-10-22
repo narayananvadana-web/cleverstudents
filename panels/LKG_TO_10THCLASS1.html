@@ -1830,6 +1830,7 @@ function uploadMappedQuiz(){
       var rows=mappedRows;
       var groups={};
       var allQ=[];
+      
       rows.forEach(function(r){
         var keys=Object.keys(r);
         function findKey(names){
@@ -1906,7 +1907,7 @@ function uploadMappedQuiz(){
           subtopic:subTopTxt,
           explanation:exp||'',
           imageUrls:[],
-          order:safeOrderInt()
+          order: Math.floor(Date.now() / 1000)
         });
         allQ.push(true);
       });
@@ -1925,27 +1926,27 @@ function uploadMappedQuiz(){
         var k=gKeys[idx];
         var qs=groups[k];
         
-        // Use safe db call supporting both Supabase tables and fallback adapters
-        var qRef = (db.from && typeof db.from === 'function') ? db.from('question_bank') : db.ref('questionBank/'+k);
-        
-        // Safe set fallback
-        var savePromise = (db.ref) ? db.ref('questionBank/'+k).set(qs) : db.from('question_bank').upsert({ chapter_key: k, questions: qs });
-        Promise.resolve(savePromise).then(function(){
-          upQ+=qs.length;done++;
+        // Direct Vercel KV / Supabase REST API fallback (Bypasses legacy questionBank ref error)
+        fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'set', path: 'questionBank/' + k, data: qs })
+        })
+        .then(res => res.json())
+        .then(function(){
+          upQ += qs.length;
+          done++;
           st.innerHTML='<span>'+upQ+'/'+allQ.length+' questions uploaded</span>';
           next(idx+1);
-        }).catch(function(err){
+        })
+        .catch(function(err){
           console.error('Quiz save error:', err);
-          // Fallback direct set
-          db.ref('questionBank/'+k).set(qs).then(function(){
-            upQ+=qs.length;done++;
-            next(idx+1);
-          }).catch(function(){done++;next(idx+1);});
+          done++;
+          next(idx+1);
         });
       }
       next(0);
     }
-
     function uploadMappedContent(){
       var st=document.getElementById('csvUploadStatus');
       st.innerHTML='<span class="spinner"></span> Uploading...';
