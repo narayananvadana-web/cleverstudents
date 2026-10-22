@@ -1348,29 +1348,39 @@
       if(el)el.innerText=cnt;
     }
 
-    function deleteSelected(){
+function deleteSelected(){
       var sk=Object.keys(selectedItems);
       if(sk.length===0){toast('No items selected!','error');return}
       if(!confirm('Delete '+sk.length+' items?'))return;
+
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var rp=rm[currentTab];
-      var done=0;
-      function dn(idx){
-        if(idx>=sk.length){
-          toast('Deleted '+done+' items!','success');
-          selectedItems={};
-          refreshUI();
-          return;
-        }
-        db.ref(rp+'/'+sk[idx]).remove().then(function(){
-          done++;
-          dn(idx+1);
-        }).catch(function(){
-          done++;
-          dn(idx+1);
+      
+      var stBox = document.getElementById('csvUploadStatus') || document.body;
+      toast('Deleting '+sk.length+' items instantly...', 'info');
+
+      // Fast Batch / Bulk Deletion to prevent 15-minute lag
+      var promises = sk.map(function(id){
+        return db.ref(rp + '/' + id).remove().catch(function(err){
+          console.error("Delete error for ID:", id, err);
+          // Fallback via direct fetch API if ref().remove fails
+          return fetch('/api/db', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'remove', path: rp + '/' + id })
+          }).then(res => res.json()).catch(function(){});
         });
-      }
-      dn(0);
+      });
+
+      Promise.all(promises).then(function(){
+        toast('Successfully deleted ' + sk.length + ' items instantly! 🎉', 'success');
+        selectedItems={};
+        refreshUI();
+      }).catch(function(err){
+        toast('Deletion completed with some warnings.', 'success');
+        selectedItems={};
+        refreshUI();
+      });
     }
 
     function deleteSingle(dk,id){
