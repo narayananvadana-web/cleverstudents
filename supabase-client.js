@@ -1,10 +1,9 @@
-/* Relational compatibility adapter - Upgraded with full questionBank Write/Delete & Fast Direct Operations */
+/* Relational compatibility adapter - Auto-Healing Schema & Fast Quiz/Material Writer */
 (function (g) {
   'use strict';
   var SUPABASE_URL = 'https://wefrcbwocohoikoreups.supabase.co';
   var SUPABASE_ANON_KEY = 'sb_publishable_E8ZvYYOI_Wq1PTbSse_GZg_UD_nIPrI';
 
-  // Singleton client check to prevent "Multiple GoTrueClient instances" warning
   var ready = (g._cleverSupabaseReady) ? g._cleverSupabaseReady : (g._cleverSupabaseReady = import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/+esm')
     .then(function (supabase) {
       var db = g.supabaseClient || supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -45,7 +44,16 @@
   };
   var safeSettings = ['loginEnabled', 'copyEnabled', 'guestAutoLogin', 'guestId', 'sscHierarchy', 'bulkQuizMode', 'bulkDefaultClass', 'bulkDefaultSubject'];
 
-  function ok(r) { if (r.error) throw r.error; return r.data; }
+  // Cache of discovered valid columns per table so we never send invalid columns twice
+  var invalidColsCache = { quiz_sets: {}, quiz_questions: {}, study_materials: {} };
+
+  function ok(r) {
+    if (r.error) {
+      console.error('[Supabase DB Error]', r.error.message || r.error, r.error.details || '', r.error.hint || '');
+      throw r.error;
+    }
+    return r.data;
+  }
   function obj(v) { return v && typeof v === 'object' && !Array.isArray(v); }
   function copy(v) { return v === undefined ? null : JSON.parse(JSON.stringify(v)); }
   function parts(p) {
@@ -109,13 +117,13 @@
     Object.keys(aliases).forEach(function (k) {
       if (r[aliases[k]] !== undefined && r[aliases[k]] !== null) o[k] = r[aliases[k]];
     });
-    if (r.option_a !== undefined) {
+    if (r.option_a !== undefined && (!o.options || typeof o.options !== 'object')) {
       o.options = { A: r.option_a || '', B: r.option_b || '', C: r.option_c || '', D: r.option_d || '' };
     }
     return o;
   }
 
-  function key(r) { return r.legacy_key || r.quiz_key || r.id; }
+  function key(r) { return r.legacy_key || r.quiz_key || (r.metadata && (r.metadata.quiz_key || r.metadata.legacy_key)) || r.id; }
   function map(rows) {
     var o = {};
     rows.forEach(function (r) { o[key(r)] = decode(r); });
@@ -128,9 +136,96 @@
 
   function safeInt(val, fallback) {
     var n = parseInt(val, 10);
-    if (isNaN(n)) return fallback || 0;
+    if (isNaN(n)) return fallback !== undefined ? fallback : 0;
     if (n > 2147483647) return Math.floor(n / 1000);
     return n;
+  }
+
+  // =========================================================================
+  // AUTO-HEALING SUPABASE WRITER
+  // Automatically strips any non-existent column reported by PostgREST 400 error
+  // and moves it safely into `metadata` JSONB!
+  // =========================================================================
+  function stripBadColFromRow(row, colName) {
+    var copyRow = Object.assign({}, row);
+    if (copyRow[colName] !== undefined) {
+      if (colName !== 'metadata') {
+        copyRow.metadata = Object.assign({}, copyRow.metadata || {});
+        copyRow.metadata[colName] = copyRow[colName];
+      }
+      delete copyRow[colName];
+    }
+    return copyRow;
+  }
+
+  function extractMissingColName(err) {
+    var msg = String((err && (err.message || err.details || err.hint)) || '');
+    var m1 = msg.match(/Could not find the '([^']+)' column/i);
+    if (m1) return m1[1];
+    var m2 = msg.match(/column "([^"]+)" of relation/i);
+    if (m2) return m2[1];
+    var m3 = msg.match(/column ([a-z0-9_]+) does not exist/i);
+    if (m3) return m3[1];
+    return null;
+  }
+
+  async function smartUpsert(table, row, conflictCol) {
+    var db = await ready;
+    var cleanRow = Object.assign({}, row);
+    Object.keys(invalidColsCache[table] || {}).forEach(function (badCol) {
+      cleanRow = stripBadColFromRow(cleanRow, badCol);
+    });
+
+    for (var attempt = 0; attempt < 10; attempt++) {
+      var res = await db.from(table).upsert(cleanRow, { onConflict: conflictCol || 'id' });
+      if (!res.error) return res.data;
+
+      var badCol = extractMissingColName(res.error);
+      if (badCol && cleanRow[badCol] !== undefined) {
+        console.warn('[Auto-Heal ' + table + '] Stripping unsupported column "' + badCol + '" into metadata');
+        if (!invalidColsCache[table]) invalidColsCache[table] = {};
+        invalidColsCache[table][badCol] = true;
+        cleanRow = stripBadColFromRow(cleanRow, badCol);
+        continue;
+      }
+
+      // If onConflict failed (e.g. constraint issue), try plain insert or update
+      if (attempt === 0 && cleanRow.id) {
+        var updRes = await db.from(table).update(cleanRow).eq('id', cleanRow.id).select();
+        if (!updRes.error && updRes.data && updRes.data.length > 0) return updRes.data;
+        var insRes = await db.from(table).insert(cleanRow);
+        if (!insRes.error) return insRes.data;
+      }
+
+      ok(res);
+    }
+  }
+
+  async function smartBatchInsert(table, rows) {
+    if (!rows || !rows.length) return;
+    var db = await ready;
+    var cleanRows = rows.map(function (r) {
+      var cr = Object.assign({}, r);
+      Object.keys(invalidColsCache[table] || {}).forEach(function (badCol) {
+        cr = stripBadColFromRow(cr, badCol);
+      });
+      return cr;
+    });
+
+    for (var attempt = 0; attempt < 12; attempt++) {
+      var res = await db.from(table).insert(cleanRows);
+      if (!res.error) return res.data;
+
+      var badCol = extractMissingColName(res.error);
+      if (badCol && cleanRows[0][badCol] !== undefined) {
+        console.warn('[Auto-Heal ' + table + '] Stripping unsupported column "' + badCol + '" from batch insert');
+        if (!invalidColsCache[table]) invalidColsCache[table] = {};
+        invalidColsCache[table][badCol] = true;
+        cleanRows = cleanRows.map(function (r) { return stripBadColFromRow(r, badCol); });
+        continue;
+      }
+      ok(res);
+    }
   }
 
   async function profile() {
@@ -146,7 +241,6 @@
   async function admin() {
     var p = await profile();
     if (p && p.is_active && p.role === 'admin') return p;
-    // Allow legacy panel admin session if logged in via localStorage
     if (g.localStorage && g.localStorage.getItem('cs_ad_ph')) return { role: 'admin', is_active: true };
     return p;
   }
@@ -192,7 +286,6 @@
     return o;
   }
 
-  // FAST OPTIMIZED QUIZ READER (Fetches all questions in 1 query instead of N queries!)
   async function readQuizRoot(root) {
     var courseName = quizRoots[root];
     var sets = await all('quiz_sets', filt({ course: courseName }));
@@ -251,12 +344,11 @@
 
   function tableRow(table, v, base) {
     var r = Object.assign({}, base), m = scrub(v || {});
-    // Expand nested options {A, B, C, D} into option_a, option_b, option_c, option_d
     if (m.options && typeof m.options === 'object') {
-      if (m.option_a === undefined) m.option_a = m.options.A || m.options.a || '';
-      if (m.option_b === undefined) m.option_b = m.options.B || m.options.b || '';
-      if (m.option_c === undefined) m.option_c = m.options.C || m.options.c || '';
-      if (m.option_d === undefined) m.option_d = m.options.D || m.options.d || '';
+      if (m.option_a === undefined) m.option_a = String(m.options.A || m.options.a || '');
+      if (m.option_b === undefined) m.option_b = String(m.options.B || m.options.b || '');
+      if (m.option_c === undefined) m.option_c = String(m.options.C || m.options.c || '');
+      if (m.option_d === undefined) m.option_d = String(m.options.D || m.options.d || '');
     }
     Object.keys(aliases).forEach(function (k) {
       if (m[k] !== undefined) m[aliases[k]] = m[k];
@@ -264,11 +356,7 @@
     if (m.order_index !== undefined) m.order_index = safeInt(m.order_index, 0);
     if (m.class_level !== undefined) m.class_level = safeInt(m.class_level, null);
 
-    var allowedCols = (table === 'quiz_questions')
-      ? ['question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer', 'explanation', 'order_index', 'topic', 'sub_topic', 'image_urls', 'is_published']
-      : ['title', 'content_html', 'class_level', 'order_index', 'subject', 'category', 'group_name', 'stage', 'sub_subject', 'topic', 'sub_topic', 'image_urls', 'icon', 'description', 'read_time', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer', 'explanation', 'is_published'];
-
-    allowedCols.forEach(function (k) {
+    ['title', 'content_html', 'class_level', 'order_index', 'subject', 'category', 'group_name', 'stage', 'sub_subject', 'topic', 'sub_topic', 'image_urls', 'icon', 'description', 'read_time', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer', 'explanation', 'is_published'].forEach(function (k) {
       if (m[k] !== undefined) r[k] = m[k];
     });
     delete m.topics;
@@ -279,7 +367,7 @@
   }
 
   async function save(table, row) {
-    ok(await (await ready).from(table).upsert(row, { onConflict: 'id' }));
+    await smartUpsert(table, row, 'id');
   }
 
   async function reconcile(table, before, after, base) {
@@ -298,14 +386,22 @@
   }
 
   // =========================================================================
-  // NEW: FULL WRITE / UPSERT / DELETE SUPPORT FOR questionBank (quiz_sets & quiz_questions)
+  // AUTO-HEALING QUIZ WRITER FOR questionBank (quiz_sets & quiz_questions)
   // =========================================================================
   async function writeQuizGroup(courseName, groupKey, questionsList) {
     var db = await ready;
     var existingSets = await all('quiz_sets', filt({ course: courseName }));
-    var matchedSet = existingSets.filter(function (s) { return key(s) === groupKey || s.quiz_key === groupKey || s.legacy_key === groupKey || s.id === groupKey; })[0];
 
-    // If questionsList is null or empty, delete the quiz set and its questions
+    // Inspect existing quiz_sets row to discover exact column names if any exist
+    if (existingSets.length > 0 && !g._loggedQuizSetCols) {
+      g._loggedQuizSetCols = true;
+      console.log('📋 Discovered quiz_sets columns:', Object.keys(existingSets[0]));
+    }
+
+    var matchedSet = existingSets.filter(function (s) {
+      return key(s) === groupKey || s.quiz_key === groupKey || s.legacy_key === groupKey || s.id === groupKey;
+    })[0];
+
     if (!questionsList || (Array.isArray(questionsList) && questionsList.length === 0)) {
       if (matchedSet) {
         await db.from('quiz_questions').delete().eq('quiz_set_id', matchedSet.id);
@@ -334,25 +430,22 @@
       topic: firstQ.topic || 'General',
       sub_topic: firstQ.subtopic || 'All Questions',
       order_index: safeInt(firstQ.order, 1),
-      metadata: { chapter: parsedChap, class: parsedCls, subject: parsedSub }
+      metadata: {
+        quiz_key: groupKey,
+        legacy_key: groupKey,
+        chapter: parsedChap,
+        class: parsedCls,
+        subject: parsedSub
+      }
     };
 
-    // Upsert the quiz_set record (fallback to minimal columns if optional columns don't exist)
-    var setRes = await db.from('quiz_sets').upsert(setPayload, { onConflict: 'id' });
-    if (setRes.error) {
-      var minSetPayload = {
-        id: setId,
-        course: courseName,
-        quiz_key: groupKey,
-        title: 'Class ' + parsedCls + ' - ' + parsedSub + ' - Ch ' + parsedChap,
-        metadata: { legacy_key: groupKey, chapter: parsedChap, class: parsedCls, subject: parsedSub }
-      };
-      ok(await db.from('quiz_sets').upsert(minSetPayload, { onConflict: 'id' }));
-    }
+    // Auto-healing upsert into quiz_sets
+    await smartUpsert('quiz_sets', setPayload, 'id');
 
-    // Clear old questions in this set and bulk insert the updated questions list in batches of 100
+    // Clear old questions in this set
     await db.from('quiz_questions').delete().eq('quiz_set_id', setId);
 
+    // Build question rows and auto-heal batch insert into quiz_questions
     var questionRows = qArr.map(function (qItem, idx) {
       return tableRow('quiz_questions', qItem, {
         id: crypto.randomUUID(),
@@ -363,8 +456,9 @@
 
     for (var b = 0; b < questionRows.length; b += 100) {
       var chunk = questionRows.slice(b, b + 100);
-      ok(await db.from('quiz_questions').insert(chunk));
+      await smartBatchInsert('quiz_questions', chunk);
     }
+    console.log('✅ Successfully saved ' + questionRows.length + ' quiz questions under [' + groupKey + ']!');
   }
 
   async function writeSettings(p, action, value) {
@@ -388,12 +482,10 @@
     }
     await admin();
 
-    // FAST DIRECT OPERATIONS FOR study_materials (Avoids 15-minute full table reconcile!)
     if (roots[r]) {
       var db = await ready;
       var course = roots[r][0], mType = roots[r][1];
 
-      // Fast Single Item Delete: db.ref('theoryDatabase/itemKey').remove()
       if (p.length === 1 && action === 'remove') {
         var targetKey = p[0];
         await db.from('study_materials').delete().eq('course', course).eq('material_type', mType).eq('legacy_key', targetKey);
@@ -403,7 +495,6 @@
         return;
       }
 
-      // Fast Single Item Insert/Update: db.ref('theoryDatabase/itemKey').set(obj)
       if (p.length === 1 && (action === 'set' || action === 'update') && obj(value)) {
         var itemKey = p[0];
         var existing = await db.from('study_materials').select('id,legacy_key').eq('course', course).eq('material_type', mType).eq('legacy_key', itemKey).maybeSingle();
@@ -417,33 +508,28 @@
         return save('study_materials', rowData);
       }
 
-      // Fallback full reconcile for multi-path updates (like swapOrder)
       var b = await all('study_materials', filt({ course: course, material_type: mType }));
       var n = mutate(map(b), p, action, value);
       if (!p.length) throw Error('Explicit child removal required');
       return reconcile('study_materials', b, n, { course: course, material_type: mType });
     }
 
-    // NEW: Handle questionBank / quizRoots writes & deletes!
     if (quizRoots[r]) {
       var qCourse = quizRoots[r];
-      // Case 1: Child path e.g. db.ref('questionBank/Class9_Social_Chapter1').set([...]) or .remove()
       if (p.length === 1) {
         var grpKey = p[0];
         if (action === 'remove') return writeQuizGroup(qCourse, grpKey, null);
         if (action === 'set') return writeQuizGroup(qCourse, grpKey, value);
       }
-      // Case 2: Root update e.g. db.ref('questionBank').update({ Class9_Social_Chapter1: [...] })
       if (p.length === 0 && (action === 'update' || action === 'set') && obj(value)) {
         var gKeys = Object.keys(value);
         for (var gi = 0; gi < gKeys.length; gi++) {
           var gk = gKeys[gi];
-          if (gk.indexOf('/') !== -1) continue; // skip deep order paths
+          if (gk.indexOf('/') !== -1) continue;
           await writeQuizGroup(qCourse, gk, value[gk]);
         }
         return;
       }
-      // Case 3: Order swap e.g. updates['Class9_Social_Chapter1/0/order']
       return;
     }
 
