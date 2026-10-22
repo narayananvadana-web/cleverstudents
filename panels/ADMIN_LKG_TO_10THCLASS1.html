@@ -194,7 +194,6 @@
   <script>
     // =========================================================================
     // PostgreSQL 32-Bit Integer Safe Order Generator (Max limit: 2,147,483,647)
-    // Fixes: value "1792640585934" is out of range for type integer
     // =========================================================================
     var orderSeqOffset = 0;
     function safeOrderInt() {
@@ -344,7 +343,7 @@
     function extractClassNumber(clsTxt){
       if(clsTxt===undefined||clsTxt===null)return null;
       var s=String(clsTxt);
-      var m=s.match(/(?:class|grade|std)[_\-\s]*(\d{1,2})/i) || s.match(/^(\d{1,2})$/);
+      var m=s.match(/(?:class|grade|std)[_\-\s]*(\d{1,2})/i) || s.match(/(\d{1,2})/);
       if(m){var n=parseInt(m[1],10);if(n>=1&&n<=10)return n;}
       var tMap={'ONE':1,'TWO':2,'THREE':3,'FOUR':4,'FIVE':5,'SIX':6,'SEVEN':7,'EIGHT':8,'NINE':9,'TEN':10};
       var up=s.toUpperCase();
@@ -369,6 +368,50 @@
         .trim();
       if(!t||/^ready\??$/i.test(t)||/^untitled$/i.test(t))return '';
       return t;
+    }
+
+    // =========================================================================
+    // UNIVERSAL SUPABASE QUIZ SAVER (Bypasses "Unsupported legacy root questionBank")
+    // =========================================================================
+    async function saveUniversalQuizGroup(groupKey, newQuestions, mode) {
+      var currentAllQuiz = (allData && allData.quiz && typeof allData.quiz === 'object') ? allData.quiz : {};
+      try {
+        var snap = await db.ref('questionBank').once('value');
+        var val = snap ? snap.val() : null;
+        if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) { val = {}; } }
+        if (val && typeof val === 'object') currentAllQuiz = val;
+      } catch (e) {}
+
+      var existing = Array.isArray(currentAllQuiz[groupKey]) ? currentAllQuiz[groupKey] : [];
+      var finalArr = (mode === 'replace') ? newQuestions : existing.concat(newQuestions);
+      currentAllQuiz[groupKey] = finalArr;
+      if (allData) allData.quiz = currentAllQuiz;
+
+      // Strategy 1: Root-level update({ [groupKey]: finalArr })
+      try {
+        var r1 = await db.ref('questionBank').update({ [groupKey]: finalArr });
+        if (!r1 || !r1.error) return finalArr.length;
+      } catch (err1) {}
+
+      // Strategy 2: Root-level set(currentAllQuiz)
+      try {
+        var r2 = await db.ref('questionBank').set(currentAllQuiz);
+        if (!r2 || !r2.error) return finalArr.length;
+      } catch (err2) {}
+
+      // Strategy 3: Direct child set('questionBank/' + groupKey)
+      try {
+        var r3 = await db.ref('questionBank/' + groupKey).set(finalArr);
+        if (!r3 || !r3.error) return finalArr.length;
+      } catch (err3) {}
+
+      // Strategy 4: Fallback REST endpoint '/api/db'
+      var r4 = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'set', path: 'questionBank', data: currentAllQuiz })
+      }).then(function(res){ return res.json(); });
+      return finalArr.length;
     }
 
     function parseQuizKey(key){
@@ -577,7 +620,7 @@
       if(!bulkMasterQueue||!bulkMasterQueue.length)return;
       for(var i=0;i<bulkMasterQueue.length;i++){
         var it=bulkMasterQueue[i];
-        var m=inferMetaFromRelativePath(it.relPath,it.fileName,it.rawText);
+        var m=inferMetaFromRelativePath(it.relPath,it.fileName,it.rawText,it.module);
         it.class=m.class;
         it.subject=m.subject;
         it.chapter=m.chapter;
@@ -599,7 +642,7 @@
       return null;
     }
 
-    function inferMetaFromRelativePath(relPath,fileName,rawContent){
+    function inferMetaFromRelativePath(relPath,fileName,rawContent,modType){
       var defCls=parseInt(getVal('bulkDefClass'),10)||settings.bulkDefaultClass||9;
       var defSub=getVal('bulkDefSubject')||settings.bulkDefaultSubject||'Social';
       var defChap=getVal('bulkDefChapter')||'';
@@ -607,8 +650,6 @@
       var parts=String(relPath||'').split(/[\/\\]/).filter(Boolean);
       var detCls=null,detSub=null,detChap=null;
 
-      // Supports selecting Class_9 directly (e.g. Class_9/Social/CHAPTER1/THEORY.html)
-      // OR selecting CHAPTER1 directly OR selecting final_output
       for(var i=0;i<parts.length-1;i++){
         var p=parts[i];
         if(p.toLowerCase()==='final_output'||p.toLowerCase()==='segmented_5000')continue;
@@ -623,9 +664,19 @@
         detChap=p.replace(/_/g,' ').trim();
       }
 
+      // If file is a Quiz CSV/JSON, inspect first data row to get exact Class, Subject & Chapter
+      if(modType==='quiz'&&rawContent){
+        var qRows=parseQuizRowsFromRawText(rawContent,detCls||defCls,detSub||defSub,detChap||'Chapter1');
+        if(qRows.length){
+          detCls=qRows[0].class||detCls;
+          detSub=qRows[0].subject||detSub;
+          if(qRows[0].chapter)detChap='Chapter'+String(qRows[0].chapter).replace(/^chapter\s*/i,'');
+        }
+      }
+
       if(defChap)detChap=defChap;
 
-      if(!detChap&&rawContent){
+      if(!detChap&&rawContent&&modType!=='quiz'){
         var titleMatch=rawContent.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
         if(titleMatch&&titleMatch[1]){
           var ct=cleanExtractedTitle(titleMatch[1].replace(/-\s*(Theory|Complete Study Guide)/i,''));
@@ -660,6 +711,7 @@
       bulkMasterQueue=[];
       var seenModKeys={};
       var sharedChapterTitle='';
+      var csvDetectedSub=null,csvDetectedCls=null;
 
       var tempItems=[];
       for(var i=0;i<fileList.length;i++){
@@ -676,7 +728,11 @@
         if(!text.trim())continue;
 
         var rel=f.webkitRelativePath||f.name;
-        var meta=inferMetaFromRelativePath(rel,f.name,text);
+        var meta=inferMetaFromRelativePath(rel,f.name,text,mod);
+        if(mod==='quiz'){
+          csvDetectedSub=meta.subject;
+          csvDetectedCls=meta.class;
+        }
         if(meta.chapter&&meta.chapter!=='Chapter1'&&!sharedChapterTitle){
           sharedChapterTitle=meta.chapter;
         }
@@ -688,6 +744,13 @@
         var f=item.f,mod=item.mod,text=item.text,rel=item.rel,meta=item.meta;
         if((!meta.chapter||meta.chapter==='Chapter1')&&sharedChapterTitle){
           meta.chapter=sharedChapterTitle;
+        }
+        // Sync subject across same chapter if folder was named General_Science by default but CSV says Social
+        if(csvDetectedSub && meta.subject==='Science' && csvDetectedSub!=='Science' && rel.indexOf('General_Science')!==-1){
+          meta.subject=csvDetectedSub;
+        }
+        if(csvDetectedCls && !meta.class){
+          meta.class=csvDetectedCls;
         }
 
         var ext=f.name.split('.').pop().toLowerCase();
@@ -786,6 +849,7 @@
         var kSub=findK(['subject']);
         var kChap=findK(['chapter','subsubject','sub-subject']);
         var kTopic=findK(['topic','level','questiontype']);
+        var kSubTopic=findK(['subtopic','sub-topic','questiontype']);
         var kQues=findK(['question','ques']);
         var kA=findK(['optiona','opta','a']);
         var kB=findK(['optionb','optb','b']);
@@ -804,7 +868,8 @@
         var optD=String((kD?r[kD]:'')||(r.options&&r.options.D)||'').trim();
         var ans=String((kAns?r[kAns]:'')||r.correctAnswer||'').trim().toUpperCase().charAt(0);
         var exp=String((kExp?r[kExp]:'')||r.explanation||'').trim();
-        var topTxt=String((kTopic?r[kTopic]:'')||r.topic||'').trim();
+        var topTxt=String((kTopic?r[kTopic]:'')||r.topic||'General').trim();
+        var subTopTxt=String((kSubTopic?r[kSubTopic]:'')||r.subtopic||'All Questions').trim();
 
         if(!ques||!optA||!optB||['A','B','C','D'].indexOf(ans)===-1)return;
 
@@ -814,9 +879,9 @@
           correctAnswer:ans,
           subject:sub,
           class:cn,
-          chapter:ch.replace(/^chapter\s*/i,'').replace(/\s+/g,'_')||'1',
-          topic:topTxt,
-          subtopic:'',
+          chapter:ch.replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1',
+          topic:topTxt||'General',
+          subtopic:subTopTxt||'All Questions',
           explanation:exp,
           imageUrls:[],
           order:safeOrderInt()
@@ -836,74 +901,70 @@
 
       var uploadedModules=0,uploadedQuestions=0,errorsList=[];
 
-      function processNext(idx){
-        if(idx>=total){
-          if(btn)btn.disabled=false;
-          var errHtml=errorsList.length?('<div style="color:#f87171;font-size:.82rem;margin-top:6px;">⚠️ Errors: '+sanitizeHTML(errorsList.join(' | '))+'</div>'):'';
-          stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:100%;">100% COMPLETED</div></div><div style="padding:12px;background:rgba(34,197,94,.15);border:1px solid #22c55e;border-radius:8px;color:#4ade80;font-weight:800;margin-bottom:12px;">🎉 Successfully uploaded '+uploadedModules+' module files (including '+uploadedQuestions+' Quiz MCQs) across all databases!'+errHtml+'</div>';
-          toast('Uploaded '+uploadedModules+' modules!','success');
-          return;
-        }
+      async function processAll(){
+        for(var idx=0;idx<total;idx++){
+          var item=bulkMasterQueue[idx];
+          var pct=Math.round(((idx+1)/total)*100);
+          stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:'+pct+'%;">'+pct+'% ('+(idx+1)+'/'+total+')</div></div><div style="font-size:.85rem;color:#38bdf8;margin-bottom:10px;">⏳ Uploading <strong>'+sanitizeHTML(item.module.toUpperCase())+'</strong>: Class '+item.class+' · '+sanitizeHTML(item.subject)+' · '+sanitizeHTML(item.chapter)+'...</div>';
 
-        var item=bulkMasterQueue[idx];
-        var pct=Math.round(((idx+1)/total)*100);
-        stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:'+pct+'%;">'+pct+'% ('+(idx+1)+'/'+total+')</div></div><div style="font-size:.85rem;color:#38bdf8;margin-bottom:10px;">⏳ Uploading <strong>'+sanitizeHTML(item.module.toUpperCase())+'</strong>: Class '+item.class+' · '+sanitizeHTML(item.subject)+' · '+sanitizeHTML(item.chapter)+'...</div>';
-
-        if(item.module==='quiz'){
-          var qList=parseQuizRowsFromRawText(item.rawText,item.class,item.subject,item.chapter);
-          if(!qList.length){
-            errorsList.push(item.fileName+': 0 valid quiz rows');
-            processNext(idx+1);
-            return;
-          }
-          var chClean=String(item.chapter).replace(/^chapter\s*/i,'').replace(/\s+/g,'_')||'1';
-          var gk='Class'+item.class+'_'+item.subject+'_Chapter'+chClean;
-          db.ref('questionBank/'+gk).once('value').then(function(snap){
-            var ex=snap?snap.val():null;
-            var fin=(qMode==='replace')?qList:((ex&&Array.isArray(ex))?ex.concat(qList):qList);
-            return db.ref('questionBank/'+gk).set(fin);
-          }).then(function(){
-            uploadedQuestions+=qList.length;
-            uploadedModules++;
-            processNext(idx+1);
-          }).catch(function(err){
-            console.error('Quiz upload error:',err);
-            errorsList.push(item.fileName+': '+(err.message||'DB error'));
-            processNext(idx+1);
-          });
-        }else{
-          var rp=refMap[item.module];
-          if(!rp){processNext(idx+1);return;}
-          try{
-            var nr=db.ref(rp).push();
-            var newKey=(nr&&nr.key)?nr.key:('item_'+safeOrderInt()+'_'+Math.random().toString(36).substr(2,5));
-            var payload={
-              title:item.chapter,
-              subject:item.subject,
-              class:item.class,
-              topic:item.chapter,
-              content:item.rawText,
-              imageUrls:[],
-              key:newKey,
-              order:safeOrderInt()
-            };
-            var setPromise=(nr&&typeof nr.set==='function')?nr.set(payload):db.ref(rp+'/'+newKey).set(payload);
-            Promise.resolve(setPromise).then(function(){
-              uploadedModules++;
-              processNext(idx+1);
-            }).catch(function(err){
-              console.error('Module upload error:',err);
-              errorsList.push(item.fileName+': '+(err.message||'DB error'));
-              processNext(idx+1);
+          if(item.module==='quiz'){
+            var qList=parseQuizRowsFromRawText(item.rawText,item.class,item.subject,item.chapter);
+            if(!qList.length){
+              errorsList.push(item.fileName+': 0 valid quiz rows');
+              continue;
+            }
+            var qGroups={};
+            qList.forEach(function(qObj){
+              var chClean=String(qObj.chapter||'1').replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1';
+              var gk='Class'+qObj.class+'_'+qObj.subject+'_Chapter'+chClean;
+              qObj.chapter=chClean;
+              if(!qGroups[gk])qGroups[gk]=[];
+              qGroups[gk].push(qObj);
             });
-          }catch(err){
-            errorsList.push(item.fileName+': '+(err.message||'Push error'));
-            processNext(idx+1);
+            try{
+              var gKeys=Object.keys(qGroups);
+              for(var gi=0;gi<gKeys.length;gi++){
+                var k=gKeys[gi];
+                await saveUniversalQuizGroup(k, qGroups[k], qMode);
+                uploadedQuestions+=qGroups[k].length;
+              }
+              uploadedModules++;
+            }catch(err){
+              console.error('Quiz bulk error:',err);
+              errorsList.push(item.fileName+': '+(err.message||'Quiz DB error'));
+            }
+          }else{
+            var rp=refMap[item.module];
+            if(!rp)continue;
+            try{
+              var nr=db.ref(rp).push();
+              var newKey=(nr&&nr.key)?nr.key:('item_'+safeOrderInt()+'_'+Math.random().toString(36).substr(2,5));
+              var payload={
+                title:item.chapter,
+                subject:item.subject,
+                class:item.class,
+                topic:item.chapter,
+                content:item.rawText,
+                imageUrls:[],
+                key:newKey,
+                order:safeOrderInt()
+              };
+              var setPromise=(nr&&typeof nr.set==='function')?nr.set(payload):db.ref(rp+'/'+newKey).set(payload);
+              await Promise.resolve(setPromise);
+              uploadedModules++;
+            }catch(err){
+              errorsList.push(item.fileName+': '+(err.message||'DB error'));
+            }
           }
         }
+
+        if(btn)btn.disabled=false;
+        var errHtml=errorsList.length?('<div style="color:#f87171;font-size:.82rem;margin-top:6px;">⚠️ Errors: '+sanitizeHTML(errorsList.join(' | '))+'</div>'):'';
+        stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:100%;">100% COMPLETED</div></div><div style="padding:12px;background:rgba(34,197,94,.15);border:1px solid #22c55e;border-radius:8px;color:#4ade80;font-weight:800;margin-bottom:12px;">🎉 Successfully uploaded '+uploadedModules+' module files (including '+uploadedQuestions+' Quiz MCQs) across all databases!'+errHtml+'</div>';
+        toast('Uploaded '+uploadedModules+' modules & '+uploadedQuestions+' MCQs!','success');
       }
 
-      processNext(0);
+      processAll();
     }
 
     // =========================================================================
@@ -1077,15 +1138,15 @@
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var updates={};
       if(isQuiz){
-        updates[keyA+'/0/order']=orderB;
-        updates[keyB+'/0/order']=orderA;
         if(data[keyA]&&data[keyA][0])data[keyA][0].order=orderB;
         if(data[keyB]&&data[keyB][0])data[keyB][0].order=orderA;
+        db.ref('questionBank').set(data).catch(function(err){toast('Error: '+err.message,'error')});
       }else{
         updates[keyA+'/order']=orderB;
         updates[keyB+'/order']=orderA;
         if(data[keyA])data[keyA].order=orderB;
         if(data[keyB])data[keyB].order=orderA;
+        db.ref(rm[dk]).update(updates).catch(function(err){toast('Error: '+err.message,'error')});
       }
 
       if(currentFilters.sort!=='manual'){
@@ -1094,7 +1155,6 @@
         if(so)so.value='manual';
       }
       refreshUI();
-      db.ref(rm[dk]).update(updates).catch(function(err){toast('Error: '+err.message,'error')});
     }
 
     function toggleAllAnswers(){
@@ -1348,36 +1408,42 @@
       if(el)el.innerText=cnt;
     }
 
-function deleteSelected(){
+    // =========================================================================
+    // FAST 1-SECOND PARALLEL BULK DELETE
+    // =========================================================================
+    function deleteSelected(){
       var sk=Object.keys(selectedItems);
       if(sk.length===0){toast('No items selected!','error');return}
       if(!confirm('Delete '+sk.length+' items?'))return;
-
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var rp=rm[currentTab];
-      
-      var stBox = document.getElementById('csvUploadStatus') || document.body;
-      toast('Deleting '+sk.length+' items instantly...', 'info');
 
-      // Fast Batch / Bulk Deletion to prevent 15-minute lag
-      var promises = sk.map(function(id){
-        return db.ref(rp + '/' + id).remove().catch(function(err){
-          console.error("Delete error for ID:", id, err);
-          // Fallback via direct fetch API if ref().remove fails
-          return fetch('/api/db', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'remove', path: rp + '/' + id })
-          }).then(res => res.json()).catch(function(){});
+      toast('Deleting '+sk.length+' items instantly...','info');
+
+      if(currentTab==='quiz'){
+        var curQ=allData.quiz||{};
+        sk.forEach(function(k){delete curQ[k];});
+        db.ref('questionBank').set(curQ).then(function(){
+          toast('Deleted '+sk.length+' quiz groups!','success');
+          selectedItems={};
+          refreshUI();
+        }).catch(function(){
+          var promises=sk.map(function(k){return db.ref(rp+'/'+k).remove().catch(function(){});});
+          Promise.all(promises).then(function(){
+            toast('Deleted '+sk.length+' items!','success');
+            selectedItems={};
+            refreshUI();
+          });
         });
+        return;
+      }
+
+      var promises=sk.map(function(k){
+        return db.ref(rp+'/'+k).remove().catch(function(){});
       });
 
       Promise.all(promises).then(function(){
-        toast('Successfully deleted ' + sk.length + ' items instantly! 🎉', 'success');
-        selectedItems={};
-        refreshUI();
-      }).catch(function(err){
-        toast('Deletion completed with some warnings.', 'success');
+        toast('Deleted '+sk.length+' items!','success');
         selectedItems={};
         refreshUI();
       });
@@ -1386,6 +1452,22 @@ function deleteSelected(){
     function deleteSingle(dk,id){
       if(!confirm('Delete permanently?'))return;
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
+      if(dk==='quiz'){
+        var curQ=allData.quiz||{};
+        delete curQ[id];
+        db.ref('questionBank').set(curQ).then(function(){
+          toast('Deleted!','success');
+          delete selectedItems[id];
+          refreshUI();
+        }).catch(function(){
+          db.ref(rm[dk]+'/'+id).remove().then(function(){
+            toast('Deleted!','success');
+            delete selectedItems[id];
+            refreshUI();
+          });
+        });
+        return;
+      }
       db.ref(rm[dk]+'/'+id).remove().then(function(){
         toast('Deleted!','success');
         delete selectedItems[id];
@@ -1568,7 +1650,7 @@ function deleteSelected(){
         });
         if(!txt.trim())continue;
         if(currentTab!=='quiz'){
-          var meta=inferMetaFromRelativePath(f.name,f.name,txt);
+          var meta=inferMetaFromRelativePath(f.name,f.name,txt,currentTab);
           var finalT=customTopic||meta.chapter||'Chapter1';
           combinedRows.push({
             Title:finalT,
@@ -1629,7 +1711,7 @@ function deleteSelected(){
 
       if(currentTab!=='quiz'&&(/^<!doctype\s+html/i.test(t0)||/^<html/i.test(t0)||/^<div[\s>]/i.test(t0)||/^<svg[\s>]/i.test(t0))){
         var customTitle=getVal('uploadTopicInp');
-        var meta=inferMetaFromRelativePath(fileName||'',fileName||'',t0);
+        var meta=inferMetaFromRelativePath(fileName||'',fileName||'',t0,currentTab);
         var extractedTitle=customTitle||meta.chapter||(currentTab.toUpperCase()+' Module');
 
         showUploadPreview([{
@@ -1824,13 +1906,13 @@ function deleteSelected(){
       uploadMappedContent();
     }
 
-function uploadMappedQuiz(){
+    function uploadMappedQuiz(){
       var st=document.getElementById('csvUploadStatus');
-      st.innerHTML='<span class="spinner"></span> Uploading Quiz...';
+      st.innerHTML='<span class="spinner"></span> Uploading Quiz to Supabase...';
       var rows=mappedRows;
       var groups={};
       var allQ=[];
-      
+
       rows.forEach(function(r){
         var keys=Object.keys(r);
         function findKey(names){
@@ -1847,7 +1929,7 @@ function uploadMappedQuiz(){
         var kSubSub=findKey(['subsubject','sub-subject','subsubjectname','chapter']);
         var kChapter=findKey(['chapter']);
         var kTopic=findKey(['topic','level','questiontype']);
-        var kSubTopic=findKey(['subtopic','sub-topic','subtopic2']);
+        var kSubTopic=findKey(['subtopic','sub-topic','subtopic2','questiontype']);
         var kQues=findKey(['question','ques']);
         var kOptA=findKey(['optiona','opta','opt-a','a']);
         var kOptB=findKey(['optionb','optb','opt-b','b']);
@@ -1859,8 +1941,8 @@ function uploadMappedQuiz(){
         var clsTxt=kClass?(r[kClass]||''):'';clsTxt=String(clsTxt).trim();
         var subTxt=kSubject?(r[kSubject]||''):getUploadDefaultSubject();subTxt=String(subTxt).trim();
         var chTxt=String((kSubSub?(r[kSubSub]||''):'')||(kChapter?(r[kChapter]||''):'')||'1').trim();
-        var topTxt=kTopic?(String(r[kTopic]||'').trim()):'';
-        var subTopTxt=kSubTopic?(String(r[kSubTopic]||'').trim()):'';
+        var topTxt=kTopic?(String(r[kTopic]||'').trim()):'General';
+        var subTopTxt=kSubTopic?(String(r[kSubTopic]||'').trim()):'All Questions';
         var ques=kQues?(String(r[kQues]||'').trim()):'';
         var optA=kOptA?(String(r[kOptA]||'').trim()):'';
         var optB=kOptB?(String(r[kOptB]||'').trim()):'';
@@ -1886,15 +1968,12 @@ function uploadMappedQuiz(){
         if(r&&!clsTxt&&(r.class!==undefined))clsTxt=String(r.class||'').trim();
         if(r&&!chTxt&&(r.chapter!==undefined))chTxt=String(r.chapter||'').trim();
 
-        var cn=extractClassNumber(clsTxt);
-        if(!cn||cn<1||cn>10)return;
-
-        var sub=normalizeSubjectName(subTxt);
-        if(!sub)return;
-
+        var cn=extractClassNumber(clsTxt)||getUploadDefaultClass()||9;
+        var sub=normalizeSubjectName(subTxt)||getUploadDefaultSubject()||'Social';
         if(!ques||!optA||!optB||['A','B','C','D'].indexOf(ans)===-1)return;
 
-        var gk='Class'+cn+'_'+sub+'_Chapter'+chTxt.replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1';
+        var chNorm=chTxt.replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1';
+        var gk='Class'+cn+'_'+sub+'_Chapter'+chNorm;
         if(!groups[gk])groups[gk]=[];
         groups[gk].push({
           question:ques,
@@ -1902,51 +1981,41 @@ function uploadMappedQuiz(){
           correctAnswer:ans,
           subject:sub,
           class:cn,
-          chapter:chTxt.replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1',
-          topic:topTxt,
-          subtopic:subTopTxt,
+          chapter:chNorm,
+          topic:topTxt||'General',
+          subtopic:subTopTxt||'All Questions',
           explanation:exp||'',
           imageUrls:[],
-          order: Math.floor(Date.now() / 1000)
+          order:safeOrderInt()
         });
         allQ.push(true);
       });
 
       var gKeys=Object.keys(groups);
       if(!gKeys.length){st.innerHTML='<span style="color:#ef4444;">No valid quiz rows found</span>';return}
-      var total=gKeys.length,done=0,upQ=0;
+      var total=gKeys.length,upQ=0;
 
-      function next(idx){
-        if(idx>=total){
-          st.innerHTML='<span style="color:#22c55e;">✅ Done! '+upQ+' quiz questions uploaded.</span>';
-          toast('Quiz Upload Complete!','success');
-          setTimeout(function(){clearCSVData();refreshUI()},1500);
-          return;
+      async function runQuizUpload(){
+        for(var idx=0;idx<total;idx++){
+          var k=gKeys[idx];
+          var qs=groups[k];
+          try{
+            await saveUniversalQuizGroup(k, qs, settings.bulkQuizMode||'append');
+            upQ+=qs.length;
+            st.innerHTML='<span style="color:#38bdf8;">⏳ Uploaded '+upQ+'/'+allQ.length+' questions...</span>';
+          }catch(err){
+            console.error('Quiz group upload error:', err);
+            st.innerHTML='<span style="color:#ef4444;">⚠️ Error: '+(err.message||err)+'</span>';
+            return;
+          }
         }
-        var k=gKeys[idx];
-        var qs=groups[k];
-        
-        // Direct Vercel KV / Supabase REST API fallback (Bypasses legacy questionBank ref error)
-        fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'set', path: 'questionBank/' + k, data: qs })
-        })
-        .then(res => res.json())
-        .then(function(){
-          upQ += qs.length;
-          done++;
-          st.innerHTML='<span>'+upQ+'/'+allQ.length+' questions uploaded</span>';
-          next(idx+1);
-        })
-        .catch(function(err){
-          console.error('Quiz save error:', err);
-          done++;
-          next(idx+1);
-        });
+        st.innerHTML='<span style="color:#22c55e;">✅ Done! '+upQ+' questions saved to database.</span>';
+        toast('Uploaded '+upQ+' Quiz Questions!','success');
+        setTimeout(function(){clearCSVData();refreshUI()},1200);
       }
-      next(0);
+      runQuizUpload();
     }
+
     function uploadMappedContent(){
       var st=document.getElementById('csvUploadStatus');
       st.innerHTML='<span class="spinner"></span> Uploading...';
@@ -2143,26 +2212,22 @@ function uploadMappedQuiz(){
       var ques=getVal('qz-question');
       var a=getVal('qz-a'),b=getVal('qz-b'),c=getVal('qz-c'),d=getVal('qz-d');
       var ans=getVal('qz-ans').toUpperCase();
-      var topic=getVal('qz-topic'),subt=getVal('qz-subtopic'),exp=getVal('qz-exp');
+      var topic=getVal('qz-topic')||'General',subt=getVal('qz-subtopic')||'All Questions',exp=getVal('qz-exp');
       if(!cn||cn<1||cn>10){toast('Select a valid Class','error');return}
       if(!sub){toast('Select a Subject','error');return}
       if(!ch){toast('Enter Chapter / Sub-Subject','error');return}
       if(!ques){toast('Enter the Question','error');return}
       if(!a||!b){toast('Option A and Option B are required','error');return}
       if((ans==='C'&&!c)||(ans==='D'&&!d)){toast('Correct answer option cannot be empty','error');return}
-      var chNorm=String(ch).replace(/^chapter\s*/i,'').replace(/\s+/g,'');
-      var gk='Class'+cn+'_'+sub+'_Chapter'+(chNorm||'1');
-      var qObj={question:ques,options:{A:a,B:b,C:c,D:d},correctAnswer:ans,subject:sub,class:cn,chapter:chNorm||'1',topic:topic,subtopic:subt,explanation:exp,imageUrls:[],order:safeOrderInt()};
-      db.ref('questionBank/'+gk).once('value').then(function(snap){
-        var ex=snap.val();
-        var fin=(ex&&Array.isArray(ex))?ex.concat([qObj]):[qObj];
-        return db.ref('questionBank/'+gk).set(fin);
-      }).then(function(){
+      var chNorm=String(ch).replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1';
+      var gk='Class'+cn+'_'+sub+'_Chapter'+chNorm;
+      var qObj={question:ques,options:{A:a,B:b,C:c,D:d},correctAnswer:ans,subject:sub,class:cn,chapter:chNorm,topic:topic,subtopic:subt,explanation:exp,imageUrls:[],order:safeOrderInt()};
+      saveUniversalQuizGroup(gk, [qObj], 'append').then(function(){
         toast('Question saved!','success');
         cancelEditForm();
         refreshUI();
       }).catch(function(err){
-        toast('Save failed: '+err.message,'error');
+        toast('Save failed: '+(err.message||err),'error');
       });
     }
 
