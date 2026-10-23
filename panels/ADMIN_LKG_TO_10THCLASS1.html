@@ -1080,6 +1080,9 @@
       h+='<button class="btn btn-red btn-sm" onclick="deleteSelected()">🗑 Delete (<span id="selCount">0</span>)</button>';
       h+='<button class="btn btn-purple btn-sm" onclick="downloadData(\''+dk+'\')">📥 JSON</button>';
       h+='<button class="btn btn-teal btn-sm" onclick="downloadCSV(\''+dk+'\')">📊 CSV</button>';
+      h+='<button class="btn btn-purple btn-sm" onclick="downloadData(\''+dk+'\')">📥 JSON</button>';
+      h+='<button class="btn btn-teal btn-sm" onclick="downloadCSV(\''+dk+'\')">📊 Exact CSV</button>';
+      h+='<button class="btn btn-orange btn-sm" onclick="downloadOriginalFiles(\''+dk+'\')">📄 Original HTML/CSV</button>';
       if(!isQuiz)h+='<button class="btn btn-green btn-sm" onclick="showAddForm(\''+dk+'\')">➕ Add New</button>';
       if(isQuiz)h+='<button class="btn btn-green btn-sm" onclick="showAddQuiz()">➕ Add Question</button>';
       h+='<span style="color:var(--mut);margin-left:auto;">Total: <strong>'+keys.length+'</strong></span>';
@@ -1375,7 +1378,10 @@
             h+='<div class="item-actions">';
             if(isQuiz){
               h+='<button class="btn btn-blue btn-xs" onclick="event.stopPropagation();viewQuizGroup('+q(ek)+')">👁 View</button>';
+              h+='<button class="btn btn-teal btn-xs" title="Download exact quiz_output.csv" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'csv\')">📥 CSV</button>';
             }else{
+              h+='<button class="btn btn-teal btn-xs" title="Download exact original .html file" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'html\')">📥 HTML</button>';
+              h+='<button class="btn btn-purple btn-xs" title="Download exact original .txt file" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'txt\')">📄 TXT</button>';
               h+='<button class="btn btn-blue btn-xs" onclick="event.stopPropagation();editItem('+q(dk)+','+q(ek)+')">✏️ Edit</button>';
             }
             h+='<button class="btn btn-red btn-xs" onclick="event.stopPropagation();deleteSingle('+q(dk)+','+q(ek)+')">🗑</button>';
