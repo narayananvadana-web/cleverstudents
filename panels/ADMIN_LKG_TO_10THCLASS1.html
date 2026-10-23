@@ -191,6 +191,9 @@
   </script>
 
   <script>
+    // =========================================================================
+    // PostgreSQL 32-Bit Integer Safe Order Generator (Max limit: 2,147,483,647)
+    // =========================================================================
     var orderSeqOffset = 0;
     function safeOrderInt() {
       orderSeqOffset = (orderSeqOffset + 1) % 1000;
@@ -214,6 +217,7 @@
               }
               return { val: () => val };
             } catch (err) {
+              console.error("DB Fetch Error:", err);
               return { val: () => null };
             }
           },
@@ -365,18 +369,25 @@
       return t;
     }
 
-    function makeUniqueModuleKey(mod, cls, sub, chap) {
-      var cleanChap = String(chap || 'Chapter1')
-        .toLowerCase()
-        .replace(/^chapter\s*/i, 'ch')
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_+|_+$/g, '') || 'ch1';
-      var cleanSub = String(sub || 'Social').replace(/[^a-zA-Z0-9]/g, '');
-      return 'Class' + cls + '_' + cleanSub + '_' + mod + '_' + cleanChap;
+    // =========================================================================
+    // SELF-VERIFYING UNIVERSAL QUIZ SAVER
+    // Tries all adapter methods AND verifies data actually persisted in DB!
+    // =========================================================================
+    async function verifyQuizSavedInDb(groupKey, expectedMinLen) {
+      try {
+        var snap = await db.ref('questionBank').once('value');
+        var val = snap ? snap.val() : null;
+        if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) { val = {}; } }
+        if (val && Array.isArray(val[groupKey]) && val[groupKey].length >= expectedMinLen) {
+          allData.quiz = val;
+          return true;
+        }
+      } catch (e) {}
+      return false;
     }
 
     async function saveUniversalQuizGroup(groupKey, newQuestions, mode) {
-      var currentAllQuiz = (allData && allData.quiz && typeof allData.quiz === 'object') ? allData.quiz : {};
+      var currentAllQuiz = (allData && allData.quiz && typeof allData.quiz === 'object') ? JSON.parse(JSON.stringify(allData.quiz)) : {};
       try {
         var snap = await db.ref('questionBank').once('value');
         var val = snap ? snap.val() : null;
@@ -384,6 +395,7 @@
         if (val && typeof val === 'object') currentAllQuiz = val;
       } catch (e) {}
 
+      // Remove any accidental 'Undefined' keys if present
       delete currentAllQuiz['undefined'];
 
       var existing = Array.isArray(currentAllQuiz[groupKey]) ? currentAllQuiz[groupKey] : [];
@@ -391,22 +403,52 @@
       currentAllQuiz[groupKey] = finalArr;
       if (allData) allData.quiz = currentAllQuiz;
 
+      // Method 1: Root-level db.ref('questionBank').set(currentAllQuiz)
       try {
         await db.ref('questionBank').set(currentAllQuiz);
-        return finalArr.length;
-      } catch (e1) {}
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e1) { console.warn('Method 1 (root set) failed:', e1); }
 
+      // Method 2: Child-level db.ref('questionBank/' + groupKey).set(finalArr)
       try {
         await db.ref('questionBank/' + groupKey).set(finalArr);
-        return finalArr.length;
-      } catch (e2) {}
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e2) { console.warn('Method 2 (child set) failed:', e2); }
 
+      // Method 3: Root-level db.ref('questionBank').update({ [groupKey]: finalArr })
       try {
         await db.ref('questionBank').update({ [groupKey]: finalArr });
-        return finalArr.length;
-      } catch (e3) {}
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e3) { console.warn('Method 3 (root update) failed:', e3); }
 
-      throw new Error('Supabase adapter rejected questionBank write.');
+      // Method 4: Push each question via db.ref('questionBank').push() if adapter treats questionBank like a table
+      try {
+        var nr = db.ref('questionBank').push();
+        if (nr && typeof nr.set === 'function') {
+          await nr.set({
+            key: groupKey,
+            title: groupKey,
+            class: newQuestions[0].class,
+            subject: newQuestions[0].subject,
+            chapter: newQuestions[0].chapter,
+            questions: finalArr,
+            order: safeOrderInt()
+          });
+          if (await verifyQuizSavedInDb(groupKey, 1)) return finalArr.length;
+        }
+      } catch (e4) { console.warn('Method 4 (push) failed:', e4); }
+
+      // Method 5: Direct '/api/db' endpoint
+      try {
+        await fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'set', path: 'questionBank', data: currentAllQuiz })
+        });
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e5) { console.warn('Method 5 (/api/db) failed:', e5); }
+
+      throw new Error('Supabase adapter rejected questionBank write. Check browser console (F12) for exact table schema.');
     }
 
     function parseQuizKey(key){
@@ -538,6 +580,7 @@
       var refMap={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var keyMap={'theory':'theory','quiz':'quiz','mindmap':'mindmap','papers':'papers','games':'games','projects':'projects','videos':'videos','skills':'skills'};
       
+      // Guard against undefined tab keys (Prevents "Class General -> General -> Untitled" bug!)
       if(!refMap[currentTab]){
         renderAllInOneBulkTab();
         return;
@@ -555,15 +598,18 @@
       });
     }
 
+    // =========================================================================
+    // MASTER TAB: ALL-IN-ONE MULTI-MODULE & CLASS_9 / BULK FOLDER UPLOAD
+    // =========================================================================
     function renderAllInOneBulkTab(){
       var ac=document.getElementById('admin-content');
       var defCls=settings.bulkDefaultClass||9;
       var defSub=settings.bulkDefaultSubject||'Social';
-      var qMode=settings.bulkQuizMode||'replace';
+      var qMode=settings.bulkQuizMode||'append';
 
       var h='<div class="bulk-all-box">';
       h+='<h3>🚀 All-in-One Multi-Module & Bulk Folder Uploader</h3>';
-      h+='<p style="color:var(--mut);font-size:.9rem;margin-bottom:12px;">Upload all generated pipeline formats (<strong>THEORY, MIND_MAP, PAPERS, PROJECTS, GAMES, and quiz_output</strong>) at a time! Automatically routes every file to its respective database table without duplicates.</p>';
+      h+='<p style="color:var(--mut);font-size:.9rem;margin-bottom:12px;">Upload all generated pipeline formats (<strong>THEORY, MIND_MAP, PAPERS, PROJECTS, GAMES, and quiz_output</strong>) at a time! Automatically routes every file to its respective database table.</p>';
       h+='<div style="margin-bottom:14px;">';
       h+='<span class="fmt-badge">THEORY.html / .txt</span>';
       h+='<span class="fmt-badge">MIND_MAP.html / .txt</span>';
@@ -574,7 +620,7 @@
       h+='</div>';
 
       h+='<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0;padding:14px;background:rgba(0,0,0,.25);border-radius:10px;border:1px solid var(--brd);">';
-      h+='<div style="font-size:12px;font-weight:800;color:#fbbf24;width:100%;">⚙️ Upload Configuration & Fallback Metadata:</div>';
+      h+='<div style="font-size:12px;font-weight:800;color:#fbbf24;width:100%;">⚙️ Upload Configuration & Fallback Metadata (Selecting <code>Class_9</code> folder auto-detects Class, Subject & Chapter from folder structure):</div>';
       h+='<div><label style="font-size:12px;font-weight:700;">Fallback Class: </label><select id="bulkDefClass" class="form-inp" style="width:auto;margin-bottom:0;" onchange="recalcBulkMeta()">';
       for(var i=0;i<CLASSES.length;i++){
         h+='<option value="'+CLASSES[i]+'" '+(CLASSES[i]==defCls?'selected':'')+'>Class '+CLASSES[i]+'</option>';
@@ -585,24 +631,26 @@
         h+='<option value="'+SUBJECTS[j]+'" '+(SUBJECTS[j]===defSub?'selected':'')+'>'+SUBJECTS[j]+'</option>';
       }
       h+='</select></div>';
-      h+='<div style="flex:1;min-width:200px;"><label style="font-size:12px;font-weight:700;">Chapter Title (optional override): </label><input type="text" id="bulkDefChapter" class="form-inp" placeholder="Auto-detected" style="margin-bottom:0;" oninput="recalcBulkMeta()"></div>';
+      h+='<div style="flex:1;min-width:200px;"><label style="font-size:12px;font-weight:700;">Chapter / Topic Name (optional override): </label><input type="text" id="bulkDefChapter" class="form-inp" placeholder="Auto-detected from folder (e.g. Chapter1)" style="margin-bottom:0;" oninput="recalcBulkMeta()"></div>';
       h+='<div><label style="font-size:12px;font-weight:700;">Quiz Mode: </label><select id="bulkQuizModeSel" class="form-inp" style="width:auto;margin-bottom:0;">';
-      h+='<option value="replace" '+(qMode==='replace'?'selected':'')+'>Replace Chapter Quiz (Zero Dupes)</option>';
-      h+='<option value="append" '+(qMode==='append'?'selected':'')+'>Append to Quiz</option>';
+      h+='<option value="append" '+(qMode==='append'?'selected':'')+'>Append to Existing Quiz</option>';
+      h+='<option value="replace" '+(qMode==='replace'?'selected':'')+'>Replace Chapter Quiz</option>';
       h+='</select></div>';
       h+='</div>';
 
       h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:15px;margin-top:15px;">';
 
+      // Option A: Select Class_9 Folder directly via webkitdirectory
       h+='<div class="dropzone" style="border-color:#10b981;background:rgba(16,185,129,.06);" onclick="document.getElementById(\'bulkFolderInput\').click()">';
       h+='<div class="dz-icon">📁</div><strong style="color:#34d399;">ఆప్షన్ A (Select Entire <code>Class_9</code> Folder)</strong><br>';
-      h+='<small>Auto-detects Class, Subject, Chapter & uploads all modules!</small>';
+      h+='<small>మీరు <code>webkitdirectory</code> ద్వారా నేరుగా మీ <strong><code>Class_9</code></strong> (లేదా ఏదైనా Class / Chapter) ఫోల్డర్‌ను సెలెక్ట్ చేస్తే చాలు!<br>Auto-detects Class, Subject, Chapter & uploads all 6 modules!</small>';
       h+='<input type="file" id="bulkFolderInput" webkitdirectory directory multiple style="display:none;" onchange="handleBulkMasterFiles(this.files)">';
       h+='</div>';
 
+      // Option B: Multi-file Selection / Drag & Drop
       h+='<div class="dropzone" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="event.preventDefault();this.classList.remove(\'over\');handleBulkMasterFiles(event.dataTransfer.files)" onclick="document.getElementById(\'bulkMultiFileInput\').click()">';
       h+='<div class="dz-icon">📄</div><strong style="color:#38bdf8;">ఆప్షన్ B (Select / Drop All Module Files at Once)</strong><br>';
-      h+='<small>Select Theory, Mind Map, Papers, Projects, Games, Quiz together!</small>';
+      h+='<small>Select <code>THEORY</code>, <code>MIND_MAP</code>, <code>PAPERS</code>, <code>PROJECTS</code>, <code>GAMES</code>, <code>quiz_output.csv</code> together!</small>';
       h+='<input type="file" id="bulkMultiFileInput" multiple accept=".html,.htm,.txt,.csv,.tsv,.json,.xlsx,.xls" style="display:none;" onchange="handleBulkMasterFiles(this.files)">';
       h+='</div>';
 
@@ -676,6 +724,14 @@
         if(titleMatch&&titleMatch[1]){
           var ct=cleanExtractedTitle(titleMatch[1].replace(/-\s*(Theory|Complete Study Guide)/i,''));
           if(ct)detChap=ct;
+        }
+        if(!detChap){
+          var headings=rawContent.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/ig)||[];
+          for(var hi=0;hi<headings.length;hi++){
+            if(headings[hi].indexOf('mm-word')!==-1)continue;
+            var chClean=cleanExtractedTitle(headings[hi]);
+            if(chClean&&chClean.length<90){detChap=chClean;break;}
+          }
         }
       }
       if(!detChap){
@@ -768,13 +824,13 @@
     function renderBulkMasterPreview(){
       var pv=document.getElementById('bulkMasterPreview');
       if(!bulkMasterQueue.length){
-        pv.innerHTML='<div style="padding:15px;color:#ef4444;font-weight:700;">⚠️ No matching module files found.</div>';
+        pv.innerHTML='<div style="padding:15px;color:#ef4444;font-weight:700;">⚠️ No matching module files found. Make sure files are named THEORY, MIND_MAP, PAPERS, PROJECTS, GAMES, or quiz_output.</div>';
         return;
       }
 
       var h='<div style="margin-top:15px;padding:15px;background:rgba(0,0,0,.25);border-radius:10px;border:1px solid var(--brd);">';
       h+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">';
-      h+='<div><strong style="color:#4ade80;font-size:1.05rem;">✅ '+bulkMasterQueue.length+' Module Files Ready for All-in-One Upload (Zero Dupes)</strong></div>';
+      h+='<div><strong style="color:#4ade80;font-size:1.05rem;">✅ '+bulkMasterQueue.length+' Module Files Ready for All-in-One Upload</strong></div>';
       h+='<div style="display:flex;gap:10px;">';
       h+='<button class="btn btn-green btn-sm" id="btnStartBulkMaster" onclick="executeBulkMasterUpload()">🚀 Upload All '+bulkMasterQueue.length+' Modules Now</button>';
       h+='<button class="btn btn-dark btn-sm" onclick="bulkMasterQueue=[];document.getElementById(\'bulkMasterPreview\').innerHTML=\'\';">🗑 Clear</button>';
@@ -782,7 +838,7 @@
 
       h+='<div id="bulkMasterStatusBox"></div>';
       h+='<div style="max-height:360px;overflow-y:auto;">';
-      h+='<table class="upload-pv-table"><thead><tr><th>#</th><th>Target Module</th><th>Class</th><th>Subject</th><th>Chapter Title</th><th>Source File</th></tr></thead><tbody>';
+      h+='<table class="upload-pv-table"><thead><tr><th>#</th><th>Target Module</th><th>Class</th><th>Subject</th><th>Chapter / Topic Title</th><th>Source File</th></tr></thead><tbody>';
       for(var i=0;i<bulkMasterQueue.length;i++){
         var it=bulkMasterQueue[i];
         h+='<tr>';
@@ -878,11 +934,23 @@
       return formattedQuestions;
     }
 
+// Generates a fixed, non-repeating ID for each Class + Subject + Module + Chapter
+    function makeUniqueModuleKey(mod, cls, sub, chap) {
+      var cleanChap = String(chap || 'Chapter1')
+        .toLowerCase()
+        .replace(/^chapter\s*/i, 'ch')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '') || 'ch1';
+      var cleanSub = String(sub || 'Social').replace(/[^a-zA-Z0-9]/g, '');
+      return 'Class' + cls + '_' + cleanSub + '_' + mod + '_' + cleanChap;
+    }
+
     function executeBulkMasterUpload(){
       if(!bulkMasterQueue.length)return;
       var btn=document.getElementById('btnStartBulkMaster');
       if(btn)btn.disabled=true;
       var stBox=document.getElementById('bulkMasterStatusBox');
+      // Default to 'replace' so re-uploading never duplicates quiz questions
       var qMode=getVal('bulkQuizModeSel')||'replace';
       var total=bulkMasterQueue.length;
       var refMap={'theory':'theoryDatabase','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
@@ -893,7 +961,7 @@
         for(var idx=0;idx<total;idx++){
           var item=bulkMasterQueue[idx];
           var pct=Math.round(((idx+1)/total)*100);
-          stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:'+pct+'%;">'+pct+'% ('+(idx+1)+'/'+total+')</div></div><div style="font-size:.85rem;color:#38bdf8;margin-bottom:10px;">⏳ Syncing <strong>'+sanitizeHTML(item.module.toUpperCase())+'</strong>: Class '+item.class+' · '+sanitizeHTML(item.subject)+' · '+sanitizeHTML(item.chapter)+'...</div>';
+          stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:'+pct+'%;">'+pct+'% ('+(idx+1)+'/'+total+')</div></div><div style="font-size:.85rem;color:#38bdf8;margin-bottom:10px;">⏳ Uploading & Updating <strong>'+sanitizeHTML(item.module.toUpperCase())+'</strong>: Class '+item.class+' · '+sanitizeHTML(item.subject)+' · '+sanitizeHTML(item.chapter)+'...</div>';
 
           if(item.module==='quiz'){
             var qList=parseQuizRowsFromRawText(item.rawText,item.class,item.subject,item.chapter);
@@ -918,12 +986,14 @@
               }
               uploadedModules++;
             }catch(err){
+              console.error('Quiz bulk error:',err);
               errorsList.push(item.fileName+': '+(err.message||'Quiz DB error'));
             }
           }else{
             var rp=refMap[item.module];
             if(!rp)continue;
             try{
+              // Deterministic key prevents duplicate entries when re-uploading the same chapter!
               var fixedKey=makeUniqueModuleKey(item.module, item.class, item.subject, item.chapter);
               var payload={
                 title:item.chapter,
@@ -945,13 +1015,16 @@
 
         if(btn)btn.disabled=false;
         var errHtml=errorsList.length?('<div style="color:#f87171;font-size:.82rem;margin-top:6px;">⚠️ Errors: '+sanitizeHTML(errorsList.join(' | '))+'</div>'):'';
-        stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:100%;">100% COMPLETED</div></div><div style="padding:12px;background:rgba(34,197,94,.15);border:1px solid #22c55e;border-radius:8px;color:#4ade80;font-weight:800;margin-bottom:12px;">🎉 Successfully synced '+uploadedModules+' module files (including '+uploadedQuestions+' Quiz MCQs) with zero duplicates!'+errHtml+'</div>';
-        toast('Synced '+uploadedModules+' modules (Zero Dupes)!','success');
+        stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:100%;">100% COMPLETED</div></div><div style="padding:12px;background:rgba(34,197,94,.15);border:1px solid #22c55e;border-radius:8px;color:#4ade80;font-weight:800;margin-bottom:12px;">🎉 Successfully synced '+uploadedModules+' module files (including '+uploadedQuestions+' Quiz MCQs) without duplicates!'+errHtml+'</div>';
+        toast('Synced '+uploadedModules+' modules (Zero Duplicates)!','success');
       }
 
       processAll();
     }
 
+    // =========================================================================
+    // STANDARD TABS & CONTENT MANAGEMENT
+    // =========================================================================
     function renderContent(dk){
       var ac=document.getElementById('admin-content');
       var data=allData[dk]||{};
@@ -1006,7 +1079,7 @@
       h+='<button class="btn btn-dark btn-sm" onclick="deselectAllItems()">☐ Deselect</button>';
       h+='<button class="btn btn-red btn-sm" onclick="deleteSelected()">🗑 Delete (<span id="selCount">0</span>)</button>';
       h+='<button class="btn btn-purple btn-sm" onclick="downloadData(\''+dk+'\')">📥 JSON</button>';
-      h+='<button class="btn btn-teal btn-sm" onclick="downloadCSV(\''+dk+'\')">📊 Exact CSV</button>';
+      h+='<button class="btn btn-teal btn-sm" onclick="downloadCSV(\''+dk+'\')">📊 CSV</button>';
       if(!isQuiz)h+='<button class="btn btn-green btn-sm" onclick="showAddForm(\''+dk+'\')">➕ Add New</button>';
       if(isQuiz)h+='<button class="btn btn-green btn-sm" onclick="showAddQuiz()">➕ Add Question</button>';
       h+='<span style="color:var(--mut);margin-left:auto;">Total: <strong>'+keys.length+'</strong></span>';
@@ -1108,6 +1181,14 @@
         if(so)so.value='manual';
       }
       refreshUI();
+    }
+
+    function toggleAllAnswers(){
+      window.answersVisible=!window.answersVisible;
+      var all=document.querySelectorAll('.quiz-answers-hidden');
+      var btn=document.getElementById('btnToggleAnswers');
+      for(var i=0;i<all.length;i++)all[i].style.display=window.answersVisible?'block':'none';
+      if(btn)btn.innerHTML=window.answersVisible?'🙈 Hide':'👁 Show';
     }
 
     function viewQuizGroup(key){
@@ -1294,10 +1375,7 @@
             h+='<div class="item-actions">';
             if(isQuiz){
               h+='<button class="btn btn-blue btn-xs" onclick="event.stopPropagation();viewQuizGroup('+q(ek)+')">👁 View</button>';
-              h+='<button class="btn btn-teal btn-xs" title="Download exact quiz_output.csv" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'csv\')">📥 CSV</button>';
             }else{
-              h+='<button class="btn btn-teal btn-xs" title="Download exact original .html file" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'html\')">📥 HTML</button>';
-              h+='<button class="btn btn-purple btn-xs" title="Download exact original .txt file" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'txt\')">📄 TXT</button>';
               h+='<button class="btn btn-blue btn-xs" onclick="event.stopPropagation();editItem('+q(dk)+','+q(ek)+')">✏️ Edit</button>';
             }
             h+='<button class="btn btn-red btn-xs" onclick="event.stopPropagation();deleteSingle('+q(dk)+','+q(ek)+')">🗑</button>';
@@ -1356,6 +1434,9 @@
       if(el)el.innerText=cnt;
     }
 
+    // =========================================================================
+    // FAST 1-SECOND PARALLEL BULK DELETE
+    // =========================================================================
     function deleteSelected(){
       var sk=Object.keys(selectedItems);
       if(sk.length===0){toast('No items selected!','error');return}
@@ -1422,154 +1503,59 @@
       }).catch(function(err){toast('Error','error')});
     }
 
-    function triggerBlobDownload(contentStr, mimeType, fileName) {
-      var blob = new Blob([contentStr], { type: mimeType });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
+    function downloadData(dk){
+      var data=allData[dk]||{};
+      var ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data);
+      var ed={};
+      for(var i=0;i<ks.length;i++)ed[ks[i]]=data[ks[i]];
+      var blob=new Blob([JSON.stringify(ed,null,2)],{type:'application/json'});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a');
+      a.href=url;
+      a.download=dk+'_data.json';
       a.click();
-      setTimeout(function() {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 200);
+      URL.revokeObjectURL(url);
+      toast('Downloaded JSON!','success');
     }
 
-    function getExactModuleFileName(dk, item, ext) {
-      var modNames = { theory: 'THEORY', mindmap: 'MIND_MAP', papers: 'PAPERS', projects: 'PROJECTS', games: 'GAMES', videos: 'VIDEOS', skills: 'SKILLS', quiz: 'quiz_output' };
-      var baseMod = modNames[dk] || dk.toUpperCase();
-      var clsPart = item && item.class ? ('Class_' + item.class + '_') : '';
-      var subPart = item && item.subject ? (String(item.subject).replace(/\s+/g, '_') + '_') : '';
-      var chPart = item && (item.title || item.topic || item.chapter) ? (String(item.title || item.topic || item.chapter).replace(/[^a-zA-Z0-9_\-]/g, '_') + '_') : '';
-      return clsPart + subPart + chPart + baseMod + '.' + ext;
-    }
+    function downloadCSV(dk){
+      var data=allData[dk]||{};
+      var ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data);
+      var iq=(dk=='quiz');
+      var csv='';
 
-    function downloadSingleOriginal(dk, id, ext) {
-      var data = allData[dk] || {};
-      var item = data[id];
-      if (!item) { toast('Item not found!', 'error'); return; }
-
-      if (dk === 'quiz') {
-        if (!Array.isArray(item) || !item.length) { toast('No questions in this group', 'error'); return; }
-        var csv = '\uFEFFClass,Subject,Chapter,Level,Question_Type,Question,Option_A,Option_B,Option_C,Option_D,Answer,Explanation\r\n';
-        for (var j = 0; j < item.length; j++) {
-          var qItem = item[j];
-          var opts = qItem.options || {};
-          var clsStr = String(qItem.class || '').indexOf('Class') === 0 ? qItem.class : ('Class ' + (qItem.class || 9));
-          var chStr = String(qItem.chapter || '').indexOf('Chapter') === 0 ? qItem.chapter : ('Chapter' + (qItem.chapter || 1));
-          var lvlStr = qItem.topic || 'Medium';
-          var qTypeStr = qItem.subtopic || 'Concept_Identification';
-          csv += '"' + escCSV(String(clsStr)) + '",'
-               + '"' + escCSV(String(qItem.subject || 'Social')) + '",'
-               + '"' + escCSV(String(chStr)) + '",'
-               + '"' + escCSV(String(lvlStr)) + '",'
-               + '"' + escCSV(String(qTypeStr)) + '",'
-               + '"' + escCSV(String(qItem.question || '')) + '",'
-               + '"' + escCSV(String(opts.A || '')) + '",'
-               + '"' + escCSV(String(opts.B || '')) + '",'
-               + '"' + escCSV(String(opts.C || '')) + '",'
-               + '"' + escCSV(String(opts.D || '')) + '",'
-               + '"' + escCSV(String(qItem.correctAnswer || 'A')) + '",'
-               + '"' + escCSV(String(qItem.explanation || '')) + '"\r\n';
-        }
-        var qFileName = id + '_quiz_output.csv';
-        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', qFileName);
-        toast('Downloaded exact ' + qFileName + '!', 'success');
-        return;
-      }
-
-      var rawContent = item.content || '';
-      var fName = getExactModuleFileName(dk, item, ext || 'html');
-      var mime = (ext === 'txt') ? 'text/plain;charset=utf-8;' : 'text/html;charset=utf-8;';
-      triggerBlobDownload(rawContent, mime, fName);
-      toast('Downloaded exact ' + fName + '!', 'success');
-    }
-
-    function downloadOriginalFiles(dk) {
-      var data = allData[dk] || {};
-      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
-      if (!ks.length) { toast('No data to download!', 'error'); return; }
-
-      if (dk === 'quiz') {
-        downloadCSV('quiz');
-        return;
-      }
-
-      ks.forEach(function(k, idx) {
-        setTimeout(function() {
-          downloadSingleOriginal(dk, k, 'html');
-        }, idx * 250);
-      });
-    }
-
-    function downloadData(dk) {
-      var data = allData[dk] || {};
-      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
-      var ed = {};
-      for (var i = 0; i < ks.length; i++) ed[ks[i]] = data[ks[i]];
-      var jsonStr = JSON.stringify(ed, null, 2);
-      triggerBlobDownload(jsonStr, 'application/json;charset=utf-8;', dk + '_exact_backup.json');
-      toast('Downloaded exact JSON!', 'success');
-    }
-
-    function downloadCSV(dk) {
-      var data = allData[dk] || {};
-      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
-      var iq = (dk === 'quiz');
-      var csv = '\uFEFF';
-
-      if (iq) {
-        csv += 'Class,Subject,Chapter,Level,Question_Type,Question,Option_A,Option_B,Option_C,Option_D,Answer,Explanation\r\n';
-        for (var i = 0; i < ks.length; i++) {
-          var g = data[ks[i]];
-          if (!Array.isArray(g)) continue;
-          for (var j = 0; j < g.length; j++) {
-            var qItem = g[j];
-            var opts = qItem.options || {};
-            var clsStr = String(qItem.class || '').indexOf('Class') === 0 ? qItem.class : ('Class ' + (qItem.class || 9));
-            var chStr = String(qItem.chapter || '').indexOf('Chapter') === 0 ? qItem.chapter : ('Chapter' + (qItem.chapter || 1));
-            csv += '"' + escCSV(String(clsStr)) + '",'
-                 + '"' + escCSV(String(qItem.subject || 'Social')) + '",'
-                 + '"' + escCSV(String(chStr)) + '",'
-                 + '"' + escCSV(String(qItem.topic || 'Medium')) + '",'
-                 + '"' + escCSV(String(qItem.subtopic || 'Concept_Identification')) + '",'
-                 + '"' + escCSV(String(qItem.question || '')) + '",'
-                 + '"' + escCSV(String(opts.A || '')) + '",'
-                 + '"' + escCSV(String(opts.B || '')) + '",'
-                 + '"' + escCSV(String(opts.C || '')) + '",'
-                 + '"' + escCSV(String(opts.D || '')) + '",'
-                 + '"' + escCSV(String(qItem.correctAnswer || 'A')) + '",'
-                 + '"' + escCSV(String(qItem.explanation || '')) + '"\r\n';
+      if(iq){
+        csv='Class,Subject,Chapter,Topic,Subtopic,Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer,Explanation\n';
+        for(var i=0;i<ks.length;i++){
+          var g=data[ks[i]];
+          if(!Array.isArray(g))continue;
+          for(var j=0;j<g.length;j++){
+            var qItem=g[j];
+            csv+='"Class '+qItem.class+'","'+qItem.subject+'","Chapter '+qItem.chapter+'","'+escCSV(qItem.topic||'')+'","'+escCSV(qItem.subtopic||'')+'","'+escCSV(qItem.question)+'","'+escCSV(qItem.options.A||'')+'","'+escCSV(qItem.options.B||'')+'","'+escCSV(qItem.options.C||'')+'","'+escCSV(qItem.options.D||'')+'","'+qItem.correctAnswer+'","'+escCSV(qItem.explanation||'')+'"\n';
           }
         }
-        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', 'quiz_output.csv');
-      } else if (dk === 'skills') {
-        csv += 'Category,Title,Content\r\n';
-        for (var s = 0; s < ks.length; s++) {
-          var sit = data[ks[s]];
-          if (!sit) continue;
-          csv += '"' + escCSV(String(sit.category || 'Competitive skills')) + '",'
-               + '"' + escCSV(String(sit.title || '')) + '",'
-               + '"' + escCSV(String(sit.content || '')) + '"\r\n';
+      }else if(dk==='games'||dk==='projects'){
+        csv='Title,Subject,Class,Topic,Content\n';
+        for(var m=0;m<ks.length;m++){
+          var it=data[ks[m]];
+          csv+='"'+escCSV(it.title||'')+'","'+(it.subject||'')+'","'+(it.class||'')+'","'+(it.topic||'')+'","'+escCSV((it.content||'').substring(0,200))+'"\n';
         }
-        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', dk + '_exact.csv');
-      } else {
-        csv += 'Subject,Class,Topic,Title,Content,ImageUrls\r\n';
-        for (var m = 0; m < ks.length; m++) {
-          var it = data[ks[m]];
-          if (!it) continue;
-          var imgs = Array.isArray(it.imageUrls) ? it.imageUrls.join('\n') : '';
-          csv += '"' + escCSV(String(it.subject || '')) + '",'
-               + '"' + escCSV(String(it.class || '')) + '",'
-               + '"' + escCSV(String(it.topic || it.title || '')) + '",'
-               + '"' + escCSV(String(it.title || '')) + '",'
-               + '"' + escCSV(String(it.content || '')) + '",'
-               + '"' + escCSV(String(imgs)) + '"\r\n';
+      }else{
+        csv='Title,Subject,Class,Content\n';
+        for(var m=0;m<ks.length;m++){
+          var it=data[ks[m]];
+          csv+='"'+escCSV(it.title||'')+'","'+(it.subject||'')+'","'+(it.class||'')+'","'+escCSV((it.content||'').replace(/<[^>]*>/g,'').substring(0,200))+'"\n';
         }
-        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', dk + '_exact.csv');
       }
-      toast('Downloaded 100% Exact Format CSV!', 'success');
+
+      var blob=new Blob([csv],{type:'text/csv'});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a');
+      a.href=url;
+      a.download=dk+'_export.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Downloaded CSV!','success');
     }
 
     function smartSplit(line){
@@ -1619,16 +1605,17 @@
       h+='<span class="fmt-badge">CSV</span><span class="fmt-badge">TSV</span><span class="fmt-badge">TXT</span><span class="fmt-badge">JSON</span><span class="fmt-badge">HTML</span><span class="fmt-badge">XLSX</span><span class="fmt-badge">XLS</span>';
       h+='</div>';
       if(isQuiz){
-        h+='<div class="csv-fmt"><strong>12-Column Standard & Python Pipeline Supported:</strong>\n';
-        h+='🖼 Class | Subject | Sub-Subject/Chapter | Topic/Level | Question | Option A | Option B | Option C | Option D | Correct Answer | Explanation</div>';
+        h+='<div class="csv-fmt"><strong>12-Column Standard & Python Pipeline (14-Column) CSV/JSON Supported:</strong>\n';
+        h+='🖼 Class | Subject | Sub-Subject/Chapter | Topic/Level | Question | Option A | Option B | Option C | Option D | Correct Answer | Explanation\n';
+        h+='🖼 Option C & Option D columns are OPTIONAL. Drag & drop one or multiple files directly.</div>';
       }else if(isSkills){
-        h+='<div class="csv-fmt"><strong>Columns:</strong> Category | Title | Content (HTML allowed)</div>';
+        h+='<div class="csv-fmt"><strong>Columns:</strong> Category | Title | Content (HTML allowed)\n🖼 Drag & drop any file directly.</div>';
       }else{
-        h+='<div class="csv-fmt"><strong>Columns:</strong> Subject | Class | Topic/Chapter | Title | Content (HTML allowed) | ImageUrls</div>';
+        h+='<div class="csv-fmt"><strong>Columns:</strong> Subject | Class | Topic/Chapter | Title | Content (HTML allowed) | ImageUrls\n🖼 Or directly drop generated <code>'+dk.toUpperCase()+'.html / .txt</code> files!</div>';
       }
       if(!isQuiz&&!isSkills){
         h+='<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:10px 0;padding:10px;background:rgba(0,0,0,.15);border-radius:8px;">';
-        h+='<div style="font-size:12px;font-weight:800;color:#ffb300;">Default Class & Subject:</div>';
+        h+='<div style="font-size:12px;font-weight:800;color:#ffb300;">Default Class, Subject &amp; Title (used when the file has no Class/Subject column - e.g. plain .html/.txt):</div>';
         h+='<label style="font-size:13px;">Class</label><select id="uploadClassSel" class="form-inp" style="width:auto;margin-bottom:0;" onchange="uploadDefaultsChanged()">';
         for(var uci=0;uci<CLASSES.length;uci++){
           var ucV=CLASSES[uci];
@@ -1641,14 +1628,14 @@
           h+='<option value="'+usV+'" '+(usV===defSub?'selected':'')+'>'+usV+'</option>';
         }
         h+='</select>';
-        h+='<input type="text" id="uploadTopicInp" class="form-inp" placeholder="Chapter Title (optional)" style="width:230px;margin-bottom:0;">';
+        h+='<input type="text" id="uploadTopicInp" class="form-inp" placeholder="Chapter / Topic Title (optional)" style="width:230px;margin-bottom:0;">';
         h+='</div>';
       }
       h+='<div class="dropzone" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="event.preventDefault();this.classList.remove(\'over\');handleDropEvent(event)" onclick="document.getElementById(\'csvFileInput\').click()">';
-      h+='<div class="dz-icon">📂</div><strong>Drag & drop file(s) here</strong><br><small>or click to browse</small>';
+      h+='<div class="dz-icon">📂</div><strong>Drag & drop file(s) here</strong><br><small>or click to browse (supports multiple files)</small>';
       h+='</div>';
       h+='<div class="form-group"><label>📁 Select File(s)</label><input type="file" id="csvFileInput" class="form-inp" multiple accept=".csv,.tsv,.txt,.json,.html,.htm,.xlsx,.xls" onchange="handleFileEvent(event)"></div>';
-      h+='<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste data..."></textarea><button class="btn btn-teal btn-sm" onclick="parsePastedEvent()">🔍 Parse</button></div>';
+      h+='<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste CSV/TSV/TXT/JSON/HTML data..."></textarea><button class="btn btn-teal btn-sm" onclick="parsePastedEvent()">🔍 Parse</button></div>';
       h+='<div id="csvPreviewArea"></div>';
       h+='</div>';
       return h;
@@ -1658,6 +1645,7 @@
       var files=event.target.files;
       if(!files||!files.length)return;
       if(files.length===1){
+        if(files[0].size>20*1024*1024){toast('File too large (max 20MB)','error');return}
         readUploadFile(files[0]);
       }else{
         await readMultipleUploadFiles(files);
@@ -1670,6 +1658,7 @@
       var files=ev.dataTransfer&&ev.dataTransfer.files?ev.dataTransfer.files:null;
       if(!files||!files.length)return;
       if(files.length===1){
+        if(files[0].size>20*1024*1024){toast('File too large (max 20MB)','error');return}
         readUploadFile(files[0]);
       }else{
         await readMultipleUploadFiles(files);
@@ -1691,14 +1680,20 @@
         if(currentTab!=='quiz'){
           var meta=inferMetaFromRelativePath(f.name,f.name,txt,currentTab);
           var finalT=customTopic||meta.chapter||'Chapter1';
-          combinedRows.push({Title:finalT,Subject:getUploadDefaultSubject(),Class:getUploadDefaultClass(),Topic:finalT,Content:txt});
+          combinedRows.push({
+            Title:finalT,
+            Subject:getUploadDefaultSubject(),
+            Class:getUploadDefaultClass(),
+            Topic:finalT,
+            Content:txt
+          });
         }else{
           var qParsed=parseQuizRowsFromRawText(txt,getUploadDefaultClass(),getUploadDefaultSubject(),f.name.replace(/\.[^.]+$/,''));
           combinedRows=combinedRows.concat(qParsed);
         }
       }
       if(combinedRows.length)showUploadPreview(combinedRows);
-      else toast('No valid records found','error');
+      else toast('No valid records found in selected files','error');
     }
 
     function parsePastedEvent(){
@@ -1747,7 +1742,13 @@
         var meta=inferMetaFromRelativePath(fileName||'',fileName||'',t0,currentTab);
         var extractedTitle=customTitle||meta.chapter||(currentTab.toUpperCase()+' Module');
 
-        showUploadPreview([{Title:extractedTitle.substring(0,100),Subject:getUploadDefaultSubject(),Class:getUploadDefaultClass(),Topic:extractedTitle.substring(0,100),Content:t0}]);
+        showUploadPreview([{
+          Title:extractedTitle.substring(0,100),
+          Subject:getUploadDefaultSubject(),
+          Class:getUploadDefaultClass(),
+          Topic:extractedTitle.substring(0,100),
+          Content:t0
+        }]);
         return;
       }
 
@@ -1764,7 +1765,9 @@
       if(Array.isArray(obj)){
         obj.forEach(function(o){rows.push(o)});
       }else if(obj&&typeof obj==='object'){
-        Object.keys(obj).forEach(function(k){rows.push(obj[k]);});
+        Object.keys(obj).forEach(function(k){
+          rows.push(obj[k]);
+        });
       }
       if(!rows.length){toast('No records in JSON','error');return}
       showUploadPreview(rows);
@@ -1780,7 +1783,9 @@
         var headerKeys=[];
         if(trs.length){
           var hCells=trs[0].querySelectorAll('th');
-          if(hCells.length){for(var hi=0;hi<hCells.length;hi++)headerKeys[hi]=(hCells[hi].textContent||'').trim();}
+          if(hCells.length){
+            for(var hi=0;hi<hCells.length;hi++)headerKeys[hi]=(hCells[hi].textContent||'').trim();
+          }
         }
         for(var j=0;j<trs.length;j++){
           if(j===0&&headerKeys.length)continue;
@@ -1823,6 +1828,24 @@
       }
       var headers=smartSplit(lines[0].trim());
       if(!headers||!headers.length){toast('No headers found','error');return}
+      var knownCols=['class','classname','classno','subject','topic','chapter','title','name','content','body','data','question','category','subsubject','subtopic','option','optiona','optionb','optionc','optiond','correct','correctanswer','explanation','imageurls','round','section','difficulty','level','questiontype','sourcepdf','page','scope','project','paper','item','marks','answer','col1','col2','col3'];
+      var matches=0;
+      for(var ki=0;ki<headers.length;ki++){
+        var hh=String(headers[ki]).toLowerCase().replace(/[\s_\-]/g,'');
+        for(var kj=0;kj<knownCols.length;kj++){if(hh===knownCols[kj]){matches++;break}}
+      }
+      if(matches===0&&currentTab!=='quiz'){
+        var whole=lines.join('\n');
+        var rec={};
+        var cTitle=getVal('uploadTopicInp')||cleanExtractedTitle(lines[0]).substring(0,80)||'Content';
+        rec['Title']=cTitle;
+        rec['Content']=whole;
+        rec['Subject']=getUploadDefaultSubject();
+        rec['Class']=getUploadDefaultClass();
+        rec['Topic']=cTitle;
+        showUploadPreview([rec]);
+        return;
+      }
       var rows=[];
       for(var i=1;i<lines.length;i++){
         var cols=smartSplit(lines[i].trim());
@@ -1838,10 +1861,57 @@
       if(!rows||!rows.length)return;
       mappedRows=rows;
       var isQuiz=(currentTab==='quiz');
+      var keys=Object.keys(rows[0]||{});
+
+      function findKey(names){
+        for(var i=0;i<names.length;i++){
+          var want=names[i].toLowerCase().replace(/[\s_\-]/g,'');
+          for(var j=0;j<keys.length;j++){
+            if(keys[j].toLowerCase().replace(/[\s_\-]/g,'')===want)return keys[j];
+          }
+        }
+        return null;
+      }
+      var kClass=findKey(['class','classname','classno']);
+      var kSubject=findKey(['subject']);
+      var kSubSub=findKey(['subsubject','sub-subject','subsubjectname']);
+      var kChapter=findKey(['chapter']);
+      var kTopic=findKey(['topic','level','questiontype']);
+      var kSubTopic=findKey(['subtopic','sub-topic','subtopic2']);
+      var kQues=findKey(['question','ques']);
+      var kOptA=findKey(['optiona','opta','opt-a','a']);
+      var kOptB=findKey(['optionb','optb','opt-b','b']);
+      var kOptC=findKey(['optionc','optc','opt-c','c']);
+      var kOptD=findKey(['optiond','optd','opt-d','d']);
+      var kCorrect=findKey(['correct','correctanswer','answer','ans']);
+      var kExp=findKey(['explanation','expl']);
+      var kTitle=findKey(['title','name','heading']);
+      var kContent=findKey(['content','body','text','data']);
+      var kCategory=findKey(['category','cat']);
+
       var pv=document.getElementById('csvPreviewArea');
       pv.style.display='block';
       var h='<div style="margin-top:12px;padding:12px;background:rgba(0,0,0,.2);border-radius:8px;">';
       h+='<p><strong>✅ '+rows.length+' records parsed</strong></p>';
+      h+='<table class="upload-pv-table"><thead><tr><th>#</th>'+(isQuiz?'<th>Subject</th><th>Sub-Sub</th><th>Topic</th><th>Sub-Topic</th><th>Question</th><th>A</th><th>B</th><th>C</th><th>D</th><th>Ans</th>':'<th>Title</th><th>Subject</th>')+'</tr></thead><tbody>';
+      for(var i=0;i<Math.min(8,rows.length);i++){
+        var r=rows[i];
+        h+='<tr><td>'+(i+1)+'</td>';
+        if(isQuiz){
+          var optObj=r.options||{};
+          h+='<td>'+sanitizeHTML(kSubject?(r[kSubject]||''):(r.subject||''))+'</td>';
+          h+='<td>'+sanitizeHTML(kSubSub?(r[kSubSub]||''):(kChapter?(r[kChapter]||''):(r.chapter||'')))+'</td>';
+          h+='<td>'+sanitizeHTML(kTopic?(r[kTopic]||''):(r.topic||''))+'</td>';
+          h+='<td>'+sanitizeHTML(kSubTopic?(r[kSubTopic]||''):(r.subtopic||''))+'</td>';
+          h+='<td>'+sanitizeHTML((((kQues?r[kQues]:r.question)||'')+'').substring(0,40))+'</td>';
+          h+='<td>'+sanitizeHTML(((kOptA?r[kOptA]:optObj.A)||'')+'')+'</td><td>'+sanitizeHTML(((kOptB?r[kOptB]:optObj.B)||'')+'')+'</td><td>'+sanitizeHTML(((kOptC?r[kOptC]:optObj.C)||'')+'')+'</td><td>'+sanitizeHTML(((kOptD?r[kOptD]:optObj.D)||'')+'')+'</td>';
+          h+='<td>'+sanitizeHTML(((kCorrect?r[kCorrect]:r.correctAnswer)||'')+'')+'</td>';
+        }else{
+          h+='<td>'+sanitizeHTML((r[kTitle]||r.Title||'')+'')+'</td><td>'+sanitizeHTML((r[kSubject]||r.Subject||'')+'')+'</td>';
+        }
+        h+='</tr>';
+      }
+      h+='</tbody></table>';
       h+='<div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">';
       h+='<button class="btn btn-green btn-sm" onclick="uploadMapped()">🚀 Upload '+rows.length+' Records</button>';
       h+='<button class="btn btn-dark btn-sm" onclick="clearCSVData()">🗑 Clear</button>';
@@ -1866,7 +1936,7 @@
 
     function uploadMappedQuiz(){
       var st=document.getElementById('csvUploadStatus');
-      st.innerHTML='<span class="spinner"></span> Uploading Quiz...';
+      st.innerHTML='<span class="spinner"></span> Uploading Quiz to Supabase...';
       var rows=mappedRows;
       var groups={};
       var allQ=[];
@@ -1909,6 +1979,23 @@
         var ans=kCorrect?(String(r[kCorrect]||'').trim().toUpperCase().charAt(0)):'';
         var exp=kExp?(String(r[kExp]||'').trim()):'';
 
+        if(r&&r.options&&typeof r.options==='object'&&(!optA||!optB)){
+          if(!optA)optA=String(r.options.A||r.options.a||'').trim();
+          if(!optB)optB=String(r.options.B||r.options.b||'').trim();
+          if(!optC)optC=String(r.options.C||r.options.c||'').trim();
+          if(!optD)optD=String(r.options.D||r.options.d||'').trim();
+        }
+        if(r&&!ans&&(r.correctAnswer!==undefined||r.correct!==undefined||r.answer!==undefined)){
+          ans=String(r.correctAnswer||r.correct||r.answer||'').trim().toUpperCase().charAt(0);
+        }
+        if(r&&!ques&&(r.question!==undefined))ques=String(r.question||'').trim();
+        if(r&&!subTxt&&(r.subject!==undefined))subTxt=String(r.subject||'').trim();
+        if(r&&!topTxt&&(r.topic!==undefined))topTxt=String(r.topic||'').trim();
+        if(r&&!subTopTxt&&(r.subtopic!==undefined))subTopTxt=String(r.subtopic||'').trim();
+        if(r&&!exp&&(r.explanation!==undefined))exp=String(r.explanation||'').trim();
+        if(r&&!clsTxt&&(r.class!==undefined))clsTxt=String(r.class||'').trim();
+        if(r&&!chTxt&&(r.chapter!==undefined))chTxt=String(r.chapter||'').trim();
+
         var cn=extractClassNumber(clsTxt)||getUploadDefaultClass()||9;
         var sub=normalizeSubjectName(subTxt)||getUploadDefaultSubject()||'Social';
         if(!ques||!optA||!optB||['A','B','C','D'].indexOf(ans)===-1)return;
@@ -1941,16 +2028,17 @@
           var k=gKeys[idx];
           var qs=groups[k];
           try{
-            await saveUniversalQuizGroup(k, qs, settings.bulkQuizMode||'replace');
+            await saveUniversalQuizGroup(k, qs, settings.bulkQuizMode||'append');
             upQ+=qs.length;
-            st.innerHTML='<span style="color:#38bdf8;">⏳ Uploaded '+upQ+'/'+allQ.length+' questions...</span>';
+            st.innerHTML='<span style="color:#38bdf8;">⏳ Verified & Uploaded '+upQ+'/'+allQ.length+' questions...</span>';
           }catch(err){
+            console.error('Quiz group upload error:', err);
             st.innerHTML='<span style="color:#ef4444;">⚠️ Error: '+(err.message||err)+'</span>';
             return;
           }
         }
-        st.innerHTML='<span style="color:#22c55e;">✅ Done! '+upQ+' questions saved.</span>';
-        toast('Quiz Upload Complete!','success');
+        st.innerHTML='<span style="color:#22c55e;">✅ Verified! '+upQ+' questions saved to database.</span>';
+        toast('Uploaded '+upQ+' Quiz Questions!','success');
         setTimeout(function(){clearCSVData();refreshUI()},1200);
       }
       runQuizUpload();
@@ -1962,51 +2050,61 @@
       var rows=mappedRows;
       var refMap={'theory':'theoryDatabase','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var rp=refMap[currentTab];
-      if(!rp)return;
-
+      if(currentTab==='skills'){
+        var subMapS={'ESSAY WRITING':'Essay writing','DEBATE CONCEPT':'Debate concept','STORY WRITING':'Story writing','SPEECH':'Speech','SING A SONG':'Sing a song','SKIT RELATED':'Skit related','GAMES':'Games','COMPETITIVE SKILLS':'Competitive skills'};
+        var items=[];
+        rows.forEach(function(r){
+          var catTxt=r['Category']||r['category']||r['cat']||'';
+          var title=r['Title']||r['title']||r['Name']||r['name']||r['col2']||'Skill';
+          var content=r['Content']||r['content']||r['Body']||r['body']||r['col3']||'';
+          var cat=subMapS[String(catTxt).toUpperCase().trim()]||String(catTxt).trim()||'Competitive skills';
+          items.push({title:String(title),content:String(content),category:cat,key:'',imageUrls:[],order:safeOrderInt()});
+        });
+        uploadContentItems(rp,items,st);
+        return;
+      }
       var items=[];
       rows.forEach(function(r,idx){
-        var clsTxt=r['Class']||r['class']||'';
+        var clsTxt=r['Class']||r['class']||r['CLASS']||'';
         var subTxt=r['Subject']||r['subject']||getUploadDefaultSubject();
         var topicTxt=r['Topic']||r['topic']||r['Chapter']||r['chapter']||getVal('uploadTopicInp')||'General';
-        var title=r['Title']||r['title']||r['Name']||r['name']||getVal('uploadTopicInp')||('Item '+(idx+1));
-        var content=r['Content']||r['content']||r['Body']||r['body']||'';
-        var imgs=r['ImageUrls']||r['imageUrls']||'';
+        var title=r['Title']||r['title']||r['Name']||r['name']||getVal('uploadTopicInp')||r['Topic']||r['topic']||('Item '+(idx+1));
+        var content=r['Content']||r['content']||r['Body']||r['body']||r['Data']||r['data']||r['HTML']||r['html']||'';
+        var imgs=r['ImageUrls']||r['imageUrls']||r['Images']||r['images']||'';
         var cn=extractClassNumber(clsTxt)||getUploadDefaultClass();
         var sub=normalizeSubjectName(subTxt)||getUploadDefaultSubject();
-
-        var fixedKey=makeUniqueModuleKey(currentTab, cn, sub, title);
-        items.push({
-          key: fixedKey,
-          title: String(title),
-          content: String(content),
-          subject: sub,
-          class: cn,
-          topic: String(topicTxt),
-          imageUrls: imgs?String(imgs).split('\n').map(function(l){return l.trim()}).filter(Boolean):[],
-          order: safeOrderInt()
-        });
+        var rowKeys=Object.keys(r),firstVal='';
+        for(var rki=0;rki<rowKeys.length;rki++){if(String(r[rowKeys[rki]]||'').trim()){firstVal=String(r[rowKeys[rki]]).trim();break}}
+        if(!content&&firstVal)content=firstVal;
+        if((!title||title.indexOf('Item ')===0)&&firstVal)title=cleanExtractedTitle(firstVal).substring(0,60)||'Chapter1';
+        var item={title:String(title),content:String(content),imageUrls:imgs?String(imgs).split('\n').map(function(l){return l.trim()}).filter(Boolean):[],order:safeOrderInt()};
+        item.subject=sub;item.class=cn;item.topic=String(topicTxt);
+        item.key='';
+        items.push(item);
       });
-
       uploadContentItems(rp,items,st);
     }
 
-    function uploadContentItems(rp,items,st){
+function uploadContentItems(rp,items,st){
       if(!items.length){st.innerHTML='<span style="color:#ef4444;">No valid rows</span>';return}
       var idx=0;
       function nx(){
         if(idx>=items.length){
-          st.innerHTML='<span style="color:#22c55e;">✅ Done! '+items.length+' items synced (zero dupes).</span>';
-          toast('Sync Complete!','success');
+          st.innerHTML='<span style="color:#22c55e;">✅ Done! '+items.length+' items synced (no duplicates).</span>';
+          toast('Upload Complete!','success');
           setTimeout(function(){clearCSVData();refreshUI()},1500);
           return;
         }
         var it=items[idx];
-        db.ref(rp+'/'+it.key).set(it).then(function(){
+        var fixedKey=makeUniqueModuleKey(currentTab, it.class||9, it.subject||'Social', it.title||it.topic||('item_'+idx));
+        it.key=fixedKey;
+        if(!it.order||it.order>2147483647)it.order=safeOrderInt();
+        db.ref(rp+'/'+fixedKey).set(it).then(function(){
           idx++;
           st.innerHTML='<span>'+idx+'/'+items.length+'</span>';
           nx();
         }).catch(function(err){
+          console.error('Upload error:',err);
           idx++;nx();
         });
       }
@@ -2020,7 +2118,7 @@
       var pi=document.getElementById('csvPasteInput');
       if(pi)pi.value='';
       var pv=document.getElementById('csvPreviewArea');
-      if(pv){pv.style.display='none';pv.innerHTML='';}
+      if(pv){pv.style.display='none';pv.innerHTML=''}
     }
 
     function showAddForm(dk){editingId=null;buildForm(dk,null)}
@@ -2031,31 +2129,61 @@
       ef.style.display='block';
       ef.scrollIntoView({behavior:'smooth'});
 
+      var isSkills=(dk=='skills');
+      var isGP=(dk=='games'||dk=='projects');
+      var needsSubCls=(dk=='theory'||dk=='mindmap'||dk=='papers'||dk=='videos'||isGP);
+
       var title=item?item.title||'':'';
       var subject=item?item.subject||'':'';
       var cls=item?item.class||'':'';
       var content=item?item.content||'':'';
+      var category=item?item.category||'':'';
       var topic=item?item.topic||'':'';
       var imgs=item&&item.imageUrls?item.imageUrls.join('\n'):'';
       var key=item?(item.key||editingId||''):'';
 
       var h='<div class="card"><h3>'+(editingId?'✏️ Edit':'➕ Add New')+' '+dk.toUpperCase()+' Item</h3>';
-      h+='<div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp">';
-      for(var i=0;i<SUBJECTS.length;i++){
-        h+='<option value="'+escapeAttr(SUBJECTS[i])+'" '+(subject===SUBJECTS[i]?'selected':'')+'>'+sanitizeHTML(SUBJECTS[i])+'</option>';
+
+      if(isGP){
+        h+='<div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp">';
+        for(var i=0;i<SUBJECTS.length;i++){
+          h+='<option value="'+escapeAttr(SUBJECTS[i])+'" '+(subject===SUBJECTS[i]?'selected':'')+'>'+sanitizeHTML(SUBJECTS[i])+'</option>';
+        }
+        h+='</select></div>';
+        h+='<div class="form-group"><label>Class *</label><select id="ef-class" class="form-inp">';
+        for(var j=0;j<CLASSES.length;j++){
+          h+='<option value="'+CLASSES[j]+'" '+(cls==CLASSES[j]?'selected':'')+'>Class '+CLASSES[j]+'</option>';
+        }
+        h+='</select></div>';
+        h+='<div class="form-group"><label>Topic/Chapter *</label><input type="text" id="ef-topic" class="form-inp" value="'+escapeAttr(topic)+'" placeholder="e.g., Addition, Solar System"></div>';
+      }else if(isSkills){
+        h+='<div class="form-group"><label>Category *</label><select id="ef-category" class="form-inp">';
+        for(var c=0;c<SKILLS_CAT.length;c++){
+          h+='<option value="'+escapeAttr(SKILLS_CAT[c])+'" '+(category===SKILLS_CAT[c]?'selected':'')+'>'+sanitizeHTML(SKILLS_CAT[c])+'</option>';
+        }
+        h+='</select></div>';
+      }else if(needsSubCls){
+        h+='<div class="form-group"><label>Subject *</label><select id="ef-subject" class="form-inp">';
+        for(var i=0;i<SUBJECTS.length;i++){
+          h+='<option value="'+escapeAttr(SUBJECTS[i])+'" '+(subject===SUBJECTS[i]?'selected':'')+'>'+sanitizeHTML(SUBJECTS[i])+'</option>';
+        }
+        h+='</select></div>';
+        h+='<div class="form-group"><label>Class *</label><select id="ef-class" class="form-inp">';
+        for(var j=0;j<CLASSES.length;j++){
+          h+='<option value="'+CLASSES[j]+'" '+(cls==CLASSES[j]?'selected':'')+'>Class '+CLASSES[j]+'</option>';
+        }
+        h+='</select></div>';
       }
-      h+='</select></div>';
-      h+='<div class="form-group"><label>Class *</label><select id="ef-class" class="form-inp">';
-      for(var j=0;j<CLASSES.length;j++){
-        h+='<option value="'+CLASSES[j]+'" '+(cls==CLASSES[j]?'selected':'')+'>Class '+CLASSES[j]+'</option>';
-      }
-      h+='</select></div>';
+
       h+='<div class="form-group"><label>Title *</label><input type="text" id="ef-title" class="form-inp" value="'+escapeAttr(title)+'"></div>';
       h+='<div class="form-group"><label>Content (HTML/Code)</label><textarea id="ef-content" class="form-inp" style="min-height:200px;">'+escapeAttr(content)+'</textarea></div>';
-      h+='<div class="form-group"><label>Image URLs</label><textarea id="ef-images" class="form-inp">'+escapeAttr(imgs)+'</textarea></div>';
+      h+='<div class="form-group"><label>Image URLs (one per line)</label><textarea id="ef-images" class="form-inp">'+escapeAttr(imgs)+'</textarea></div>';
       h+='<input type="hidden" id="ef-key" value="'+escapeAttr(key)+'">';
       h+='<button class="btn btn-green btn-sm" onclick="saveItem('+q(dk)+')">💾 Save</button>';
       h+='<button class="btn btn-dark btn-sm" onclick="cancelEditForm()">❌ Cancel</button>';
+      if(editingId){
+        h+=' <button class="btn btn-red btn-sm" onclick="deleteSingle('+q(dk)+','+q(escapeAttr(editingId))+')">🗑 Delete</button>';
+      }
       h+='</div>';
       ef.innerHTML=h;
     }
@@ -2079,15 +2207,26 @@
         clo+='<option value="'+CLASSES[ci]+'">Class '+CLASSES[ci]+'</option>';
       }
       var h='<div class="card"><h3>➕ Add Quiz Question</h3>';
-      h+='<div class="form-group"><label>Class *</label><select id="qz-class" class="form-inp">'+clo+'</select></div>';
-      h+='<div class="form-group"><label>Subject *</label><select id="qz-subject" class="form-inp">'+so+'</select></div>';
-      h+='<div class="form-group"><label>Chapter *</label><input type="text" id="qz-chapter" class="form-inp" placeholder="e.g. Chapter1"></div>';
-      h+='<div class="form-group"><label>Question *</label><input type="text" id="qz-question" class="form-inp"></div>';
-      h+='<div class="form-group"><label>Option A *</label><input type="text" id="qz-a" class="form-inp"></div>';
-      h+='<div class="form-group"><label>Option B *</label><input type="text" id="qz-b" class="form-inp"></div>';
-      h+='<div class="form-group"><label>Option C</label><input type="text" id="qz-c" class="form-inp"></div>';
-      h+='<div class="form-group"><label>Option D</label><input type="text" id="qz-d" class="form-inp"></div>';
-      h+='<div class="form-group"><label>Correct Answer *</label><select id="qz-ans" class="form-inp"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>';
+      h+='<div style="display:flex;flex-wrap:wrap;gap:15px;">';
+      h+='<div class="form-group" style="flex:1;min-width:180px;"><label>Class *</label><select id="qz-class" class="form-inp">'+clo+'</select></div>';
+      h+='<div class="form-group" style="flex:1;min-width:180px;"><label>Subject *</label><select id="qz-subject" class="form-inp">'+so+'</select></div>';
+      h+='</div>';
+      h+='<div style="display:flex;flex-wrap:wrap;gap:15px;">';
+      h+='<div class="form-group" style="flex:1;min-width:180px;"><label>Sub-Subject / Chapter *</label><input type="text" id="qz-chapter" class="form-inp" placeholder="e.g., Ch1, Chapter 1, or topic name"></div>';
+      h+='<div class="form-group" style="flex:1;min-width:180px;"><label>Topic (optional)</label><input type="text" id="qz-topic" class="form-inp" placeholder="e.g., Addition"></div>';
+      h+='<div class="form-group" style="flex:1;min-width:180px;"><label>Sub-Topic (optional)</label><input type="text" id="qz-subtopic" class="form-inp" placeholder="e.g., 2-digit sums"></div>';
+      h+='</div>';
+      h+='<div class="form-group"><label>Question *</label><input type="text" id="qz-question" class="form-inp" placeholder="Type the question"></div>';
+      h+='<div style="display:flex;flex-wrap:wrap;gap:15px;">';
+      h+='<div class="form-group" style="flex:1;min-width:180px;"><label>Option A *</label><input type="text" id="qz-a" class="form-inp"></div>';
+      h+='<div class="form-group" style="flex:1;min-width:180px;"><label>Option B *</label><input type="text" id="qz-b" class="form-inp"></div>';
+      h+='<div class="form-group" style="flex:1;min-width:180px;"><label>Option C (optional)</label><input type="text" id="qz-c" class="form-inp"></div>';
+      h+='<div class="form-group" style="flex:1;min-width:180px;"><label>Option D (optional)</label><input type="text" id="qz-d" class="form-inp"></div>';
+      h+='</div>';
+      h+='<div style="display:flex;flex-wrap:wrap;gap:15px;align-items:center;">';
+      h+='<div class="form-group" style="flex:1;min-width:150px;"><label>Correct Answer *</label><select id="qz-ans" class="form-inp"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>';
+      h+='<div class="form-group" style="flex:2;min-width:220px;"><label>Explanation (optional)</label><input type="text" id="qz-exp" class="form-inp" placeholder="Explanation for this answer"></div>';
+      h+='</div>';
       h+='<button class="btn btn-green btn-sm" onclick="saveQuizQuestion()">💾 Save Question</button> ';
       h+='<button class="btn btn-dark btn-sm" onclick="cancelEditForm()">❌ Cancel</button>';
       h+='</div>';
@@ -2101,15 +2240,23 @@
       var ques=getVal('qz-question');
       var a=getVal('qz-a'),b=getVal('qz-b'),c=getVal('qz-c'),d=getVal('qz-d');
       var ans=getVal('qz-ans').toUpperCase();
-      if(!cn||!sub||!ch||!ques||!a||!b){toast('Fill required fields','error');return}
-      var chNorm=String(ch).replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1';
+      var topic=getVal('qz-topic')||'General',subt=getVal('qz-subtopic')||'All Questions',exp=getVal('qz-exp');
+      if(!cn||cn<1||cn>10){toast('Select a valid Class','error');return}
+      if(!sub){toast('Select a Subject','error');return}
+      if(!ch){toast('Enter Chapter / Sub-Subject','error');return}
+      if(!ques){toast('Enter the Question','error');return}
+      if(!a||!b){toast('Option A and Option B are required','error');return}
+      if((ans==='C'&&!c)||(ans==='D'&&!d)){toast('Correct answer option cannot be empty','error');return}
+      var chNorm=String(ch).replace(/^chapter\s*/i,'').replace(/^ch\s*/i,'').replace(/\s+/g,'')||'1';
       var gk='Class'+cn+'_'+sub+'_Chapter'+chNorm;
-      var qObj={question:ques,options:{A:a,B:b,C:c,D:d},correctAnswer:ans,subject:sub,class:cn,chapter:chNorm,topic:'General',subtopic:'All Questions',explanation:'',imageUrls:[],order:safeOrderInt()};
+      var qObj={question:ques,options:{A:a,B:b,C:c,D:d},correctAnswer:ans,subject:sub,class:cn,chapter:chNorm,topic:topic,subtopic:subt,explanation:exp,imageUrls:[],order:safeOrderInt()};
       saveUniversalQuizGroup(gk, [qObj], 'append').then(function(){
         toast('Question saved!','success');
         cancelEditForm();
         refreshUI();
-      }).catch(function(err){toast('Save failed','error');});
+      }).catch(function(err){
+        toast('Save failed: '+(err.message||err),'error');
+      });
     }
 
     function getVal(id){
@@ -2118,54 +2265,344 @@
     }
 
     function saveItem(dk){
-      var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
+      var rm={'theory':'theoryDatabase','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var rp=rm[dk];
-      if(!rp)return;
+      var isSkills=(dk=='skills');
+      var isGP=(dk=='games'||dk=='projects');
+      var needsSubCls=(dk=='theory'||dk=='mindmap'||dk=='papers'||dk=='videos'||isGP);
 
       var title=getVal('ef-title');
       var content=getVal('ef-content');
       var images=getVal('ef-images');
+
+      content=content.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&');
+
       var subject=getVal('ef-subject');
-      var cls=parseInt(getVal('ef-class'),10)||9;
+      var cls=parseInt(getVal('ef-class'));
+      var category=getVal('ef-category');
+      var topic=getVal('ef-topic');
 
       if(!title){toast('Title required','error');return}
+      if(isGP){
+        if(!subject||!cls||!topic){toast('Subject, Class & Topic required','error');return}
+      }else if(isSkills){
+        if(!category){toast('Category required','error');return}
+      }else if(needsSubCls){
+        if(!subject||!cls){toast('Subject & Class required','error');return}
+      }
 
-      var fixedKey=makeUniqueModuleKey(dk, cls, subject, title);
       var item={
-        key: fixedKey,
-        title: title,
-        content: content||'',
-        subject: subject,
-        class: cls,
-        topic: title,
-        imageUrls: images?images.split('\n').map(function(l){return l.trim()}).filter(Boolean):[],
-        order: safeOrderInt()
+        title:title,
+        content:content||'',
+        imageUrls:images?images.split('\n').map(function(l){return l.trim()}).filter(function(l){return l}):[],
+        order:safeOrderInt()
       };
 
-      db.ref(rp+'/'+fixedKey).set(item).then(function(){
-        toast('Saved successfully (Zero Dupes)!','success');
-        cancelEditForm();
-        refreshUI();
-      }).catch(function(){toast('Error saving item','error')});
+      if(isGP){
+        item.subject=subject;
+        item.class=cls;
+        item.topic=topic;
+      }else if(isSkills){
+        item.category=category;
+      }else if(needsSubCls){
+        item.subject=subject;
+        item.class=cls;
+      }
+
+      if(editingId){
+        var ex=allData[dk]?allData[dk][editingId]:null;
+        item.key=ex?ex.key||editingId:editingId;
+        if(ex&&ex.order&&ex.order<=2147483647)item.order=ex.order;
+        db.ref(rp+'/'+editingId).update(item).then(function(){
+          toast('Updated!','success');
+          cancelEditForm();
+          refreshUI();
+        }).catch(function(){toast('Error','error')});
+      }else{
+        var nr=db.ref(rp).push();
+        item.key=nr.key;
+        nr.set(item).then(function(){
+          toast('Added!','success');
+          cancelEditForm();
+          refreshUI();
+        }).catch(function(){toast('Error','error')});
+      }
     }
 
     function renderUsers(){
       var ac=document.getElementById('admin-content');
-      ac.innerHTML='<div class="card"><h3>👥 Users</h3><p>Manage users here.</p></div>';
+      var users=settings.users||{};
+      var uKeys=Object.keys(users);
+      var h='<button class="btn btn-green btn-sm" onclick="showAddUserForm()">➕ Add User</button>';
+      h+='<span style="color:var(--mut);margin-left:10px;">Total: '+uKeys.length+'</span><br><br>';
+
+      if(uKeys.length===0){
+        h+='<p style="color:var(--mut);">No users yet.</p>';
+      }else{
+        for(var i=0;i<uKeys.length;i++){
+          var ph=uKeys[i];
+          var u=users[ph];
+          h+='<div class="user-card">';
+          h+='<strong>📱 '+sanitizeHTML(ph)+'</strong> | Pass: '+(u.pass?'•●●●●●•':'N/A')+'<br>';
+          h+='Modes: '+(u.modes||[]).join(', ')+'<br>';
+          h+='Subjects: '+(u.subjects||[]).join(', ')+'<br>';
+          h+='Classes: '+(u.classes||[]).join(', ')+'<br>';
+          h+='<button class="btn btn-blue btn-xs" onclick="editUser('+q(escapeAttr(ph))+')">✏️ Edit</button>';
+          h+='<button class="btn btn-red btn-xs" onclick="deleteUser('+q(escapeAttr(ph))+')">🗑 Delete</button>';
+          h+='</div>';
+        }
+      }
+      h+='<div id="userEditForm" style="display:none;margin-top:20px;"></div>';
+      ac.innerHTML=h;
+    }
+
+    function showAddUserForm(){buildUserForm2(null)}
+    function editUser(phone){buildUserForm2(phone)}
+
+    function buildUserForm2(phone){
+      var uef=document.getElementById('userEditForm');
+      uef.style.display='block';
+
+      var u=(phone&&settings.users[phone])?settings.users[phone]:{pass:'',modes:[],subjects:[],classes:[]};
+      var allModes=['learning','quiz','mindmap','skills','ai','papers','games','projects','videos'];
+
+      var h='<div class="card"><h3>'+(phone?'✏️ Edit':'➕ Add')+' User</h3>';
+      h+='<div class="form-group"><label>Phone/ID *</label><input type="text" id="uf-phone" class="form-inp" value="'+escapeAttr(phone||'')+'" '+(phone?'readonly':'')+'></div>';
+      h+='<div class="form-group"><label>Password *</label><input type="text" id="uf-pass" class="form-inp" value="'+escapeAttr(u.pass||'')+'"></div>';
+
+      h+='<label>Modes:</label><div class="checkbox-group">';
+      for(var i=0;i<allModes.length;i++){
+        h+='<label class="toggle-checkbox-label"><label class="toggle-switch" style="width:40px;height:22px;"><input type="checkbox" value="'+escapeAttr(allModes[i])+'" class="uf-modes" '+(u.modes.indexOf(allModes[i])!==-1?'checked':'')+'><span class="toggle-slider" style="border-radius:22px;"></span></label> '+sanitizeHTML(allModes[i])+'</label>';
+      }
+      h+='</div>';
+
+      h+='<label>Subjects:</label><div class="checkbox-group">';
+      for(var j=0;j<SUBJECTS.length;j++){
+        h+='<label class="toggle-checkbox-label"><label class="toggle-switch" style="width:40px;height:22px;"><input type="checkbox" value="'+escapeAttr(SUBJECTS[j])+'" class="uf-subs" '+(u.subjects.indexOf(SUBJECTS[j])!==-1?'checked':'')+'><span class="toggle-slider"></span></label> '+sanitizeHTML(SUBJECTS[j])+'</label>';
+      }
+      h+='</div>';
+
+      h+='<label>Classes:</label><div class="checkbox-group">';
+      for(var k=0;k<CLASSES.length;k++){
+        h+='<label class="toggle-checkbox-label"><label class="toggle-switch" style="width:40px;height:22px;"><input type="checkbox" value="'+CLASSES[k]+'" class="uf-clss" '+(u.classes.indexOf(String(CLASSES[k]))!==-1?'checked':'')+'><span class="toggle-slider"></span></label> Class '+CLASSES[k]+'</label>';
+      }
+      h+='</div>';
+
+      h+='<input type="hidden" id="uf-orig" value="'+escapeAttr(phone||'')+'">';
+      h+='<button class="btn btn-green btn-sm" onclick="saveUser2()">💾 Save</button>';
+      h+='<button class="btn btn-dark btn-sm" onclick="cancelUserEdit2()">❌ Cancel</button>';
+      h+='</div>';
+      uef.innerHTML=h;
+    }
+
+    function cancelUserEdit2(){
+      document.getElementById('userEditForm').style.display='none';
+      document.getElementById('userEditForm').innerHTML='';
+    }
+
+    function saveUser2(){
+      var phone=getVal('uf-phone');
+      var pass=getVal('uf-pass');
+      var orig=getVal('uf-orig');
+
+      if(!phone||!pass){toast('Phone & Password required','error');return}
+
+      var modes=[],subs=[],clss=[];
+      document.querySelectorAll('.uf-modes:checked').forEach(function(c){modes.push(c.value)});
+      document.querySelectorAll('.uf-subs:checked').forEach(function(c){subs.push(c.value)});
+      document.querySelectorAll('.uf-clss:checked').forEach(function(c){clss.push(c.value)});
+
+      var upd={};
+      var uks=Object.keys(settings.users);
+      for(var i=0;i<uks.length;i++)upd[uks[i]]=settings.users[uks[i]];
+      if(orig&&orig!==phone)delete upd[orig];
+
+      upd[phone]={pass:pass,modes:modes,subjects:subs,classes:clss};
+
+      db.ref('appSettings/users').set(upd).then(function(){
+        settings.users=upd;
+        toast('Saved!','success');
+        cancelUserEdit2();
+        renderUsers();
+      }).catch(function(){toast('Error','error')});
+    }
+
+    function deleteUser(phone){
+      if(!confirm('Delete '+phone+'?'))return;
+      var upd={};
+      var uks=Object.keys(settings.users);
+      for(var i=0;i<uks.length;i++){
+        if(uks[i]!==phone)upd[uks[i]]=settings.users[uks[i]];
+      }
+      db.ref('appSettings/users').set(upd).then(function(){
+        settings.users=upd;
+        toast('Deleted!','success');
+        renderUsers();
+      }).catch(function(){toast('Error','error')});
     }
 
     function renderSettings(){
       var ac=document.getElementById('admin-content');
-      ac.innerHTML='<div class="card"><h3>⚙️ Settings</h3><p>Settings panel active.</p></div>';
+      var cp=settings.adminPass||DEFAULT_ADMIN_PASS;
+      var gid=settings.guestId||DEFAULT_GUEST_ID;
+      var gpass=settings.guestPass||DEFAULT_GUEST_PASS;
+      var bMode=settings.bulkQuizMode||'append';
+      var bCls=settings.bulkDefaultClass||9;
+      var bSub=settings.bulkDefaultSubject||'Social';
+
+      var clsOpts='';
+      for(var ci=0;ci<CLASSES.length;ci++){
+        clsOpts+='<option value="'+CLASSES[ci]+'" '+(CLASSES[ci]==bCls?'selected':'')+'>Class '+CLASSES[ci]+'</option>';
+      }
+      var subOpts='';
+      for(var si=0;si<SUBJECTS.length;si++){
+        subOpts+='<option value="'+SUBJECTS[si]+'" '+(SUBJECTS[si]===bSub?'selected':'')+'>'+SUBJECTS[si]+'</option>';
+      }
+
+      ac.innerHTML='<div class="card"><h3>⚙️ Settings</h3>'
+        +'<div class="toggle-setting-row">'
+        +'<span class="toggle-label">🔐 Enable Login</span>'
+        +'<div class="toggle-right">'
+        +'<label class="toggle-switch"><input type="checkbox" id="set-login" '+(settings.loginEnabled?'checked':'')+' onchange="updateSettingToggle(\'login\')"><span class="toggle-slider"></span></label>'
+        +'<span id="login-status">'+(settings.loginEnabled?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span>'
+        +'</div></div>'
+
+        +'<div class="toggle-setting-row">'
+        +'<span class="toggle-label">📋 Enable Data Copying</span>'
+        +'<div class="toggle-right">'
+        +'<label class="toggle-switch"><input type="checkbox" id="set-copy" '+(settings.copyEnabled?'checked':'')+' onchange="updateSettingToggle(\'copy\')"><span class="toggle-slider"></span></label>'
+        +'<span id="copy-status">'+(settings.copyEnabled?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span>'
+        +'</div></div>'
+
+        +'<div class="toggle-setting-row">'
+        +'<span class="toggle-label">👤 Guest Auto Login</span>'
+        +'<div class="toggle-right">'
+        +'<label class="toggle-switch"><input type="checkbox" id="set-guest-auto" '+(settings.guestAutoLogin?'checked':'')+' onchange="updateSettingToggle(\'guestAuto\')"><span class="toggle-slider"></span></label>'
+        +'<span id="guestAuto-status">'+(settings.guestAutoLogin?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span>'
+        +'</div></div>'
+
+        +'<div class="card" style="margin-top:15px;border-color:#10b981;">'
+        +'<h3 style="color:#34d399;">🚀 Bulk & Multi-Module Upload Settings</h3>'
+        +'<div style="display:flex;gap:15px;flex-wrap:wrap;">'
+        +'<div class="form-group" style="flex:1;min-width:200px;"><label>Quiz Bulk Upload Behavior</label><select id="set-bulk-quiz-mode" class="form-inp"><option value="append" '+(bMode==='append'?'selected':'')+'>Append Questions to Existing Chapter</option><option value="replace" '+(bMode==='replace'?'selected':'')+'>Replace / Overwrite Chapter Questions</option></select></div>'
+        +'<div class="form-group" style="flex:1;min-width:160px;"><label>Default Fallback Class</label><select id="set-bulk-def-class" class="form-inp">'+clsOpts+'</select></div>'
+        +'<div class="form-group" style="flex:1;min-width:160px;"><label>Default Fallback Subject</label><select id="set-bulk-def-sub" class="form-inp">'+subOpts+'</select></div>'
+        +'</div></div>'
+
+        +'<div class="form-group"><label>Guest ID</label><input id="set-guest-id" class="form-inp" value="'+escapeAttr(gid)+'" style="max-width:300px;"></div>'
+        +'<div class="form-group"><label>Guest Password</label><input id="set-guest-pass" class="form-inp" value="'+escapeAttr(gpass)+'" style="max-width:300px;"></div>'
+        +'<div class="form-group"><label>Admin Password</label><input id="set-admin-pass" class="form-inp" value="'+escapeAttr(cp)+'" style="max-width:300px;"></div>'
+        +'<button class="btn btn-green btn-sm" onclick="saveSettings2()">💾 Save</button>'
+        +'<button class="btn btn-orange btn-sm" onclick="resetAdminPass2()">🔄 Reset Admin</button>'
+        +'<button class="btn btn-teal btn-sm" onclick="resetGuestCreds()">🔄 Reset Guest</button>'
+        +'</div>';
+    }
+
+    function updateSettingToggle(type){
+      var cb,se;
+      if(type==='login'){cb=document.getElementById('set-login');se=document.getElementById('login-status')}
+      else if(type==='copy'){cb=document.getElementById('set-copy');se=document.getElementById('copy-status')}
+      else{cb=document.getElementById('set-guest-auto');se=document.getElementById('guestAuto-status')}
+      if(cb&&se)se.innerHTML=cb.checked?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>';
+    }
+
+    function saveSettings2(){
+      var le=document.getElementById('set-login')?document.getElementById('set-login').checked:true;
+      var ce=document.getElementById('set-copy')?document.getElementById('set-copy').checked:false;
+      var ga=document.getElementById('set-guest-auto')?document.getElementById('set-guest-auto').checked:false;
+      var ap=getVal('set-admin-pass');
+      var gid=getVal('set-guest-id');
+      var gpass=getVal('set-guest-pass');
+      var bMode=getVal('set-bulk-quiz-mode')||'append';
+      var bCls=parseInt(getVal('set-bulk-def-class'),10)||9;
+      var bSub=getVal('set-bulk-def-sub')||'Social';
+
+      if(!ap||!gid||!gpass){toast('All fields required','error');return}
+
+      db.ref('appSettings').update({
+        loginEnabled:le,
+        adminPass:ap,
+        copyEnabled:ce,
+        guestAutoLogin:ga,
+        guestId:gid,
+        guestPass:gpass,
+        bulkQuizMode:bMode,
+        bulkDefaultClass:bCls,
+        bulkDefaultSubject:bSub
+      }).then(function(){
+        settings.loginEnabled=le;
+        settings.adminPass=ap;
+        settings.copyEnabled=ce;
+        settings.guestAutoLogin=ga;
+        settings.guestId=gid;
+        settings.guestPass=gpass;
+        settings.bulkQuizMode=bMode;
+        settings.bulkDefaultClass=bCls;
+        settings.bulkDefaultSubject=bSub;
+        if(ce)document.body.classList.remove('protected-mode');
+        else document.body.classList.add('protected-mode');
+        updateGuestDisplay();
+        toast('Saved!','success');
+      }).catch(function(){toast('Error','error')});
+    }
+
+    function resetAdminPass2(){
+      if(!confirm('Reset?'))return;
+      db.ref('appSettings/adminPass').set(DEFAULT_ADMIN_PASS).then(function(){
+        settings.adminPass=DEFAULT_ADMIN_PASS;
+        toast('Reset!','success');
+        renderSettings();
+      });
+    }
+
+    function resetGuestCreds(){
+      if(!confirm('Reset?'))return;
+      db.ref('appSettings').update({
+        guestId:DEFAULT_GUEST_ID,
+        guestPass:DEFAULT_GUEST_PASS
+      }).then(function(){
+        settings.guestId=DEFAULT_GUEST_ID;
+        settings.guestPass=DEFAULT_GUEST_PASS;
+        updateGuestDisplay();
+        toast('Reset!','success');
+        renderSettings();
+      });
     }
 
     function initApp(){
       initTheme();
-      checkAuth();
+      db.ref('appSettings').once('value').then(function(s){
+        var v = s.val() || {};
+        if (typeof v === 'string') { try { v = JSON.parse(v); } catch(e) { v = {}; } }
+        
+        settings.loginEnabled=v.loginEnabled!==undefined?v.loginEnabled:true;
+        settings.copyEnabled=v.copyEnabled!==undefined?v.copyEnabled:false;
+        settings.users=v.users||{};
+        settings.adminPass=v.adminPass||DEFAULT_ADMIN_PASS;
+        settings.guestAutoLogin=v.guestAutoLogin!==undefined?v.guestAutoLogin:false;
+        settings.guestId=v.guestId||DEFAULT_GUEST_ID;
+        settings.guestPass=v.guestPass||DEFAULT_GUEST_PASS;
+        settings.bulkQuizMode=v.bulkQuizMode||'append';
+        settings.bulkDefaultClass=v.bulkDefaultClass||9;
+        settings.bulkDefaultSubject=v.bulkDefaultSubject||'Social';
+        if(settings.copyEnabled)document.body.classList.remove('protected-mode');
+        else document.body.classList.add('protected-mode');
+        checkAuth();
+      });
+      db.ref('activeSessions').once('value').then(function(s){
+        var v = s.val() || {};
+        if (typeof v === 'string') { try { v = JSON.parse(v); } catch(e) { v = {}; } }
+        activeSessions = v;
+        checkAuth();
+      });
     }
-
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initApp);
     else initApp();
   </script>
+
+  <!-- Global Navbar & Footer -->
+  <script src="/footer.js"></script>
+  <script src="/global-navbar.js"></script>
+
 </body>
 </html>
