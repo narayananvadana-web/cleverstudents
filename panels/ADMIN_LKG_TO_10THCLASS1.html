@@ -934,12 +934,24 @@
       return formattedQuestions;
     }
 
+// Generates a fixed, non-repeating ID for each Class + Subject + Module + Chapter
+    function makeUniqueModuleKey(mod, cls, sub, chap) {
+      var cleanChap = String(chap || 'Chapter1')
+        .toLowerCase()
+        .replace(/^chapter\s*/i, 'ch')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '') || 'ch1';
+      var cleanSub = String(sub || 'Social').replace(/[^a-zA-Z0-9]/g, '');
+      return 'Class' + cls + '_' + cleanSub + '_' + mod + '_' + cleanChap;
+    }
+
     function executeBulkMasterUpload(){
       if(!bulkMasterQueue.length)return;
       var btn=document.getElementById('btnStartBulkMaster');
       if(btn)btn.disabled=true;
       var stBox=document.getElementById('bulkMasterStatusBox');
-      var qMode=getVal('bulkQuizModeSel')||settings.bulkQuizMode||'append';
+      // Default to 'replace' so re-uploading never duplicates quiz questions
+      var qMode=getVal('bulkQuizModeSel')||'replace';
       var total=bulkMasterQueue.length;
       var refMap={'theory':'theoryDatabase','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
 
@@ -949,7 +961,7 @@
         for(var idx=0;idx<total;idx++){
           var item=bulkMasterQueue[idx];
           var pct=Math.round(((idx+1)/total)*100);
-          stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:'+pct+'%;">'+pct+'% ('+(idx+1)+'/'+total+')</div></div><div style="font-size:.85rem;color:#38bdf8;margin-bottom:10px;">⏳ Uploading <strong>'+sanitizeHTML(item.module.toUpperCase())+'</strong>: Class '+item.class+' · '+sanitizeHTML(item.subject)+' · '+sanitizeHTML(item.chapter)+'...</div>';
+          stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:'+pct+'%;">'+pct+'% ('+(idx+1)+'/'+total+')</div></div><div style="font-size:.85rem;color:#38bdf8;margin-bottom:10px;">⏳ Uploading & Updating <strong>'+sanitizeHTML(item.module.toUpperCase())+'</strong>: Class '+item.class+' · '+sanitizeHTML(item.subject)+' · '+sanitizeHTML(item.chapter)+'...</div>';
 
           if(item.module==='quiz'){
             var qList=parseQuizRowsFromRawText(item.rawText,item.class,item.subject,item.chapter);
@@ -981,8 +993,8 @@
             var rp=refMap[item.module];
             if(!rp)continue;
             try{
-              var nr=db.ref(rp).push();
-              var newKey=(nr&&nr.key)?nr.key:('item_'+safeOrderInt()+'_'+Math.random().toString(36).substr(2,5));
+              // Deterministic key prevents duplicate entries when re-uploading the same chapter!
+              var fixedKey=makeUniqueModuleKey(item.module, item.class, item.subject, item.chapter);
               var payload={
                 title:item.chapter,
                 subject:item.subject,
@@ -990,11 +1002,10 @@
                 topic:item.chapter,
                 content:item.rawText,
                 imageUrls:[],
-                key:newKey,
+                key:fixedKey,
                 order:safeOrderInt()
               };
-              var setPromise=(nr&&typeof nr.set==='function')?nr.set(payload):db.ref(rp+'/'+newKey).set(payload);
-              await Promise.resolve(setPromise);
+              await db.ref(rp+'/'+fixedKey).set(payload);
               uploadedModules++;
             }catch(err){
               errorsList.push(item.fileName+': '+(err.message||'DB error'));
@@ -1004,8 +1015,8 @@
 
         if(btn)btn.disabled=false;
         var errHtml=errorsList.length?('<div style="color:#f87171;font-size:.82rem;margin-top:6px;">⚠️ Errors: '+sanitizeHTML(errorsList.join(' | '))+'</div>'):'';
-        stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:100%;">100% COMPLETED</div></div><div style="padding:12px;background:rgba(34,197,94,.15);border:1px solid #22c55e;border-radius:8px;color:#4ade80;font-weight:800;margin-bottom:12px;">🎉 Successfully uploaded '+uploadedModules+' module files (including '+uploadedQuestions+' Quiz MCQs) across all databases!'+errHtml+'</div>';
-        toast('Uploaded '+uploadedModules+' modules & '+uploadedQuestions+' MCQs!','success');
+        stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:100%;">100% COMPLETED</div></div><div style="padding:12px;background:rgba(34,197,94,.15);border:1px solid #22c55e;border-radius:8px;color:#4ade80;font-weight:800;margin-bottom:12px;">🎉 Successfully synced '+uploadedModules+' module files (including '+uploadedQuestions+' Quiz MCQs) without duplicates!'+errHtml+'</div>';
+        toast('Synced '+uploadedModules+' modules (Zero Duplicates)!','success');
       }
 
       processAll();
