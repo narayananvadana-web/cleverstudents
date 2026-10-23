@@ -2085,21 +2085,21 @@
       uploadContentItems(rp,items,st);
     }
 
-    function uploadContentItems(rp,items,st){
+function uploadContentItems(rp,items,st){
       if(!items.length){st.innerHTML='<span style="color:#ef4444;">No valid rows</span>';return}
       var idx=0;
       function nx(){
         if(idx>=items.length){
-          st.innerHTML='<span style="color:#22c55e;">✅ Done! '+items.length+' items.</span>';
+          st.innerHTML='<span style="color:#22c55e;">✅ Done! '+items.length+' items synced (no duplicates).</span>';
           toast('Upload Complete!','success');
           setTimeout(function(){clearCSVData();refreshUI()},1500);
           return;
         }
         var it=items[idx];
-        var nr=db.ref(rp).push();
-        it.key=nr.key;
+        var fixedKey=makeUniqueModuleKey(currentTab, it.class||9, it.subject||'Social', it.title||it.topic||('item_'+idx));
+        it.key=fixedKey;
         if(!it.order||it.order>2147483647)it.order=safeOrderInt();
-        nr.set(it).then(function(){
+        db.ref(rp+'/'+fixedKey).set(it).then(function(){
           idx++;
           st.innerHTML='<span>'+idx+'/'+items.length+'</span>';
           nx();
