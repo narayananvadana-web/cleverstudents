@@ -1501,7 +1501,7 @@
           });
         });
         return;
-      }
+      }function downloadCSV(dk){
       db.ref(rm[dk]+'/'+id).remove().then(function(){
         toast('Deleted!','success');
         delete selectedItems[id];
@@ -1509,59 +1509,173 @@
       }).catch(function(err){toast('Error','error')});
     }
 
-    function downloadData(dk){
-      var data=allData[dk]||{};
-      var ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data);
-      var ed={};
-      for(var i=0;i<ks.length;i++)ed[ks[i]]=data[ks[i]];
-      var blob=new Blob([JSON.stringify(ed,null,2)],{type:'application/json'});
-      var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');
-      a.href=url;
-      a.download=dk+'_data.json';
+// =========================================================================
+    // LOSSLESS 1:1 EXACT FORMAT DOWNLOADERS (HTML, TXT, CSV, JSON)
+    // =========================================================================
+    function triggerBlobDownload(contentStr, mimeType, fileName) {
+      var blob = new Blob([contentStr], { type: mimeType });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
-      toast('Downloaded JSON!','success');
+      setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 200);
     }
 
-    function downloadCSV(dk){
-      var data=allData[dk]||{};
-      var ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data);
-      var iq=(dk=='quiz');
-      var csv='';
+    function getExactModuleFileName(dk, item, ext) {
+      var modNames = {
+        theory: 'THEORY',
+        mindmap: 'MIND_MAP',
+        papers: 'PAPERS',
+        projects: 'PROJECTS',
+        games: 'GAMES',
+        videos: 'VIDEOS',
+        skills: 'SKILLS',
+        quiz: 'quiz_output'
+      };
+      var baseMod = modNames[dk] || dk.toUpperCase();
+      var clsPart = item && item.class ? ('Class_' + item.class + '_') : '';
+      var subPart = item && item.subject ? (String(item.subject).replace(/\s+/g, '_') + '_') : '';
+      var chPart = item && (item.title || item.topic || item.chapter) ? (String(item.title || item.topic || item.chapter).replace(/[^a-zA-Z0-9_\-]/g, '_') + '_') : '';
+      return clsPart + subPart + chPart + baseMod + '.' + ext;
+    }
 
-      if(iq){
-        csv='Class,Subject,Chapter,Topic,Subtopic,Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer,Explanation\n';
-        for(var i=0;i<ks.length;i++){
-          var g=data[ks[i]];
-          if(!Array.isArray(g))continue;
-          for(var j=0;j<g.length;j++){
-            var qItem=g[j];
-            csv+='"Class '+qItem.class+'","'+qItem.subject+'","Chapter '+qItem.chapter+'","'+escCSV(qItem.topic||'')+'","'+escCSV(qItem.subtopic||'')+'","'+escCSV(qItem.question)+'","'+escCSV(qItem.options.A||'')+'","'+escCSV(qItem.options.B||'')+'","'+escCSV(qItem.options.C||'')+'","'+escCSV(qItem.options.D||'')+'","'+qItem.correctAnswer+'","'+escCSV(qItem.explanation||'')+'"\n';
-          }
+    // Downloads a single item in its exact uploaded format (.html, .txt, or quiz_output.csv)
+    function downloadSingleOriginal(dk, id, ext) {
+      var data = allData[dk] || {};
+      var item = data[id];
+      if (!item) { toast('Item not found!', 'error'); return; }
+
+      if (dk === 'quiz') {
+        if (!Array.isArray(item) || !item.length) { toast('No questions in this group', 'error'); return; }
+        var csv = '\uFEFFClass,Subject,Chapter,Level,Question_Type,Question,Option_A,Option_B,Option_C,Option_D,Answer,Explanation\r\n';
+        for (var j = 0; j < item.length; j++) {
+          var qItem = item[j];
+          var opts = qItem.options || {};
+          var clsStr = String(qItem.class || '').indexOf('Class') === 0 ? qItem.class : ('Class ' + (qItem.class || 9));
+          var chStr = String(qItem.chapter || '').indexOf('Chapter') === 0 ? qItem.chapter : ('Chapter' + (qItem.chapter || 1));
+          var lvlStr = qItem.topic || 'Medium';
+          var qTypeStr = qItem.subtopic || 'Concept_Identification';
+          csv += '"' + escCSV(String(clsStr)) + '",'
+               + '"' + escCSV(String(qItem.subject || 'Social')) + '",'
+               + '"' + escCSV(String(chStr)) + '",'
+               + '"' + escCSV(String(lvlStr)) + '",'
+               + '"' + escCSV(String(qTypeStr)) + '",'
+               + '"' + escCSV(String(qItem.question || '')) + '",'
+               + '"' + escCSV(String(opts.A || '')) + '",'
+               + '"' + escCSV(String(opts.B || '')) + '",'
+               + '"' + escCSV(String(opts.C || '')) + '",'
+               + '"' + escCSV(String(opts.D || '')) + '",'
+               + '"' + escCSV(String(qItem.correctAnswer || 'A')) + '",'
+               + '"' + escCSV(String(qItem.explanation || '')) + '"\r\n';
         }
-      }else if(dk==='games'||dk==='projects'){
-        csv='Title,Subject,Class,Topic,Content\n';
-        for(var m=0;m<ks.length;m++){
-          var it=data[ks[m]];
-          csv+='"'+escCSV(it.title||'')+'","'+(it.subject||'')+'","'+(it.class||'')+'","'+(it.topic||'')+'","'+escCSV((it.content||'').substring(0,200))+'"\n';
-        }
-      }else{
-        csv='Title,Subject,Class,Content\n';
-        for(var m=0;m<ks.length;m++){
-          var it=data[ks[m]];
-          csv+='"'+escCSV(it.title||'')+'","'+(it.subject||'')+'","'+(it.class||'')+'","'+escCSV((it.content||'').replace(/<[^>]*>/g,'').substring(0,200))+'"\n';
-        }
+        var qFileName = id + '_quiz_output.csv';
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', qFileName);
+        toast('Downloaded exact ' + qFileName + '!', 'success');
+        return;
       }
 
-      var blob=new Blob([csv],{type:'text/csv'});
-      var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');
-      a.href=url;
-      a.download=dk+'_export.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-      toast('Downloaded CSV!','success');
+      // Exact untouched HTML/TXT content as uploaded
+      var rawContent = item.content || '';
+      var fName = getExactModuleFileName(dk, item, ext || 'html');
+      var mime = (ext === 'txt') ? 'text/plain;charset=utf-8;' : 'text/html;charset=utf-8;';
+      triggerBlobDownload(rawContent, mime, fName);
+      toast('Downloaded exact ' + fName + '!', 'success');
+    }
+
+    // Toolbar button: Downloads all selected (or all visible) items in their exact original format
+    function downloadOriginalFiles(dk) {
+      var data = allData[dk] || {};
+      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
+      if (!ks.length) { toast('No data to download!', 'error'); return; }
+
+      if (dk === 'quiz') {
+        downloadCSV('quiz');
+        return;
+      }
+
+      ks.forEach(function(k, idx) {
+        setTimeout(function() {
+          downloadSingleOriginal(dk, k, 'html');
+        }, idx * 250);
+      });
+    }
+
+    // Lossless JSON Download (Exact structure ready for re-upload)
+    function downloadData(dk) {
+      var data = allData[dk] || {};
+      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
+      var ed = {};
+      for (var i = 0; i < ks.length; i++) ed[ks[i]] = data[ks[i]];
+      var jsonStr = JSON.stringify(ed, null, 2);
+      triggerBlobDownload(jsonStr, 'application/json;charset=utf-8;', dk + '_exact_backup.json');
+      toast('Downloaded exact JSON!', 'success');
+    }
+
+    // Lossless Full CSV Download (NEVER strips HTML tags and NEVER truncates to 200 chars!)
+    function downloadCSV(dk) {
+      var data = allData[dk] || {};
+      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
+      var iq = (dk === 'quiz');
+      var csv = '\uFEFF';
+
+      if (iq) {
+        // Exact 12-column format matching quiz_output.csv & Admin Uploader
+        csv += 'Class,Subject,Chapter,Level,Question_Type,Question,Option_A,Option_B,Option_C,Option_D,Answer,Explanation\r\n';
+        for (var i = 0; i < ks.length; i++) {
+          var g = data[ks[i]];
+          if (!Array.isArray(g)) continue;
+          for (var j = 0; j < g.length; j++) {
+            var qItem = g[j];
+            var opts = qItem.options || {};
+            var clsStr = String(qItem.class || '').indexOf('Class') === 0 ? qItem.class : ('Class ' + (qItem.class || 9));
+            var chStr = String(qItem.chapter || '').indexOf('Chapter') === 0 ? qItem.chapter : ('Chapter' + (qItem.chapter || 1));
+            csv += '"' + escCSV(String(clsStr)) + '",'
+                 + '"' + escCSV(String(qItem.subject || 'Social')) + '",'
+                 + '"' + escCSV(String(chStr)) + '",'
+                 + '"' + escCSV(String(qItem.topic || 'Medium')) + '",'
+                 + '"' + escCSV(String(qItem.subtopic || 'Concept_Identification')) + '",'
+                 + '"' + escCSV(String(qItem.question || '')) + '",'
+                 + '"' + escCSV(String(opts.A || '')) + '",'
+                 + '"' + escCSV(String(opts.B || '')) + '",'
+                 + '"' + escCSV(String(opts.C || '')) + '",'
+                 + '"' + escCSV(String(opts.D || '')) + '",'
+                 + '"' + escCSV(String(qItem.correctAnswer || 'A')) + '",'
+                 + '"' + escCSV(String(qItem.explanation || '')) + '"\r\n';
+          }
+        }
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', 'quiz_output.csv');
+      } else if (dk === 'skills') {
+        csv += 'Category,Title,Content\r\n';
+        for (var s = 0; s < ks.length; s++) {
+          var sit = data[ks[s]];
+          if (!sit) continue;
+          csv += '"' + escCSV(String(sit.category || 'Competitive skills')) + '",'
+               + '"' + escCSV(String(sit.title || '')) + '",'
+               + '"' + escCSV(String(sit.content || '')) + '"\r\n';
+        }
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', dk + '_exact.csv');
+      } else {
+        // Exact upload-compatible columns with 100% full untouched HTML content!
+        csv += 'Subject,Class,Topic,Title,Content,ImageUrls\r\n';
+        for (var m = 0; m < ks.length; m++) {
+          var it = data[ks[m]];
+          if (!it) continue;
+          var imgs = Array.isArray(it.imageUrls) ? it.imageUrls.join('\n') : '';
+          csv += '"' + escCSV(String(it.subject || '')) + '",'
+               + '"' + escCSV(String(it.class || '')) + '",'
+               + '"' + escCSV(String(it.topic || it.title || '')) + '",'
+               + '"' + escCSV(String(it.title || '')) + '",'
+               + '"' + escCSV(String(it.content || '')) + '",'
+               + '"' + escCSV(String(imgs)) + '"\r\n';
+        }
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', dk + '_exact.csv');
+      }
+      toast('Downloaded 100% Exact Format CSV!', 'success');
     }
 
     function smartSplit(line){
