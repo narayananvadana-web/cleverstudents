@@ -1407,6 +1407,36 @@
     // =========================================================================
     // FAST 1-SECOND PARALLEL BULK DELETE
     // =========================================================================
+    async function removeQuizGroupFromSupabase(groupKey) {
+      if (allData && allData.quiz) delete allData.quiz[groupKey];
+      try {
+        await db.ref('questionBank/' + groupKey).remove();
+      } catch (e1) {
+        try {
+          await db.ref('questionBank/' + groupKey).set([]);
+        } catch (e2) {
+          await db.ref('questionBank').update({ [groupKey]: null });
+        }
+      }
+      try {
+        if (window.supabaseClient) {
+          var sRes = await window.supabaseClient.from('quiz_sets').select('id,quiz_key,legacy_key,metadata').eq('course', 'school');
+          if (sRes && sRes.data) {
+            for (var i = 0; i < sRes.data.length; i++) {
+              var row = sRes.data[i];
+              var rKey = row.legacy_key || row.quiz_key || (row.metadata && (row.metadata.quiz_key || row.metadata.legacy_key)) || row.id;
+              if (rKey === groupKey || row.id === groupKey) {
+                await window.supabaseClient.from('quiz_questions').delete().eq('quiz_set_id', row.id);
+                await window.supabaseClient.from('quiz_sets').delete().eq('id', row.id);
+              }
+            }
+          }
+        }
+      } catch (e3) {
+        console.warn('Direct Supabase quiz delete fallback:', e3);
+      }
+    }
+
     function deleteSelected(){
       var sk=Object.keys(selectedItems);
       if(sk.length===0){toast('No items selected!','error');return}
@@ -1414,31 +1444,18 @@
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var rp=rm[currentTab];
       if(!rp){toast('Cannot delete on this tab','error');return;}
-
       toast('Deleting '+sk.length+' items instantly...','info');
-
       if(currentTab==='quiz'){
-        var curQ=allData.quiz||{};
-        sk.forEach(function(k){delete curQ[k];});
-        db.ref('questionBank').set(curQ).then(function(){
-          toast('Deleted '+sk.length+' quiz groups!','success');
+        Promise.all(sk.map(function(k){ return removeQuizGroupFromSupabase(k); })).then(function(){
+          toast('Deleted '+sk.length+' quiz groups permanently!','success');
           selectedItems={};
           refreshUI();
-        }).catch(function(){
-          var promises=sk.map(function(k){return db.ref(rp+'/'+k).remove().catch(function(){});});
-          Promise.all(promises).then(function(){
-            toast('Deleted '+sk.length+' items!','success');
-            selectedItems={};
-            refreshUI();
-          });
         });
         return;
       }
-
       var promises=sk.map(function(k){
         return db.ref(rp+'/'+k).remove().catch(function(){});
       });
-
       Promise.all(promises).then(function(){
         toast('Deleted '+sk.length+' items!','success');
         selectedItems={};
@@ -1451,18 +1468,10 @@
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       if(!rm[dk])return;
       if(dk==='quiz'){
-        var curQ=allData.quiz||{};
-        delete curQ[id];
-        db.ref('questionBank').set(curQ).then(function(){
-          toast('Deleted!','success');
+        removeQuizGroupFromSupabase(id).then(function(){
+          toast('Quiz group deleted permanently!','success');
           delete selectedItems[id];
           refreshUI();
-        }).catch(function(){
-          db.ref(rm[dk]+'/'+id).remove().then(function(){
-            toast('Deleted!','success');
-            delete selectedItems[id];
-            refreshUI();
-          });
         });
         return;
       }
