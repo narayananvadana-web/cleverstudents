@@ -80,7 +80,7 @@
     .list-item.dragging{opacity:0.5;background:rgba(59,130,246,.3);border-color:#3b82f6;cursor:grabbing}
     .list-item.drag-over{border-color:#10b981;background:rgba(16,185,129,.15);box-shadow:0 0 12px rgba(16,185,129,.4)}
     .list-item .item-info{flex:1;min-width:200px;pointer-events:none}
-    .list-item .item-actions{display:flex;gap:6px;pointer-events:auto}
+    .list-item .item-actions{display:flex;gap:6px;pointer-events:auto;flex-wrap:wrap}
     .drag-handle{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;cursor:grab;color:var(--mut);font-size:1.2rem;border-radius:6px;transition:.2s;flex-shrink:0}
     .drag-handle:hover{color:#fff;background:rgba(255,255,255,.1)}
     .drag-handle:active{cursor:grabbing}
@@ -311,7 +311,7 @@
       guestAutoLogin:false,
       guestId:DEFAULT_GUEST_ID,
       guestPass:DEFAULT_GUEST_PASS,
-      bulkQuizMode:'append',
+      bulkQuizMode:'replace',
       bulkDefaultClass:9,
       bulkDefaultSubject:'Social'
     };
@@ -369,9 +369,19 @@
       return t;
     }
 
+    // Generates a fixed, non-repeating ID for each Class + Subject + Module + Chapter
+    function makeUniqueModuleKey(mod, cls, sub, chap) {
+      var cleanChap = String(chap || 'Chapter1')
+        .toLowerCase()
+        .replace(/^chapter\s*/i, 'ch')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '') || 'ch1';
+      var cleanSub = String(sub || 'Social').replace(/[^a-zA-Z0-9]/g, '');
+      return 'Class' + cls + '_' + cleanSub + '_' + mod + '_' + cleanChap;
+    }
+
     // =========================================================================
     // SELF-VERIFYING UNIVERSAL QUIZ SAVER
-    // Tries all adapter methods AND verifies data actually persisted in DB!
     // =========================================================================
     async function verifyQuizSavedInDb(groupKey, expectedMinLen) {
       try {
@@ -395,7 +405,6 @@
         if (val && typeof val === 'object') currentAllQuiz = val;
       } catch (e) {}
 
-      // Remove any accidental 'Undefined' keys if present
       delete currentAllQuiz['undefined'];
 
       var existing = Array.isArray(currentAllQuiz[groupKey]) ? currentAllQuiz[groupKey] : [];
@@ -403,17 +412,17 @@
       currentAllQuiz[groupKey] = finalArr;
       if (allData) allData.quiz = currentAllQuiz;
 
-      // Method 1: Root-level db.ref('questionBank').set(currentAllQuiz)
-      try {
-        await db.ref('questionBank').set(currentAllQuiz);
-        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
-      } catch (e1) { console.warn('Method 1 (root set) failed:', e1); }
-
-      // Method 2: Child-level db.ref('questionBank/' + groupKey).set(finalArr)
+      // Method 1: Child-level db.ref('questionBank/' + groupKey).set(finalArr)
       try {
         await db.ref('questionBank/' + groupKey).set(finalArr);
         if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
-      } catch (e2) { console.warn('Method 2 (child set) failed:', e2); }
+      } catch (e1) { console.warn('Method 1 (child set) failed:', e1); }
+
+      // Method 2: Root-level db.ref('questionBank').set(currentAllQuiz)
+      try {
+        await db.ref('questionBank').set(currentAllQuiz);
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e2) { console.warn('Method 2 (root set) failed:', e2); }
 
       // Method 3: Root-level db.ref('questionBank').update({ [groupKey]: finalArr })
       try {
@@ -421,34 +430,7 @@
         if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
       } catch (e3) { console.warn('Method 3 (root update) failed:', e3); }
 
-      // Method 4: Push each question via db.ref('questionBank').push() if adapter treats questionBank like a table
-      try {
-        var nr = db.ref('questionBank').push();
-        if (nr && typeof nr.set === 'function') {
-          await nr.set({
-            key: groupKey,
-            title: groupKey,
-            class: newQuestions[0].class,
-            subject: newQuestions[0].subject,
-            chapter: newQuestions[0].chapter,
-            questions: finalArr,
-            order: safeOrderInt()
-          });
-          if (await verifyQuizSavedInDb(groupKey, 1)) return finalArr.length;
-        }
-      } catch (e4) { console.warn('Method 4 (push) failed:', e4); }
-
-      // Method 5: Direct '/api/db' endpoint
-      try {
-        await fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'set', path: 'questionBank', data: currentAllQuiz })
-        });
-        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
-      } catch (e5) { console.warn('Method 5 (/api/db) failed:', e5); }
-
-      throw new Error('Supabase adapter rejected questionBank write. Check browser console (F12) for exact table schema.');
+      throw new Error('Supabase adapter rejected questionBank write. Check browser console (F12) for details.');
     }
 
     function parseQuizKey(key){
@@ -469,7 +451,7 @@
       return "'" + String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'\\r') + "'";
     }
     function escapeAttr(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-    function escCSV(s){return s?s.replace(/"/g,'""'):''}
+    function escCSV(s){return s?String(s).replace(/"/g,'""'):''}
     window.tog=function(id){var el=document.getElementById(id);if(el)el.classList.toggle('show')}
     
     function initTheme(){
@@ -580,7 +562,6 @@
       var refMap={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var keyMap={'theory':'theory','quiz':'quiz','mindmap':'mindmap','papers':'papers','games':'games','projects':'projects','videos':'videos','skills':'skills'};
       
-      // Guard against undefined tab keys (Prevents "Class General -> General -> Untitled" bug!)
       if(!refMap[currentTab]){
         renderAllInOneBulkTab();
         return;
@@ -599,17 +580,17 @@
     }
 
     // =========================================================================
-    // MASTER TAB: ALL-IN-ONE MULTI-MODULE & CLASS_9 / BULK FOLDER UPLOAD
+    // MASTER TAB: ALL-IN-ONE MULTI-MODULE & BULK FOLDER UPLOAD
     // =========================================================================
     function renderAllInOneBulkTab(){
       var ac=document.getElementById('admin-content');
       var defCls=settings.bulkDefaultClass||9;
       var defSub=settings.bulkDefaultSubject||'Social';
-      var qMode=settings.bulkQuizMode||'append';
+      var qMode=settings.bulkQuizMode||'replace';
 
       var h='<div class="bulk-all-box">';
       h+='<h3>🚀 All-in-One Multi-Module & Bulk Folder Uploader</h3>';
-      h+='<p style="color:var(--mut);font-size:.9rem;margin-bottom:12px;">Upload all generated pipeline formats (<strong>THEORY, MIND_MAP, PAPERS, PROJECTS, GAMES, and quiz_output</strong>) at a time! Automatically routes every file to its respective database table.</p>';
+      h+='<p style="color:var(--mut);font-size:.9rem;margin-bottom:12px;">Upload all generated pipeline formats (<strong>THEORY, MIND_MAP, PAPERS, PROJECTS, GAMES, and quiz_output</strong>) at a time! Automatically routes every file to its respective database table without duplicates.</p>';
       h+='<div style="margin-bottom:14px;">';
       h+='<span class="fmt-badge">THEORY.html / .txt</span>';
       h+='<span class="fmt-badge">MIND_MAP.html / .txt</span>';
@@ -633,21 +614,19 @@
       h+='</select></div>';
       h+='<div style="flex:1;min-width:200px;"><label style="font-size:12px;font-weight:700;">Chapter / Topic Name (optional override): </label><input type="text" id="bulkDefChapter" class="form-inp" placeholder="Auto-detected from folder (e.g. Chapter1)" style="margin-bottom:0;" oninput="recalcBulkMeta()"></div>';
       h+='<div><label style="font-size:12px;font-weight:700;">Quiz Mode: </label><select id="bulkQuizModeSel" class="form-inp" style="width:auto;margin-bottom:0;">';
+      h+='<option value="replace" '+(qMode==='replace'?'selected':'')+'>Replace Chapter Quiz (Zero Duplicates)</option>';
       h+='<option value="append" '+(qMode==='append'?'selected':'')+'>Append to Existing Quiz</option>';
-      h+='<option value="replace" '+(qMode==='replace'?'selected':'')+'>Replace Chapter Quiz</option>';
       h+='</select></div>';
       h+='</div>';
 
       h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:15px;margin-top:15px;">';
 
-      // Option A: Select Class_9 Folder directly via webkitdirectory
       h+='<div class="dropzone" style="border-color:#10b981;background:rgba(16,185,129,.06);" onclick="document.getElementById(\'bulkFolderInput\').click()">';
       h+='<div class="dz-icon">📁</div><strong style="color:#34d399;">ఆప్షన్ A (Select Entire <code>Class_9</code> Folder)</strong><br>';
       h+='<small>మీరు <code>webkitdirectory</code> ద్వారా నేరుగా మీ <strong><code>Class_9</code></strong> (లేదా ఏదైనా Class / Chapter) ఫోల్డర్‌ను సెలెక్ట్ చేస్తే చాలు!<br>Auto-detects Class, Subject, Chapter & uploads all 6 modules!</small>';
       h+='<input type="file" id="bulkFolderInput" webkitdirectory directory multiple style="display:none;" onchange="handleBulkMasterFiles(this.files)">';
       h+='</div>';
 
-      // Option B: Multi-file Selection / Drag & Drop
       h+='<div class="dropzone" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="event.preventDefault();this.classList.remove(\'over\');handleBulkMasterFiles(event.dataTransfer.files)" onclick="document.getElementById(\'bulkMultiFileInput\').click()">';
       h+='<div class="dz-icon">📄</div><strong style="color:#38bdf8;">ఆప్షన్ B (Select / Drop All Module Files at Once)</strong><br>';
       h+='<small>Select <code>THEORY</code>, <code>MIND_MAP</code>, <code>PAPERS</code>, <code>PROJECTS</code>, <code>GAMES</code>, <code>quiz_output.csv</code> together!</small>';
@@ -934,23 +913,11 @@
       return formattedQuestions;
     }
 
-// Generates a fixed, non-repeating ID for each Class + Subject + Module + Chapter
-    function makeUniqueModuleKey(mod, cls, sub, chap) {
-      var cleanChap = String(chap || 'Chapter1')
-        .toLowerCase()
-        .replace(/^chapter\s*/i, 'ch')
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_+|_+$/g, '') || 'ch1';
-      var cleanSub = String(sub || 'Social').replace(/[^a-zA-Z0-9]/g, '');
-      return 'Class' + cls + '_' + cleanSub + '_' + mod + '_' + cleanChap;
-    }
-
     function executeBulkMasterUpload(){
       if(!bulkMasterQueue.length)return;
       var btn=document.getElementById('btnStartBulkMaster');
       if(btn)btn.disabled=true;
       var stBox=document.getElementById('bulkMasterStatusBox');
-      // Default to 'replace' so re-uploading never duplicates quiz questions
       var qMode=getVal('bulkQuizModeSel')||'replace';
       var total=bulkMasterQueue.length;
       var refMap={'theory':'theoryDatabase','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
@@ -993,7 +960,6 @@
             var rp=refMap[item.module];
             if(!rp)continue;
             try{
-              // Deterministic key prevents duplicate entries when re-uploading the same chapter!
               var fixedKey=makeUniqueModuleKey(item.module, item.class, item.subject, item.chapter);
               var payload={
                 title:item.chapter,
@@ -1079,7 +1045,8 @@
       h+='<button class="btn btn-dark btn-sm" onclick="deselectAllItems()">☐ Deselect</button>';
       h+='<button class="btn btn-red btn-sm" onclick="deleteSelected()">🗑 Delete (<span id="selCount">0</span>)</button>';
       h+='<button class="btn btn-purple btn-sm" onclick="downloadData(\''+dk+'\')">📥 JSON</button>';
-      h+='<button class="btn btn-teal btn-sm" onclick="downloadCSV(\''+dk+'\')">📊 CSV</button>';
+      h+='<button class="btn btn-teal btn-sm" onclick="downloadCSV(\''+dk+'\')">📊 Exact CSV</button>';
+      h+='<button class="btn btn-orange btn-sm" onclick="downloadOriginalFiles(\''+dk+'\')">📄 Original HTML/CSV</button>';
       if(!isQuiz)h+='<button class="btn btn-green btn-sm" onclick="showAddForm(\''+dk+'\')">➕ Add New</button>';
       if(isQuiz)h+='<button class="btn btn-green btn-sm" onclick="showAddQuiz()">➕ Add Question</button>';
       h+='<span style="color:var(--mut);margin-left:auto;">Total: <strong>'+keys.length+'</strong></span>';
@@ -1375,7 +1342,10 @@
             h+='<div class="item-actions">';
             if(isQuiz){
               h+='<button class="btn btn-blue btn-xs" onclick="event.stopPropagation();viewQuizGroup('+q(ek)+')">👁 View</button>';
+              h+='<button class="btn btn-teal btn-xs" title="Download exact quiz_output.csv" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'csv\')">📥 CSV</button>';
             }else{
+              h+='<button class="btn btn-teal btn-xs" title="Download exact original .html file" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'html\')">📥 HTML</button>';
+              h+='<button class="btn btn-purple btn-xs" title="Download exact original .txt file" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'txt\')">📄 TXT</button>';
               h+='<button class="btn btn-blue btn-xs" onclick="event.stopPropagation();editItem('+q(dk)+','+q(ek)+')">✏️ Edit</button>';
             }
             h+='<button class="btn btn-red btn-xs" onclick="event.stopPropagation();deleteSingle('+q(dk)+','+q(ek)+')">🗑</button>';
@@ -1503,59 +1473,170 @@
       }).catch(function(err){toast('Error','error')});
     }
 
-    function downloadData(dk){
-      var data=allData[dk]||{};
-      var ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data);
-      var ed={};
-      for(var i=0;i<ks.length;i++)ed[ks[i]]=data[ks[i]];
-      var blob=new Blob([JSON.stringify(ed,null,2)],{type:'application/json'});
-      var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');
-      a.href=url;
-      a.download=dk+'_data.json';
+    // =========================================================================
+    // LOSSLESS 1:1 EXACT FORMAT DOWNLOADERS (HTML, TXT, CSV, JSON)
+    // =========================================================================
+    function triggerBlobDownload(contentStr, mimeType, fileName) {
+      var blob = new Blob([contentStr], { type: mimeType });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
-      toast('Downloaded JSON!','success');
+      setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 200);
     }
 
-    function downloadCSV(dk){
-      var data=allData[dk]||{};
-      var ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data);
-      var iq=(dk=='quiz');
-      var csv='';
+    function getExactModuleFileName(dk, item, ext) {
+      var modNames = {
+        theory: 'THEORY',
+        mindmap: 'MIND_MAP',
+        papers: 'PAPERS',
+        projects: 'PROJECTS',
+        games: 'GAMES',
+        videos: 'VIDEOS',
+        skills: 'SKILLS',
+        quiz: 'quiz_output'
+      };
+      var baseMod = modNames[dk] || dk.toUpperCase();
+      var clsPart = item && item.class ? ('Class_' + item.class + '_') : '';
+      var subPart = item && item.subject ? (String(item.subject).replace(/\s+/g, '_') + '_') : '';
+      var chPart = item && (item.title || item.topic || item.chapter) ? (String(item.title || item.topic || item.chapter).replace(/[^a-zA-Z0-9_\-]/g, '_') + '_') : '';
+      return clsPart + subPart + chPart + baseMod + '.' + ext;
+    }
 
-      if(iq){
-        csv='Class,Subject,Chapter,Topic,Subtopic,Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer,Explanation\n';
-        for(var i=0;i<ks.length;i++){
-          var g=data[ks[i]];
-          if(!Array.isArray(g))continue;
-          for(var j=0;j<g.length;j++){
-            var qItem=g[j];
-            csv+='"Class '+qItem.class+'","'+qItem.subject+'","Chapter '+qItem.chapter+'","'+escCSV(qItem.topic||'')+'","'+escCSV(qItem.subtopic||'')+'","'+escCSV(qItem.question)+'","'+escCSV(qItem.options.A||'')+'","'+escCSV(qItem.options.B||'')+'","'+escCSV(qItem.options.C||'')+'","'+escCSV(qItem.options.D||'')+'","'+qItem.correctAnswer+'","'+escCSV(qItem.explanation||'')+'"\n';
-          }
+    // Downloads a single item in its exact uploaded format (.html, .txt, or quiz_output.csv)
+    function downloadSingleOriginal(dk, id, ext) {
+      var data = allData[dk] || {};
+      var item = data[id];
+      if (!item) { toast('Item not found!', 'error'); return; }
+
+      if (dk === 'quiz') {
+        if (!Array.isArray(item) || !item.length) { toast('No questions in this group', 'error'); return; }
+        var csv = '\uFEFFClass,Subject,Chapter,Level,Question_Type,Question,Option_A,Option_B,Option_C,Option_D,Answer,Explanation\r\n';
+        for (var j = 0; j < item.length; j++) {
+          var qItem = item[j];
+          var opts = qItem.options || {};
+          var clsStr = String(qItem.class || '').indexOf('Class') === 0 ? qItem.class : ('Class ' + (qItem.class || 9));
+          var chStr = String(qItem.chapter || '').indexOf('Chapter') === 0 ? qItem.chapter : ('Chapter' + (qItem.chapter || 1));
+          var lvlStr = qItem.topic || 'Medium';
+          var qTypeStr = qItem.subtopic || 'Concept_Identification';
+          csv += '"' + escCSV(String(clsStr)) + '",'
+               + '"' + escCSV(String(qItem.subject || 'Social')) + '",'
+               + '"' + escCSV(String(chStr)) + '",'
+               + '"' + escCSV(String(lvlStr)) + '",'
+               + '"' + escCSV(String(qTypeStr)) + '",'
+               + '"' + escCSV(String(qItem.question || '')) + '",'
+               + '"' + escCSV(String(opts.A || '')) + '",'
+               + '"' + escCSV(String(opts.B || '')) + '",'
+               + '"' + escCSV(String(opts.C || '')) + '",'
+               + '"' + escCSV(String(opts.D || '')) + '",'
+               + '"' + escCSV(String(qItem.correctAnswer || 'A')) + '",'
+               + '"' + escCSV(String(qItem.explanation || '')) + '"\r\n';
         }
-      }else if(dk==='games'||dk==='projects'){
-        csv='Title,Subject,Class,Topic,Content\n';
-        for(var m=0;m<ks.length;m++){
-          var it=data[ks[m]];
-          csv+='"'+escCSV(it.title||'')+'","'+(it.subject||'')+'","'+(it.class||'')+'","'+(it.topic||'')+'","'+escCSV((it.content||'').substring(0,200))+'"\n';
-        }
-      }else{
-        csv='Title,Subject,Class,Content\n';
-        for(var m=0;m<ks.length;m++){
-          var it=data[ks[m]];
-          csv+='"'+escCSV(it.title||'')+'","'+(it.subject||'')+'","'+(it.class||'')+'","'+escCSV((it.content||'').replace(/<[^>]*>/g,'').substring(0,200))+'"\n';
-        }
+        var qFileName = id + '_quiz_output.csv';
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', qFileName);
+        toast('Downloaded exact ' + qFileName + '!', 'success');
+        return;
       }
 
-      var blob=new Blob([csv],{type:'text/csv'});
-      var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');
-      a.href=url;
-      a.download=dk+'_export.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-      toast('Downloaded CSV!','success');
+      var rawContent = item.content || '';
+      var fName = getExactModuleFileName(dk, item, ext || 'html');
+      var mime = (ext === 'txt') ? 'text/plain;charset=utf-8;' : 'text/html;charset=utf-8;';
+      triggerBlobDownload(rawContent, mime, fName);
+      toast('Downloaded exact ' + fName + '!', 'success');
+    }
+
+    // Toolbar button: Downloads all selected (or all visible) items in their exact original format
+    function downloadOriginalFiles(dk) {
+      var data = allData[dk] || {};
+      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
+      if (!ks.length) { toast('No data to download!', 'error'); return; }
+
+      if (dk === 'quiz') {
+        downloadCSV('quiz');
+        return;
+      }
+
+      ks.forEach(function(k, idx) {
+        setTimeout(function() {
+          downloadSingleOriginal(dk, k, 'html');
+        }, idx * 250);
+      });
+    }
+
+    // Lossless JSON Download (Exact structure ready for re-upload)
+    function downloadData(dk) {
+      var data = allData[dk] || {};
+      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
+      var ed = {};
+      for (var i = 0; i < ks.length; i++) ed[ks[i]] = data[ks[i]];
+      var jsonStr = JSON.stringify(ed, null, 2);
+      triggerBlobDownload(jsonStr, 'application/json;charset=utf-8;', dk + '_exact_backup.json');
+      toast('Downloaded exact JSON!', 'success');
+    }
+
+    // Lossless Full CSV Download (NEVER strips HTML tags and NEVER truncates to 200 chars!)
+    function downloadCSV(dk) {
+      var data = allData[dk] || {};
+      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
+      var iq = (dk === 'quiz');
+      var csv = '\uFEFF';
+
+      if (iq) {
+        csv += 'Class,Subject,Chapter,Level,Question_Type,Question,Option_A,Option_B,Option_C,Option_D,Answer,Explanation\r\n';
+        for (var i = 0; i < ks.length; i++) {
+          var g = data[ks[i]];
+          if (!Array.isArray(g)) continue;
+          for (var j = 0; j < g.length; j++) {
+            var qItem = g[j];
+            var opts = qItem.options || {};
+            var clsStr = String(qItem.class || '').indexOf('Class') === 0 ? qItem.class : ('Class ' + (qItem.class || 9));
+            var chStr = String(qItem.chapter || '').indexOf('Chapter') === 0 ? qItem.chapter : ('Chapter' + (qItem.chapter || 1));
+            csv += '"' + escCSV(String(clsStr)) + '",'
+                 + '"' + escCSV(String(qItem.subject || 'Social')) + '",'
+                 + '"' + escCSV(String(chStr)) + '",'
+                 + '"' + escCSV(String(qItem.topic || 'Medium')) + '",'
+                 + '"' + escCSV(String(qItem.subtopic || 'Concept_Identification')) + '",'
+                 + '"' + escCSV(String(qItem.question || '')) + '",'
+                 + '"' + escCSV(String(opts.A || '')) + '",'
+                 + '"' + escCSV(String(opts.B || '')) + '",'
+                 + '"' + escCSV(String(opts.C || '')) + '",'
+                 + '"' + escCSV(String(opts.D || '')) + '",'
+                 + '"' + escCSV(String(qItem.correctAnswer || 'A')) + '",'
+                 + '"' + escCSV(String(qItem.explanation || '')) + '"\r\n';
+          }
+        }
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', 'quiz_output.csv');
+      } else if (dk === 'skills') {
+        csv += 'Category,Title,Content\r\n';
+        for (var s = 0; s < ks.length; s++) {
+          var sit = data[ks[s]];
+          if (!sit) continue;
+          csv += '"' + escCSV(String(sit.category || 'Competitive skills')) + '",'
+               + '"' + escCSV(String(sit.title || '')) + '",'
+               + '"' + escCSV(String(sit.content || '')) + '"\r\n';
+        }
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', dk + '_exact.csv');
+      } else {
+        csv += 'Subject,Class,Topic,Title,Content,ImageUrls\r\n';
+        for (var m = 0; m < ks.length; m++) {
+          var it = data[ks[m]];
+          if (!it) continue;
+          var imgs = Array.isArray(it.imageUrls) ? it.imageUrls.join('\n') : '';
+          csv += '"' + escCSV(String(it.subject || '')) + '",'
+               + '"' + escCSV(String(it.class || '')) + '",'
+               + '"' + escCSV(String(it.topic || it.title || '')) + '",'
+               + '"' + escCSV(String(it.title || '')) + '",'
+               + '"' + escCSV(String(it.content || '')) + '",'
+               + '"' + escCSV(String(imgs)) + '"\r\n';
+        }
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', dk + '_exact.csv');
+      }
+      toast('Downloaded 100% Exact Format CSV!', 'success');
     }
 
     function smartSplit(line){
@@ -2028,7 +2109,7 @@
           var k=gKeys[idx];
           var qs=groups[k];
           try{
-            await saveUniversalQuizGroup(k, qs, settings.bulkQuizMode||'append');
+            await saveUniversalQuizGroup(k, qs, settings.bulkQuizMode||'replace');
             upQ+=qs.length;
             st.innerHTML='<span style="color:#38bdf8;">⏳ Verified & Uploaded '+upQ+'/'+allQ.length+' questions...</span>';
           }catch(err){
@@ -2085,7 +2166,7 @@
       uploadContentItems(rp,items,st);
     }
 
-function uploadContentItems(rp,items,st){
+    function uploadContentItems(rp,items,st){
       if(!items.length){st.innerHTML='<span style="color:#ef4444;">No valid rows</span>';return}
       var idx=0;
       function nx(){
@@ -2291,11 +2372,15 @@ function uploadContentItems(rp,items,st){
         if(!subject||!cls){toast('Subject & Class required','error');return}
       }
 
+      var targetKey = editingId ? editingId : makeUniqueModuleKey(dk, cls||9, subject||'Social', title);
+      var ex = (editingId && allData[dk]) ? allData[dk][editingId] : null;
+
       var item={
         title:title,
         content:content||'',
         imageUrls:images?images.split('\n').map(function(l){return l.trim()}).filter(function(l){return l}):[],
-        order:safeOrderInt()
+        order:(ex&&ex.order&&ex.order<=2147483647)?ex.order:safeOrderInt(),
+        key:targetKey
       };
 
       if(isGP){
@@ -2309,24 +2394,11 @@ function uploadContentItems(rp,items,st){
         item.class=cls;
       }
 
-      if(editingId){
-        var ex=allData[dk]?allData[dk][editingId]:null;
-        item.key=ex?ex.key||editingId:editingId;
-        if(ex&&ex.order&&ex.order<=2147483647)item.order=ex.order;
-        db.ref(rp+'/'+editingId).update(item).then(function(){
-          toast('Updated!','success');
-          cancelEditForm();
-          refreshUI();
-        }).catch(function(){toast('Error','error')});
-      }else{
-        var nr=db.ref(rp).push();
-        item.key=nr.key;
-        nr.set(item).then(function(){
-          toast('Added!','success');
-          cancelEditForm();
-          refreshUI();
-        }).catch(function(){toast('Error','error')});
-      }
+      db.ref(rp+'/'+targetKey).set(item).then(function(){
+        toast(editingId?'Updated!':'Added (Zero Duplicates)!','success');
+        cancelEditForm();
+        refreshUI();
+      }).catch(function(){toast('Error','error')});
     }
 
     function renderUsers(){
@@ -2446,7 +2518,7 @@ function uploadContentItems(rp,items,st){
       var cp=settings.adminPass||DEFAULT_ADMIN_PASS;
       var gid=settings.guestId||DEFAULT_GUEST_ID;
       var gpass=settings.guestPass||DEFAULT_GUEST_PASS;
-      var bMode=settings.bulkQuizMode||'append';
+      var bMode=settings.bulkQuizMode||'replace';
       var bCls=settings.bulkDefaultClass||9;
       var bSub=settings.bulkDefaultSubject||'Social';
 
@@ -2484,7 +2556,7 @@ function uploadContentItems(rp,items,st){
         +'<div class="card" style="margin-top:15px;border-color:#10b981;">'
         +'<h3 style="color:#34d399;">🚀 Bulk & Multi-Module Upload Settings</h3>'
         +'<div style="display:flex;gap:15px;flex-wrap:wrap;">'
-        +'<div class="form-group" style="flex:1;min-width:200px;"><label>Quiz Bulk Upload Behavior</label><select id="set-bulk-quiz-mode" class="form-inp"><option value="append" '+(bMode==='append'?'selected':'')+'>Append Questions to Existing Chapter</option><option value="replace" '+(bMode==='replace'?'selected':'')+'>Replace / Overwrite Chapter Questions</option></select></div>'
+        +'<div class="form-group" style="flex:1;min-width:200px;"><label>Quiz Bulk Upload Behavior</label><select id="set-bulk-quiz-mode" class="form-inp"><option value="replace" '+(bMode==='replace'?'selected':'')+'>Replace / Overwrite Chapter Questions (Zero Duplicates)</option><option value="append" '+(bMode==='append'?'selected':'')+'>Append Questions to Existing Chapter</option></select></div>'
         +'<div class="form-group" style="flex:1;min-width:160px;"><label>Default Fallback Class</label><select id="set-bulk-def-class" class="form-inp">'+clsOpts+'</select></div>'
         +'<div class="form-group" style="flex:1;min-width:160px;"><label>Default Fallback Subject</label><select id="set-bulk-def-sub" class="form-inp">'+subOpts+'</select></div>'
         +'</div></div>'
@@ -2513,7 +2585,7 @@ function uploadContentItems(rp,items,st){
       var ap=getVal('set-admin-pass');
       var gid=getVal('set-guest-id');
       var gpass=getVal('set-guest-pass');
-      var bMode=getVal('set-bulk-quiz-mode')||'append';
+      var bMode=getVal('set-bulk-quiz-mode')||'replace';
       var bCls=parseInt(getVal('set-bulk-def-class'),10)||9;
       var bSub=getVal('set-bulk-def-sub')||'Social';
 
@@ -2582,7 +2654,7 @@ function uploadContentItems(rp,items,st){
         settings.guestAutoLogin=v.guestAutoLogin!==undefined?v.guestAutoLogin:false;
         settings.guestId=v.guestId||DEFAULT_GUEST_ID;
         settings.guestPass=v.guestPass||DEFAULT_GUEST_PASS;
-        settings.bulkQuizMode=v.bulkQuizMode||'append';
+        settings.bulkQuizMode=v.bulkQuizMode||'replace';
         settings.bulkDefaultClass=v.bulkDefaultClass||9;
         settings.bulkDefaultSubject=v.bulkDefaultSubject||'Social';
         if(settings.copyEnabled)document.body.classList.remove('protected-mode');
