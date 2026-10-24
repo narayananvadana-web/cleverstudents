@@ -721,20 +721,27 @@
       var defChap=getVal('bulkDefChapter')||'';
 
       var parts=String(relPath||'').split(/[\/\\]/).filter(Boolean);
-      var detCls=null,detSub=null,detChap=null;
+      var detCls = defCls; // Always respect Fallback Class first!
+      var detSub = defSub; // Always respect Fallback Subject first!
+      var detChap = null;
 
-      for(var i=0;i<parts.length-1;i++){
+      for(var i=0;i<parts.length;i++){
         var p=parts[i];
-        if(p.toLowerCase()==='final_output'||p.toLowerCase()==='segmented_5000'||/^chapter\s*\d+/i.test(p)||/^ch\s*\d+/i.test(p))continue;
-        if(!detCls){
-          var cn=extractClassNumber(p);
-          if(cn && cn <= 10){detCls=cn;continue;}
+        var up=p.toUpperCase();
+        if(up.indexOf('CHAPTER') !== -1 || up.indexOf('CH_') !== -1 || up.indexOf('CH') === 0){
+          var chClean = p.replace(/_/g, ' ').replace(/CHAPTER/i, 'Chapter ').trim();
+          detChap = cleanExtractedTitle(chClean);
+          break;
         }
-        if(!detSub){
-          var sb=normalizeSubjectName(p);
-          if(sb){detSub=sb;continue;}
+      }
+
+      if(!detChap){
+        for(var j=0;j<parts.length-1;j++){
+          var p2=parts[j];
+          if(['FINAL_OUTPUT','SEGMENTED_5000','CLASS_9','CLASS_10','SOCIAL','MATHS','SCIENCE','TELUGU','ENGLISH','HINDI','POLITICS','GEOGRAPHY','HISTORY','ECONOMICS'].indexOf(p2.toUpperCase()) !== -1) continue;
+          detChap = p2.replace(/_/g, ' ').trim();
+          break;
         }
-        detChap=p.replace(/_/g,' ').trim();
       }
 
       if(modType==='quiz'&&rawContent){
