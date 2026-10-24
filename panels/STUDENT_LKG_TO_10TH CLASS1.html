@@ -739,7 +739,7 @@ function loadAllData(cb){
         iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-pointer-lock allow-orientation-lock allow-presentation');
         iframe.setAttribute('allow','accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
         iframe.setAttribute('allowfullscreen','true');
-        var gh=isFullHTML?content:'<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>html,body{margin:0!important;padding:0!important;width:100%!important;min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif;background:#0f172a!important;color:#f8fafc;overflow-x:hidden}</style></head><body>'+content+'</body></html>';
+        var gh=isFullHTML?content:'<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>html,body{margin:0!important;padding:0!important;width:100%!important;min-height:100vh;font-family:\'Segoe UI\',system-ui,sans-serif;background:#0f172a!important;color:#f8fafc;overflow-x:hidden}</style></head><body>'+content+'</body></html>';
         iframe.srcdoc=gh;
         iframe.onload=function(){try{var h=iframe.contentWindow.document.documentElement.scrollHeight;if(h>600)iframe.style.height=(h+30)+'px';}catch(e){}};
         container.appendChild(iframe);
