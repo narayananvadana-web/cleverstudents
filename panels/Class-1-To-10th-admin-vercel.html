@@ -40,6 +40,8 @@
     .admin-tab-btn{padding:8px 18px;border-radius:50px;border:1px solid var(--brd);background:0 0;color:var(--mut);font-weight:700;font-size:.85rem;cursor:pointer;font-family:var(--font);transition:.2s;white-space:nowrap}
     .admin-tab-btn:hover{color:var(--txt);border-color:var(--txt)}
     .admin-tab-btn.active{background:#ef4444;color:#fff;border-color:#ef4444;box-shadow:0 2px 8px rgba(239,68,68,.4)}
+    .admin-tab-btn.bulk-master-btn{border-color:#10b981;color:#34d399}
+    .admin-tab-btn.bulk-master-btn.active{background:linear-gradient(135deg,#10b981,#0ea5e9);color:#fff;border-color:#10b981;box-shadow:0 2px 12px rgba(16,185,129,.45)}
 
     .admin-content{padding:20px;background:var(--srf)}
     .form-group{margin-bottom:20px}
@@ -50,6 +52,8 @@
     .card{background:rgba(255,255,255,.03);border:1px solid var(--brd);border-radius:var(--r-md);padding:20px;margin-bottom:16px}
     body.light-mode .card{background:#f8fafc;border-color:#e2e8f0}.card h3{margin-bottom:15px;font-size:1.1rem}
     .csv-box{background:rgba(14,165,233,.08);border:2px dashed #0ea5e9;border-radius:var(--r-md);padding:20px;margin-bottom:20px}.csv-box h3{color:#38bdf8}
+    .bulk-all-box{background:rgba(16,185,129,.08);border:2px dashed #10b981;border-radius:var(--r-md);padding:22px;margin-bottom:20px}
+    .bulk-all-box h3{color:#34d399;margin-bottom:10px;font-size:1.25rem}
     .csv-fmt{background:rgba(0,0,0,.3);border-radius:8px;padding:12px;font-size:.75rem;color:var(--mut);line-height:1.6;margin:12px 0;overflow-x:auto;white-space:pre;font-family:monospace}
     .fmt-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:800;margin:2px;background:rgba(14,165,233,.15);color:#38bdf8;border:1px solid rgba(14,165,233,.4)}
     .dropzone{border:2px dashed #0ea5e9;border-radius:12px;padding:26px 16px;text-align:center;cursor:pointer;background:rgba(14,165,233,.05);transition:.2s;margin-bottom:12px}
@@ -76,7 +80,7 @@
     .list-item.dragging{opacity:0.5;background:rgba(59,130,246,.3);border-color:#3b82f6;cursor:grabbing}
     .list-item.drag-over{border-color:#10b981;background:rgba(16,185,129,.15);box-shadow:0 0 12px rgba(16,185,129,.4)}
     .list-item .item-info{flex:1;min-width:200px;pointer-events:none}
-    .list-item .item-actions{display:flex;gap:6px;pointer-events:auto}
+    .list-item .item-actions{display:flex;gap:6px;pointer-events:auto;flex-wrap:wrap}
     .drag-handle{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;cursor:grab;color:var(--mut);font-size:1.2rem;border-radius:6px;transition:.2s;flex-shrink:0}
     .drag-handle:hover{color:#fff;background:rgba(255,255,255,.1)}
     .drag-handle:active{cursor:grabbing}
@@ -118,6 +122,9 @@
     .info-banner{background:rgba(139,92,246,.1);border:1px solid #8b5cf6;border-radius:8px;padding:10px 16px;margin-bottom:15px;font-size:.85rem;color:#a78bfa}
     .guest-info-box{background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:20px;font-size:.85rem;color:var(--txt);text-align:left;line-height:1.6}.guest-info-box strong{color:#fbbf24}
 
+    .bulk-progress-outer{width:100%;height:22px;background:rgba(0,0,0,.4);border-radius:20px;overflow:hidden;border:1px solid var(--brd);margin:10px 0}
+    .bulk-progress-inner{height:100%;width:0%;background:linear-gradient(90deg,#10b981,#3b82f6);transition:width .25s ease;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff}
+
     @media(max-width:600px){.list-item{flex-direction:column;align-items:flex-start}.admin-tabs{gap:4px;padding:8px}.admin-tab-btn{padding:6px 14px;font-size:.75rem}.toolbar{flex-direction:column;align-items:stretch}}
   </style>
 </head>
@@ -155,6 +162,7 @@
         <p>Manage All Content & Users</p>
       </div>
       <div class="admin-tabs" id="admin-tabs">
+        <button class="admin-tab-btn bulk-master-btn" onclick="switchTab('allbulk')">🚀 All-in-One Bulk Upload</button>
         <button class="admin-tab-btn active" onclick="switchTab('theory')">📖 Theory</button>
         <button class="admin-tab-btn" onclick="switchTab('quiz')">📝 Quiz</button>
         <button class="admin-tab-btn" onclick="switchTab('mindmap')">🧠 Mind Map</button>
@@ -183,16 +191,44 @@
   </script>
 
   <script>
-    // ==========================================
-    // Data access is provided by the shared relational adapter.
-    const db = window.supabaseDb;
-    /* legacy wrapper removed
-      ref: function(path) {
-        let parts = path.split('/').filter(Boolean);
-        let rootKey = parts[0];
+    // =========================================================================
+    // PostgreSQL 32-Bit Integer Safe Order Generator (Max limit: 2,147,483,647)
+    // =========================================================================
+    var orderSeqOffset = 0;
+    function safeOrderInt() {
+      orderSeqOffset = (orderSeqOffset + 1) % 1000;
+      return Math.floor(Date.now() / 1000) + orderSeqOffset;
+    }
 
+    function extractChapterNum(str) {
+      if (!str) return 9999;
+      var s = String(str);
+      var m = s.match(/(?:chapter|ch|unit|lesson)[_\-\s]*0*(\d{1,3})/i) || s.match(/^\s*0*(\d{1,3})\b/);
+      if (m) return parseInt(m[1], 10);
+      var m2 = s.match(/0*(\d{1,3})/);
+      if (m2) return parseInt(m2[1], 10);
+      return 9999;
+    }
+
+    function getNaturalChapterOrder(titleOrChap, fallbackIdx) {
+      var num = extractChapterNum(titleOrChap);
+      if (num !== 9999) return num * 1000;
+      return safeOrderInt() + (fallbackIdx || 0);
+    }
+
+    function naturalTitleCompare(a, b) {
+      var numA = extractChapterNum(a);
+      var numB = extractChapterNum(b);
+      if (numA !== numB) return numA - numB;
+      return String(a || '').localeCompare(String(b || ''), undefined, { numeric: true, sensitivity: 'base' });
+    }
+
+    const fallbackApiDb = {
+      ref: function(path) {
+        let parts = String(path || '').split('/').filter(Boolean);
+        let rootKey = parts[0];
         return {
-          once: async function(event) {
+          once: async function() {
             try {
               const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
               const data = await res.json();
@@ -231,7 +267,6 @@
               const fetched = await res.json();
               let rootObj = fetched.result || {};
               if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-
               Object.keys(updatesObj).forEach(updPath => {
                 let updParts = updPath.split('/').filter(Boolean);
                 let current = rootObj;
@@ -241,7 +276,18 @@
                 }
                 current[updParts[updParts.length - 1]] = updatesObj[updPath];
               });
-
+              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
+            } else {
+              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              const fetched = await res.json();
+              let rootObj = fetched.result || {};
+              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
+              let current = rootObj;
+              for (let i = 1; i < parts.length; i++) {
+                if (!current[parts[i]]) current[parts[i]] = {};
+                current = current[parts[i]];
+              }
+              Object.assign(current, updatesObj);
               return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
             }
           },
@@ -263,43 +309,159 @@
             }
           },
           push: function() {
-            const newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            const newKey = 'item_' + safeOrderInt() + '_' + Math.random().toString(36).substr(2, 5);
             const pushPath = path + (path.endsWith('/') ? '' : '/') + newKey;
             return {
               key: newKey,
               set: function(data) {
-                 return db.ref(pushPath).set(data);
+                return fallbackApiDb.ref(pushPath).set(data);
               }
             };
           }
         };
       }
     };
-    */
+
+    const db = window.supabaseDb || fallbackApiDb;
 
     var DEFAULT_ADMIN_ID='admin',DEFAULT_ADMIN_PASS='admin123',DEFAULT_GUEST_ID='guest',DEFAULT_GUEST_PASS='guest123';
     var adminPhone='',adminToken='';
-    var settings={loginEnabled:true,users:{},adminPass:DEFAULT_ADMIN_PASS,copyEnabled:false,guestAutoLogin:false,guestId:DEFAULT_GUEST_ID,guestPass:DEFAULT_GUEST_PASS};
+    var settings={
+      loginEnabled:true,
+      users:{},
+      adminPass:DEFAULT_ADMIN_PASS,
+      copyEnabled:false,
+      guestAutoLogin:false,
+      guestId:DEFAULT_GUEST_ID,
+      guestPass:DEFAULT_GUEST_PASS,
+      bulkQuizMode:'replace',
+      bulkDefaultClass:9,
+      bulkDefaultSubject:'Social'
+    };
     var activeSessions={},currentTab='theory',editingId=null;
     var allData={theory:{},quiz:{},mindmap:{},papers:{},games:{},projects:{},videos:{},skills:{}},csvRows=[],selectedItems={};
     var mappedRows=[];
+    var bulkMasterQueue=[];
     var currentFilters={subject:'ALL',class:'ALL',category:'ALL',sort:'manual'};
     var SUBJECTS=['Maths','Science','Telugu','English','Hindi','Social'],CLASSES=[1,2,3,4,5,6,7,8,9,10];
 
     function uploadDefaultsChanged(){}
-    function getUploadDefaultClass(){var s=document.getElementById('uploadClassSel');return s?(parseInt(s.value)||7):7;}
-    function getUploadDefaultSubject(){var s=document.getElementById('uploadSubjectSel');return s?(s.value||'Science'):'Science';}
+    function getUploadDefaultClass(){var s=document.getElementById('uploadClassSel');return s?(parseInt(s.value)||settings.bulkDefaultClass||9):(settings.bulkDefaultClass||9);}
+    function getUploadDefaultSubject(){var s=document.getElementById('uploadSubjectSel');return s?(s.value||settings.bulkDefaultSubject||'Social'):(settings.bulkDefaultSubject||'Social');}
     var SKILLS_CAT=["Competitive skills","Essay writing","Debate concept","Story writing","Speech","Sing a song","Skit related","Games"];
     var COMMON_TABS=['skills'];
     window.answersVisible=false;
     var draggedItem=null,draggedKey=null,draggedIndex=null;
+
+    function normalizeSubjectName(subTxt){
+      if(!subTxt)return null;
+      var subMap={'MATHS':'Maths','MATHEMATICS':'Maths','SCIENCE':'Science','GENERALSCIENCE':'Science','PHYSICS':'Science','CHEMISTRY':'Science','BIOLOGY':'Science','EVS':'Science','ENVIRONMENTALSTUDIES':'Science','TELUGU':'Telugu','ENGLISH':'English','HINDI':'Hindi','SOCIAL':'Social','SOCIALSTUDIES':'Social','SOCIALSCIENCE':'Social','HISTORY':'Social','GEOGRAPHY':'Social','CIVICS':'Social','POLITY':'Social','ECONOMICS':'Social'};
+      var clean=String(subTxt).toUpperCase().replace(/[^A-Z]/g,'');
+      if(subMap[clean])return subMap[clean];
+      for(var k in subMap){if(clean.indexOf(k)!==-1)return subMap[k];}
+      return null;
+    }
+
+    function extractClassNumber(clsTxt){
+      if(clsTxt===undefined||clsTxt===null)return null;
+      var s=String(clsTxt);
+      var m=s.match(/(?:class|grade|std)[_\-\s]*(\d{1,2})/i) || s.match(/(\d{1,2})/);
+      if(m){var n=parseInt(m[1],10);if(n>=1&&n<=10)return n;}
+      var tMap={'ONE':1,'TWO':2,'THREE':3,'FOUR':4,'FIVE':5,'SIX':6,'SEVEN':7,'EIGHT':8,'NINE':9,'TEN':10};
+      var up=s.toUpperCase();
+      for(var tk in tMap){if(up.indexOf(tk)!==-1)return tMap[tk];}
+      return null;
+    }
+
+    function cleanExtractedTitle(rawTitle){
+      if(!rawTitle)return '';
+      var t=String(rawTitle)
+        .replace(/<[^>]*>/g,' ')
+        .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu,'')
+        .replace(/Interactive FA-1 Question Papers:\s*/ig,'')
+        .replace(/Comprehensive Chapter Assessment:\s*/ig,'')
+        .replace(/10 Awesome (At-Home Science|Practical) Projects:\s*/ig,'')
+        .replace(/Practical Activities & Projects:\s*/ig,'')
+        .replace(/—\s*(Master Mind Map|Interactive Game Arcade!?|Interactive Learning Games)/ig,'')
+        .replace(/:\s*Rapid Sorter!?/ig,'')
+        .replace(/\(\s*Class\s*\d+[^)]*\)/ig,'')
+        .replace(/!+$/,'')
+        .replace(/\s+/g,' ')
+        .trim();
+      if(!t||/^ready\??$/i.test(t)||/^untitled$/i.test(t))return '';
+      return t;
+    }
+
+    // Generates a fixed, non-repeating ID for each Class + Subject + Module + Chapter
+    function makeUniqueModuleKey(mod, cls, sub, chap) {
+      var cleanChap = String(chap || 'Chapter1')
+        .toLowerCase()
+        .replace(/^chapter\s*/i, 'ch')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '') || 'ch1';
+      var cleanSub = String(sub || 'Social').replace(/[^a-zA-Z0-9]/g, '');
+      return 'Class' + cls + '_' + cleanSub + '_' + mod + '_' + cleanChap;
+    }
+
+    // =========================================================================
+    // SELF-VERIFYING UNIVERSAL QUIZ SAVER
+    // =========================================================================
+    async function verifyQuizSavedInDb(groupKey, expectedMinLen) {
+      try {
+        var snap = await db.ref('questionBank').once('value');
+        var val = snap ? snap.val() : null;
+        if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) { val = {}; } }
+        if (val && Array.isArray(val[groupKey]) && val[groupKey].length >= expectedMinLen) {
+          allData.quiz = val;
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    async function saveUniversalQuizGroup(groupKey, newQuestions, mode) {
+      var currentAllQuiz = (allData && allData.quiz && typeof allData.quiz === 'object') ? JSON.parse(JSON.stringify(allData.quiz)) : {};
+      try {
+        var snap = await db.ref('questionBank').once('value');
+        var val = snap ? snap.val() : null;
+        if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) { val = {}; } }
+        if (val && typeof val === 'object') currentAllQuiz = val;
+      } catch (e) {}
+
+      delete currentAllQuiz['undefined'];
+
+      var existing = Array.isArray(currentAllQuiz[groupKey]) ? currentAllQuiz[groupKey] : [];
+      var finalArr = (mode === 'replace') ? newQuestions : existing.concat(newQuestions);
+      currentAllQuiz[groupKey] = finalArr;
+      if (allData) allData.quiz = currentAllQuiz;
+
+      // Method 1: Child-level db.ref('questionBank/' + groupKey).set(finalArr)
+      try {
+        await db.ref('questionBank/' + groupKey).set(finalArr);
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e1) { console.warn('Method 1 (child set) failed:', e1); }
+
+      // Method 2: Root-level db.ref('questionBank').set(currentAllQuiz)
+      try {
+        await db.ref('questionBank').set(currentAllQuiz);
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e2) { console.warn('Method 2 (root set) failed:', e2); }
+
+      // Method 3: Root-level db.ref('questionBank').update({ [groupKey]: finalArr })
+      try {
+        await db.ref('questionBank').update({ [groupKey]: finalArr });
+        if (await verifyQuizSavedInDb(groupKey, finalArr.length)) return finalArr.length;
+      } catch (e3) { console.warn('Method 3 (root update) failed:', e3); }
+
+      throw new Error('Supabase adapter rejected questionBank write. Check browser console (F12) for details.');
+    }
 
     function parseQuizKey(key){
       var parts=key.split('_');
       if(parts.length>=3){
         var cls=parts[0].replace('Class','');
         var sub=parts[1];
-        var ch=parts.slice(2).join(' ').replace('Chapter','Ch ');
+        var ch=parts.slice(2).join(' ').replace(/^Chapter/i,'Ch ');
         return 'Class '+cls+' - '+sub+' - '+ch;
       }
       return key;
@@ -312,7 +474,7 @@
       return "'" + String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'\\r') + "'";
     }
     function escapeAttr(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-    function escCSV(s){return s?s.replace(/"/g,'""'):''}
+    function escCSV(s){return s?String(s).replace(/"/g,'""'):''}
     window.tog=function(id){var el=document.getElementById(id);if(el)el.classList.toggle('show')}
     
     function initTheme(){
@@ -365,7 +527,7 @@
       var cp=settings.adminPass||DEFAULT_ADMIN_PASS;
       if(p===DEFAULT_ADMIN_ID&&pa===cp){
         e.style.display='none';
-        var t="adm_"+Date.now()+"_"+Math.floor(Math.random()*10000);
+        var t="adm_"+safeOrderInt()+"_"+Math.floor(Math.random()*10000);
         adminPhone=p;adminToken=t;
         localStorage.setItem('cs_ad_ph',p);
         localStorage.setItem('cs_ad_tk',t);
@@ -397,6 +559,8 @@
       currentTab=tab;
       editingId=null;
       csvRows=[];
+      mappedRows=[];
+      bulkMasterQueue=[];
       selectedItems={};
       currentFilters={subject:'ALL',class:'ALL',category:'ALL',sort:'manual'};
       var btns=document.querySelectorAll('.admin-tab-btn');
@@ -414,11 +578,18 @@
         ac.innerHTML='<div style="padding:40px;text-align:center;color:#ef4444;">Please login first</div>';
         return;
       }
+      if(currentTab==='allbulk'){renderAllInOneBulkTab();return}
       if(currentTab==='users'){renderUsers();return}
       if(currentTab==='settings'){renderSettings();return}
 
       var refMap={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var keyMap={'theory':'theory','quiz':'quiz','mindmap':'mindmap','papers':'papers','games':'games','projects':'projects','videos':'videos','skills':'skills'};
+      
+      if(!refMap[currentTab]){
+        renderAllInOneBulkTab();
+        return;
+      }
+
       ac.innerHTML='<div style="padding:40px;text-align:center;"><span class="spinner"></span> Loading...</div>';
       
       db.ref(refMap[currentTab]).once('value').then(function(snap){
@@ -431,10 +602,428 @@
       });
     }
 
+    // =========================================================================
+    // MASTER TAB: ALL-IN-ONE MULTI-MODULE & BULK FOLDER UPLOAD
+    // =========================================================================
+    function renderAllInOneBulkTab(){
+      var ac=document.getElementById('admin-content');
+      var defCls=settings.bulkDefaultClass||9;
+      var defSub=settings.bulkDefaultSubject||'Social';
+      var qMode=settings.bulkQuizMode||'replace';
+
+      var h='<div class="bulk-all-box">';
+      h+='<h3>🚀 All-in-One Multi-Module & Bulk Folder Uploader</h3>';
+      h+='<p style="color:var(--mut);font-size:.9rem;margin-bottom:12px;">Upload all generated pipeline formats (<strong>THEORY, MIND_MAP, PAPERS, PROJECTS, GAMES, and quiz_output</strong>) at a time! Automatically routes every file to its respective database table without duplicates.</p>';
+      h+='<div style="margin-bottom:14px;">';
+      h+='<span class="fmt-badge">THEORY.html / .txt</span>';
+      h+='<span class="fmt-badge">MIND_MAP.html / .txt</span>';
+      h+='<span class="fmt-badge">PAPERS.html / .txt</span>';
+      h+='<span class="fmt-badge">PROJECTS.html / .txt</span>';
+      h+='<span class="fmt-badge">GAMES.html / .txt</span>';
+      h+='<span class="fmt-badge">quiz_output.csv / .json</span>';
+      h+='</div>';
+
+      h+='<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0;padding:14px;background:rgba(0,0,0,.25);border-radius:10px;border:1px solid var(--brd);">';
+      h+='<div style="font-size:12px;font-weight:800;color:#fbbf24;width:100%;">⚙️ Upload Configuration & Fallback Metadata (Selecting <code>Class_9</code> folder auto-detects Class, Subject & Chapter from folder structure):</div>';
+      h+='<div><label style="font-size:12px;font-weight:700;">Fallback Class: </label><select id="bulkDefClass" class="form-inp" style="width:auto;margin-bottom:0;" onchange="recalcBulkMeta()">';
+      for(var i=0;i<CLASSES.length;i++){
+        h+='<option value="'+CLASSES[i]+'" '+(CLASSES[i]==defCls?'selected':'')+'>Class '+CLASSES[i]+'</option>';
+      }
+      h+='</select></div>';
+      h+='<div><label style="font-size:12px;font-weight:700;">Fallback Subject: </label><select id="bulkDefSubject" class="form-inp" style="width:auto;margin-bottom:0;" onchange="recalcBulkMeta()">';
+      for(var j=0;j<SUBJECTS.length;j++){
+        h+='<option value="'+SUBJECTS[j]+'" '+(SUBJECTS[j]===defSub?'selected':'')+'>'+SUBJECTS[j]+'</option>';
+      }
+      h+='</select></div>';
+      h+='<div style="flex:1;min-width:200px;"><label style="font-size:12px;font-weight:700;">Chapter / Topic Name (optional override): </label><input type="text" id="bulkDefChapter" class="form-inp" placeholder="Auto-detected from folder (e.g. Chapter1)" style="margin-bottom:0;" oninput="recalcBulkMeta()"></div>';
+      h+='<div><label style="font-size:12px;font-weight:700;">Quiz Mode: </label><select id="bulkQuizModeSel" class="form-inp" style="width:auto;margin-bottom:0;">';
+      h+='<option value="replace" '+(qMode==='replace'?'selected':'')+'>Replace Chapter Quiz (Zero Duplicates)</option>';
+      h+='<option value="append" '+(qMode==='append'?'selected':'')+'>Append to Existing Quiz</option>';
+      h+='</select></div>';
+      h+='</div>';
+
+      h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:15px;margin-top:15px;">';
+
+      h+='<div class="dropzone" style="border-color:#10b981;background:rgba(16,185,129,.06);" onclick="document.getElementById(\'bulkFolderInput\').click()">';
+      h+='<div class="dz-icon">📁</div><strong style="color:#34d399;">ఆప్షన్ A (Select Entire <code>Class_9</code> Folder)</strong><br>';
+      h+='<small>మీరు <code>webkitdirectory</code> ద్వారా నేరుగా మీ <strong><code>Class_9</code></strong> (లేదా ఏదైనా Class / Chapter) ఫోల్డర్‌ను సెలెక్ట్ చేస్తే చాలు!<br>Auto-detects Class, Subject, Chapter & uploads all 6 modules!</small>';
+      h+='<input type="file" id="bulkFolderInput" webkitdirectory directory multiple style="display:none;" onchange="handleBulkMasterFiles(this.files)">';
+      h+='</div>';
+
+      h+='<div class="dropzone" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="event.preventDefault();this.classList.remove(\'over\');handleBulkMasterFiles(event.dataTransfer.files)" onclick="document.getElementById(\'bulkMultiFileInput\').click()">';
+      h+='<div class="dz-icon">📄</div><strong style="color:#38bdf8;">ఆప్షన్ B (Select / Drop All Module Files at Once)</strong><br>';
+      h+='<small>Select <code>THEORY</code>, <code>MIND_MAP</code>, <code>PAPERS</code>, <code>PROJECTS</code>, <code>GAMES</code>, <code>quiz_output.csv</code> together!</small>';
+      h+='<input type="file" id="bulkMultiFileInput" multiple accept=".html,.htm,.txt,.csv,.tsv,.json,.xlsx,.xls" style="display:none;" onchange="handleBulkMasterFiles(this.files)">';
+      h+='</div>';
+
+      h+='</div>';
+      h+='<div id="bulkMasterPreview"></div>';
+      h+='</div>';
+      ac.innerHTML=h;
+    }
+
+    function recalcBulkMeta(){
+      if(!bulkMasterQueue||!bulkMasterQueue.length)return;
+      for(var i=0;i<bulkMasterQueue.length;i++){
+        var it=bulkMasterQueue[i];
+        var m=inferMetaFromRelativePath(it.relPath,it.fileName,it.rawText,it.module);
+        it.class=m.class;
+        it.subject=m.subject;
+        it.chapter=m.chapter;
+      }
+      bulkMasterQueue.sort(function(a, b) {
+        if (a.class !== b.class) return a.class - b.class;
+        if (a.subject !== b.subject) return a.subject.localeCompare(b.subject);
+        return naturalTitleCompare(a.chapter, b.chapter);
+      });
+      renderBulkMasterPreview();
+    }
+
+    function detectModuleFromFileName(fname){
+      var up=fname.toUpperCase();
+      if(up.indexOf('PROCESSING.DONE')!==-1||up.indexOf('MASTER_DATA')!==-1||up.indexOf('_EXTRACTED')!==-1)return null;
+      if(up.indexOf('QUIZ')!==-1||up.slice(-4)==='.CSV'||up.slice(-4)==='.TSV')return 'quiz';
+      if(up.indexOf('THEORY')!==-1)return 'theory';
+      if(up.indexOf('MIND')!==-1)return 'mindmap';
+      if(up.indexOf('PAPER')!==-1)return 'papers';
+      if(up.indexOf('PROJECT')!==-1)return 'projects';
+      if(up.indexOf('GAME')!==-1)return 'games';
+      if(up.indexOf('VIDEO')!==-1)return 'videos';
+      if(up.indexOf('SKILL')!==-1)return 'skills';
+      return null;
+    }
+
+    function inferMetaFromRelativePath(relPath,fileName,rawContent,modType){
+      var defCls=parseInt(getVal('bulkDefClass'),10)||settings.bulkDefaultClass||9;
+      var defSub=getVal('bulkDefSubject')||settings.bulkDefaultSubject||'Social';
+      var defChap=getVal('bulkDefChapter')||'';
+
+      var parts=String(relPath||'').split(/[\/\\]/).filter(Boolean);
+      var detCls=null,detSub=null,detChap=null;
+
+      for(var i=0;i<parts.length-1;i++){
+        var p=parts[i];
+        if(p.toLowerCase()==='final_output'||p.toLowerCase()==='segmented_5000')continue;
+        if(!detCls){
+          var cn=extractClassNumber(p);
+          if(cn){detCls=cn;continue;}
+        }
+        if(!detSub){
+          var sb=normalizeSubjectName(p);
+          if(sb){detSub=sb;continue;}
+        }
+        detChap=p.replace(/_/g,' ').trim();
+      }
+
+      if(modType==='quiz'&&rawContent){
+        var qRows=parseQuizRowsFromRawText(rawContent,detCls||defCls,detSub||defSub,detChap||'Chapter1');
+        if(qRows.length){
+          detCls=qRows[0].class||detCls;
+          detSub=qRows[0].subject||detSub;
+          if(qRows[0].chapter && !detChap) detChap = String(qRows[0].chapter).trim();
+        }
+      }
+
+      if(defChap)detChap=defChap;
+
+      if(!detChap&&rawContent&&modType!=='quiz'){
+        var titleMatch=rawContent.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        if(titleMatch&&titleMatch[1]){
+          var ct=cleanExtractedTitle(titleMatch[1].replace(/-\s*(Theory|Complete Study Guide)/i,''));
+          if(ct)detChap=ct;
+        }
+        if(!detChap){
+          var headings=rawContent.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/ig)||[];
+          for(var hi=0;hi<headings.length;hi++){
+            if(headings[hi].indexOf('mm-word')!==-1)continue;
+            var chClean=cleanExtractedTitle(headings[hi]);
+            if(chClean&&chClean.length<90){detChap=chClean;break;}
+          }
+        }
+      }
+      if(!detChap){
+        var fnClean=fileName.replace(/\.[^.]+$/,'').replace(/(theory|mind_?map|papers|projects|games|quiz_?output)/ig,'').replace(/[_\-]+/g,' ').trim();
+        detChap=cleanExtractedTitle(fnClean)||'Chapter1';
+      }
+
+      return {
+        class:detCls||defCls,
+        subject:detSub||defSub,
+        chapter:cleanExtractedTitle(detChap)||'Chapter1'
+      };
+    }
+
+    async function handleBulkMasterFiles(fileList){
+      if(!fileList||!fileList.length)return;
+      var pv=document.getElementById('bulkMasterPreview');
+      pv.innerHTML='<div style="padding:20px;text-align:center;"><span class="spinner"></span> Scanning & parsing '+fileList.length+' files...</div>';
+
+      bulkMasterQueue=[];
+      var seenModKeys={};
+      var sharedChapterTitle='';
+      var csvDetectedSub=null,csvDetectedCls=null;
+
+      var tempItems=[];
+      for(var i=0;i<fileList.length;i++){
+        var f=fileList[i];
+        var mod=detectModuleFromFileName(f.name);
+        if(!mod)continue;
+
+        var text=await new Promise(function(resolve){
+          var r=new FileReader();
+          r.onload=function(e){resolve(e.target.result||'')};
+          r.onerror=function(){resolve('')};
+          r.readAsText(f);
+        });
+        if(!text.trim())continue;
+
+        var rel=f.webkitRelativePath||f.name;
+        var meta=inferMetaFromRelativePath(rel,f.name,text,mod);
+        if(mod==='quiz'){
+          csvDetectedSub=meta.subject;
+          csvDetectedCls=meta.class;
+        }
+        if(meta.chapter&&meta.chapter!=='Chapter1'&&!sharedChapterTitle){
+          sharedChapterTitle=meta.chapter;
+        }
+        tempItems.push({f:f,mod:mod,text:text,rel:rel,meta:meta});
+      }
+
+      for(var j=0;j<tempItems.length;j++){
+        var item=tempItems[j];
+        var f=item.f,mod=item.mod,text=item.text,rel=item.rel,meta=item.meta;
+        if((!meta.chapter||meta.chapter==='Chapter1')&&sharedChapterTitle){
+          meta.chapter=sharedChapterTitle;
+        }
+        if(csvDetectedSub && meta.subject==='Science' && csvDetectedSub!=='Science' && rel.indexOf('General_Science')!==-1){
+          meta.subject=csvDetectedSub;
+        }
+        if(csvDetectedCls && !meta.class){
+          meta.class=csvDetectedCls;
+        }
+
+        var ext=f.name.split('.').pop().toLowerCase();
+        var dedupKey=meta.class+'|'+meta.subject+'|'+meta.chapter+'|'+mod;
+        if(mod!=='quiz'){
+          if(seenModKeys[dedupKey]==='html'&&ext==='txt')continue;
+          seenModKeys[dedupKey]=ext;
+          bulkMasterQueue=bulkMasterQueue.filter(function(it){return it.dedupKey!==dedupKey;});
+        }else{
+          if(seenModKeys[dedupKey]&&seenModKeys[dedupKey]!==ext)continue;
+          seenModKeys[dedupKey]=ext;
+        }
+
+        bulkMasterQueue.push({
+          dedupKey:dedupKey,
+          fileName:f.name,
+          relPath:rel,
+          module:mod,
+          class:meta.class,
+          subject:meta.subject,
+          chapter:meta.chapter,
+          rawText:text
+        });
+      }
+
+      renderBulkMasterPreview();
+    }
+
+    function renderBulkMasterPreview(){
+      var pv=document.getElementById('bulkMasterPreview');
+      if(!bulkMasterQueue.length){
+        pv.innerHTML='<div style="padding:15px;color:#ef4444;font-weight:700;">⚠️ No matching module files found. Make sure files are named THEORY, MIND_MAP, PAPERS, PROJECTS, GAMES, or quiz_output.</div>';
+        return;
+      }
+
+      var h='<div style="margin-top:15px;padding:15px;background:rgba(0,0,0,.25);border-radius:10px;border:1px solid var(--brd);">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">';
+      h+='<div><strong style="color:#4ade80;font-size:1.05rem;">✅ '+bulkMasterQueue.length+' Module Files Ready for All-in-One Upload</strong></div>';
+      h+='<div style="display:flex;gap:10px;">';
+      h+='<button class="btn btn-green btn-sm" id="btnStartBulkMaster" onclick="executeBulkMasterUpload()">🚀 Upload All '+bulkMasterQueue.length+' Modules Now</button>';
+      h+='<button class="btn btn-dark btn-sm" onclick="bulkMasterQueue=[];document.getElementById(\'bulkMasterPreview\').innerHTML=\'\';">🗑 Clear</button>';
+      h+='</div></div>';
+
+      h+='<div id="bulkMasterStatusBox"></div>';
+      h+='<div style="max-height:360px;overflow-y:auto;">';
+      h+='<table class="upload-pv-table"><thead><tr><th>#</th><th>Target Module</th><th>Class</th><th>Subject</th><th>Chapter / Topic Title</th><th>Source File</th></tr></thead><tbody>';
+      for(var i=0;i<bulkMasterQueue.length;i++){
+        var it=bulkMasterQueue[i];
+        h+='<tr>';
+        h+='<td>'+(i+1)+'</td>';
+        h+='<td><span class="tag tag-teal">'+sanitizeHTML(it.module.toUpperCase())+'</span></td>';
+        h+='<td>Class '+sanitizeHTML(String(it.class))+'</td>';
+        h+='<td>'+sanitizeHTML(it.subject)+'</td>';
+        h+='<td><strong>'+sanitizeHTML(it.chapter)+'</strong></td>';
+        h+='<td><small style="color:var(--mut);">'+sanitizeHTML(it.relPath)+'</small></td>';
+        h+='</tr>';
+      }
+      h+='</tbody></table></div></div>';
+      pv.innerHTML=h;
+    }
+
+    function parseQuizRowsFromRawText(rawText,fallbackCls,fallbackSub,fallbackChap){
+      var t0=rawText.replace(/^\uFEFF/,'').trim();
+      var rawArr=[];
+      if(t0.charAt(0)==='['||t0.charAt(0)==='{'){
+        try{
+          var parsed=JSON.parse(t0);
+          rawArr=Array.isArray(parsed)?parsed:Object.values(parsed);
+        }catch(e){return [];}
+      }else{
+        var lines=smartBlockSplit(t0).map(function(l){return l.trim()}).filter(Boolean);
+        if(lines.length<2)return [];
+        var headers=smartSplit(lines[0]);
+        for(var i=1;i<lines.length;i++){
+          var cols=smartSplit(lines[i]);
+          var rec={};
+          for(var j=0;j<headers.length;j++)rec[headers[j]]=cols[j]!==undefined?cols[j]:'';
+          rawArr.push(rec);
+        }
+      }
+
+      var formattedQuestions=[];
+      rawArr.forEach(function(r){
+        if(!r||typeof r!=='object')return;
+        var keys=Object.keys(r);
+        function findK(names){
+          for(var i=0;i<names.length;i++){
+            var w=names[i].toLowerCase().replace(/[\s_\-]/g,'');
+            for(var j=0;j<keys.length;j++){
+              if(keys[j].toLowerCase().replace(/[\s_\-]/g,'')===w)return keys[j];
+            }
+          }
+          return null;
+        }
+        var kClass=findK(['class','classname','classno']);
+        var kSub=findK(['subject']);
+        var kChap=findK(['chapter','subsubject','sub-subject']);
+        var kTopic=findK(['topic','level','questiontype']);
+        var kSubTopic=findK(['subtopic','sub-topic','questiontype']);
+        var kQues=findK(['question','ques']);
+        var kA=findK(['optiona','opta','a']);
+        var kB=findK(['optionb','optb','b']);
+        var kC=findK(['optionc','optc','c']);
+        var kD=findK(['optiond','optd','d']);
+        var kAns=findK(['answer','correctanswer','correct','ans']);
+        var kExp=findK(['explanation','expl']);
+
+        var cn=extractClassNumber(kClass?r[kClass]:'')||fallbackCls||9;
+        var sub=normalizeSubjectName(kSub?r[kSub]:'')||fallbackSub||'Social';
+        var ch=String((kChap?r[kChap]:'')||fallbackChap||'1').trim();
+        var ques=String((kQues?r[kQues]:'')||r.question||'').trim();
+        var optA=String((kA?r[kA]:'')||(r.options&&r.options.A)||'').trim();
+        var optB=String((kB?r[kB]:'')||(r.options&&r.options.B)||'').trim();
+        var optC=String((kC?r[kC]:'')||(r.options&&r.options.C)||'').trim();
+        var optD=String((kD?r[kD]:'')||(r.options&&r.options.D)||'').trim();
+        var ans=String((kAns?r[kAns]:'')||r.correctAnswer||'').trim().toUpperCase().charAt(0);
+        var exp=String((kExp?r[kExp]:'')||r.explanation||'').trim();
+        var topTxt=String((kTopic?r[kTopic]:'')||r.topic||'General').trim();
+        var subTopTxt=String((kSubTopic?r[kSubTopic]:'')||r.subtopic||'All Questions').trim();
+
+        if(!ques||!optA||!optB||['A','B','C','D'].indexOf(ans)===-1)return;
+
+        var chNorm=ch.replace(/^chapter\s*/i,'').replace(/^ch\s*/i,'').replace(/\s+/g,'')||'1';
+
+        formattedQuestions.push({
+          question:ques,
+          options:{A:optA,B:optB,C:optC,D:optD},
+          correctAnswer:ans,
+          subject:sub,
+          class:cn,
+          chapter:chNorm,
+          topic:topTxt||'General',
+          subtopic:subTopTxt||'All Questions',
+          explanation:exp,
+          imageUrls:[],
+          order:getNaturalChapterOrder(fallbackChap || ch, 0)
+        });
+      });
+      return formattedQuestions;
+    }
+
+    function executeBulkMasterUpload(){
+      if(!bulkMasterQueue.length)return;
+      var btn=document.getElementById('btnStartBulkMaster');
+      if(btn)btn.disabled=true;
+      var stBox=document.getElementById('bulkMasterStatusBox');
+      var qMode=getVal('bulkQuizModeSel')||'replace';
+      var total=bulkMasterQueue.length;
+      var refMap={'theory':'theoryDatabase','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
+
+      var uploadedModules=0,uploadedQuestions=0,errorsList=[];
+
+      async function processAll(){
+        for(var idx=0;idx<total;idx++){
+          var item=bulkMasterQueue[idx];
+          var pct=Math.round(((idx+1)/total)*100);
+          stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:'+pct+'%;">'+pct+'% ('+(idx+1)+'/'+total+')</div></div><div style="font-size:.85rem;color:#38bdf8;margin-bottom:10px;">⏳ Uploading & Updating <strong>'+sanitizeHTML(item.module.toUpperCase())+'</strong>: Class '+item.class+' · '+sanitizeHTML(item.subject)+' · '+sanitizeHTML(item.chapter)+'...</div>';
+
+          if(item.module==='quiz'){
+            var qList=parseQuizRowsFromRawText(item.rawText,item.class,item.subject,item.chapter);
+            if(!qList.length){
+              errorsList.push(item.fileName+': 0 valid quiz rows');
+              continue;
+            }
+            var qGroups={};
+            qList.forEach(function(qObj){
+              var rawChap = String(item.chapter || qObj.chapter || '1').trim();
+              var chClean = rawChap.replace(/^chapter\s*/i, '').trim() || '1';
+              var gk = 'Class' + qObj.class + '_' + qObj.subject + '_Chapter_' + chClean.replace(/[^a-zA-Z0-9]+/g, '_');
+              qObj.chapter=chClean;
+              if(!qGroups[gk])qGroups[gk]=[];
+              qGroups[gk].push(qObj);
+            });
+            try{
+              var gKeys=Object.keys(qGroups);
+              for(var gi=0;gi<gKeys.length;gi++){
+                var k=gKeys[gi];
+                await saveUniversalQuizGroup(k, qGroups[k], qMode);
+                uploadedQuestions+=qGroups[k].length;
+              }
+              uploadedModules++;
+            }catch(err){
+              console.error('Quiz bulk error:',err);
+              errorsList.push(item.fileName+': '+(err.message||'Quiz DB error'));
+            }
+          }else{
+            var rp=refMap[item.module];
+            if(!rp)continue;
+            try{
+              var fixedKey=makeUniqueModuleKey(item.module, item.class, item.subject, item.chapter);
+              var payload={
+                title:item.chapter,
+                subject:item.subject,
+                class:item.class,
+                topic:item.chapter,
+                content:item.rawText,
+                imageUrls:[],
+                key:fixedKey,
+                order:getNaturalChapterOrder(item.chapter, idx)
+              };
+              await db.ref(rp+'/'+fixedKey).set(payload);
+              uploadedModules++;
+            }catch(err){
+              errorsList.push(item.fileName+': '+(err.message||'DB error'));
+            }
+          }
+        }
+
+        if(btn)btn.disabled=false;
+        var errHtml=errorsList.length?('<div style="color:#f87171;font-size:.82rem;margin-top:6px;">⚠️ Errors: '+sanitizeHTML(errorsList.join(' | '))+'</div>'):'';
+        stBox.innerHTML='<div class="bulk-progress-outer"><div class="bulk-progress-inner" style="width:100%;">100% COMPLETED</div></div><div style="padding:12px;background:rgba(34,197,94,.15);border:1px solid #22c55e;border-radius:8px;color:#4ade80;font-weight:800;margin-bottom:12px;">🎉 Successfully synced '+uploadedModules+' module files (including '+uploadedQuestions+' Quiz MCQs) without duplicates!'+errHtml+'</div>';
+        toast('Synced '+uploadedModules+' modules (Zero Duplicates)!','success');
+      }
+
+      processAll();
+    }
+
+    // =========================================================================
+    // STANDARD TABS & CONTENT MANAGEMENT
+    // =========================================================================
     function renderContent(dk){
       var ac=document.getElementById('admin-content');
       var data=allData[dk]||{};
-      var keys=Object.keys(data);
+      var keys=Object.keys(data).filter(function(k){return k!=='undefined'&&k!=='null';});
       var isQuiz=(dk==='quiz');
       var isCommon=isCommonTab();
       var h='';
@@ -481,11 +1070,12 @@
       h+='<option value="za" '+(currentFilters.sort==='za'?'selected':'')+'>Z-A</option>';
       h+='</select>';
 
-      h+='<button class="btn btn-blue btn-sm" onclick="selectAllItems()">☑ Select All</button>';
+      h+='<button class="btn btn-orange btn-sm" onclick="autoFixAllChapterOrders(''+dk+'')" title="Arrange all chapters in 1 to 10 order and save to DB">🔢 Auto-Order (Ch 1➔10)</button><button class="btn btn-blue btn-sm" onclick="selectAllItems()">☑ Select All</button>';
       h+='<button class="btn btn-dark btn-sm" onclick="deselectAllItems()">☐ Deselect</button>';
       h+='<button class="btn btn-red btn-sm" onclick="deleteSelected()">🗑 Delete (<span id="selCount">0</span>)</button>';
       h+='<button class="btn btn-purple btn-sm" onclick="downloadData(\''+dk+'\')">📥 JSON</button>';
-      h+='<button class="btn btn-teal btn-sm" onclick="downloadCSV(\''+dk+'\')">📊 CSV</button>';
+      h+='<button class="btn btn-teal btn-sm" onclick="downloadCSV(\''+dk+'\')">📊 Exact CSV</button>';
+      h+='<button class="btn btn-orange btn-sm" onclick="downloadOriginalFiles(\''+dk+'\')">📄 Original HTML/CSV</button>';
       if(!isQuiz)h+='<button class="btn btn-green btn-sm" onclick="showAddForm(\''+dk+'\')">➕ Add New</button>';
       if(isQuiz)h+='<button class="btn btn-green btn-sm" onclick="showAddQuiz()">➕ Add Question</button>';
       h+='<span style="color:var(--mut);margin-left:auto;">Total: <strong>'+keys.length+'</strong></span>';
@@ -497,35 +1087,6 @@
       }else{
         var dk2=getFilteredAndSortedKeys(keys,data,isQuiz,isCommon);
         if(typeof renderGroupedList==='function')h+=renderGroupedList(dk2,data,dk,isQuiz);
-        else{
-          for(var i=0;i<dk2.length;i++){
-            var k=dk2[i];
-            var item=data[k];
-            var selClass=selectedItems[k]?'selected':'';
-            var isChecked=selectedItems[k]?true:false;
-            var ek=escapeAttr(k);
-            h+='<div class="list-item '+selClass+'" data-key="'+ek+'" data-index="'+i+'" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">';
-            h+='<div class="item-toggle"><label class="toggle-switch"><input type="checkbox" '+(isChecked?'checked':'')+' onchange="toggleSelect('+q(k)+',this.checked)" onclick="event.stopPropagation()"><span class="toggle-slider"></span></label></div>';
-            h+='<div class="item-info">';
-            h+='<strong>'+(item.title?sanitizeHTML(item.title.replace(/<[^>]*>/g,'')):'Untitled')+'</strong>';
-            if(dk==='games'||dk==='projects'){
-              if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
-              if(item.class)h+='<span class="tag tag-orange">Class '+sanitizeHTML(String(item.class))+'</span>';
-              if(item.topic)h+='<span class="tag tag-green">'+sanitizeHTML(item.topic)+'</span>';
-            }else if(dk==='skills'){
-              if(item.category)h+='<span class="tag tag-purple">'+sanitizeHTML(item.category)+'</span>';
-            }else{
-              if(item.subject)h+='<span class="tag tag-blue">'+sanitizeHTML(item.subject)+'</span>';
-              if(item.class)h+='<span class="tag tag-orange">Class '+sanitizeHTML(String(item.class))+'</span>';
-            }
-            h+='</div>';
-            h+='<div class="item-actions">';
-            h+='<button class="btn btn-blue btn-xs" onclick="event.stopPropagation();editItem('+q(dk)+','+q(ek)+')">✏️ Edit</button>';
-            h+='<button class="btn btn-red btn-xs" onclick="event.stopPropagation();deleteSingle('+q(dk)+','+q(ek)+')">🗑</button>';
-            h+='</div>';
-            h+='</div>';
-          }
-        }
       }
       h+='</div>';
       h+='<div id="editForm" style="display:none;margin-top:20px;"></div>';
@@ -576,7 +1137,7 @@
       swapOrder(currentTab,draggedKey,targetKey,draggedIndex,targetIndex);
     }
 
-    function swapOrder(dk,keyA,keyB,idxA,idxB){
+    async function swapOrder(dk,keyA,keyB,idxA,idxB){
       var data=allData[dk];
       if(!data)return;
       var isQuiz=(dk==='quiz');
@@ -586,28 +1147,47 @@
         if(isQuiz){
           return (it&&it.length&&it[0].order!==undefined)?it[0].order:def;
         }
-        return (it&&it.order!==undefined)?it.order:def;
+        return (it&&it.order!==undefined)?it[order]!==undefined?it.order:def:def;
       }
 
-      var orderA=getOrder(keyA,idxA*10);
-      var orderB=getOrder(keyB,idxB*10);
+      var orderA=(idxA+1)*1000;
+      var orderB=(idxB+1)*1000;
+      if(isQuiz){
+        if(data[keyA]&&data[keyA].length&&data[keyA][0].order!==undefined) orderA=data[keyA][0].order;
+        if(data[keyB]&&data[keyB].length&&data[keyB][0].order!==undefined) orderB=data[keyB][0].order;
+      }else{
+        if(data[keyA]&&data[keyA].order!==undefined) orderA=data[keyA].order;
+        if(data[keyB]&&data[keyB].order!==undefined) orderB=data[keyB].order;
+      }
       if(orderA===orderB){
-        orderA=idxA*10;
-        orderB=idxB*10;
+        orderA=(idxA+1)*1000;
+        orderB=(idxB+1)*1000;
       }
 
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
-      var updates={};
-      if(isQuiz){
-        updates[keyA+'/0/order']=orderB;
-        updates[keyB+'/0/order']=orderA;
-        if(data[keyA]&&data[keyA][0])data[keyA][0].order=orderB;
-        if(data[keyB]&&data[keyB][0])data[keyB][0].order=orderA;
-      }else{
-        updates[keyA+'/order']=orderB;
-        updates[keyB+'/order']=orderA;
-        if(data[keyA])data[keyA].order=orderB;
-        if(data[keyB])data[keyB].order=orderA;
+      try {
+        if(isQuiz){
+          if(data[keyA]&&data[keyA].length){
+            data[keyA].forEach(function(q){ q.order=orderB; });
+            await db.ref('questionBank/'+keyA).set(data[keyA]);
+          }
+          if(data[keyB]&&data[keyB].length){
+            data[keyB].forEach(function(q){ q.order=orderA; });
+            await db.ref('questionBank/'+keyB).set(data[keyB]);
+          }
+        }else{
+          if(data[keyA]){
+            data[keyA].order=orderB;
+            await db.ref(rm[dk]+'/'+keyA).set(data[keyA]);
+          }
+          if(data[keyB]){
+            data[keyB].order=orderA;
+            await db.ref(rm[dk]+'/'+keyB).set(data[keyB]);
+          }
+        }
+        toast('Chapter order updated!','success');
+      } catch(err) {
+        toast('Order update error: '+(err.message||err),'error');
       }
 
       if(currentFilters.sort!=='manual'){
@@ -616,7 +1196,42 @@
         if(so)so.value='manual';
       }
       refreshUI();
-      db.ref(rm[dk]).update(updates).catch(function(err){toast('Error: '+err.message,'error')});
+    }
+
+    async function autoFixAllChapterOrders(dk) {
+      var data = allData[dk] || {};
+      var keys = Object.keys(data).filter(function(k){ return k !== 'undefined' && k !== 'null'; });
+      if (!keys.length) { toast('No chapters to sort!', 'error'); return; }
+      var isQuiz = (dk === 'quiz');
+      var rm = {'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
+
+      toast('Arranging chapters in 1 ➔ 10 order...', 'info');
+      keys.sort(function(a, b) {
+        var titleA = isQuiz ? parseQuizKey(a) : ((data[a] && (data[a].title || data[a].topic)) || a);
+        var titleB = isQuiz ? parseQuizKey(b) : ((data[b] && (data[b].title || data[b].topic)) || b);
+        return naturalTitleCompare(titleA, titleB);
+      });
+
+      try {
+        for (var i = 0; i < keys.length; i++) {
+          var k = keys[i];
+          var num = extractChapterNum(isQuiz ? parseQuizKey(k) : ((data[k] && (data[k].title || data[k].topic)) || k));
+          var newOrd = (num !== 9999) ? (num * 1000 + i) : ((i + 1) * 1000);
+          if (isQuiz) {
+            if (Array.isArray(data[k]) && data[k].length) {
+              data[k].forEach(function(q){ q.order = newOrd; });
+              await db.ref('questionBank/' + k).set(data[k]);
+            }
+          } else if (data[k]) {
+            data[k].order = newOrd;
+            await db.ref(rm[dk] + '/' + k).set(data[k]);
+          }
+        }
+        toast('✅ All chapters arranged in exact Ch 1 ➔ 10 order!', 'success');
+        refreshUI();
+      } catch (err) {
+        toast('Error saving order: ' + (err.message || err), 'error');
+      }
     }
 
     function toggleAllAnswers(){
@@ -697,24 +1312,25 @@
 
       if(currentFilters.sort==='manual'){
         filtered.sort(function(a,b){
-          var oA, oB;
-          if(isQuiz){
-            oA=(data[a]&&data[a].length)?data[a][0].order:undefined;
-            oB=(data[b]&&data[b].length)?data[b][0].order:undefined;
-          }else{
-            oA=(data[a]?data[a].order:undefined);
-            oB=(data[b]?data[b].order:undefined);
+          var titleA = isQuiz ? parseQuizKey(a) : ((data[a] && (data[a].title || data[a].topic)) || a);
+          var titleB = isQuiz ? parseQuizKey(b) : ((data[b] && (data[b].title || data[b].topic)) || b);
+          var numA = extractChapterNum(titleA);
+          var numB = extractChapterNum(titleB);
+          var oA = isQuiz ? ((data[a]&&data[a].length)?data[a][0].order:undefined) : (data[a]?data[a].order:undefined);
+          var oB = isQuiz ? ((data[b]&&data[b].length)?data[b][0].order:undefined) : (data[b]?data[b].order:undefined);
+          if (numA !== 9999 && numB !== 9999 && (!oA || oA > 1000000) && (!oB || oB > 1000000)) {
+            if (numA !== numB) return numA - numB;
           }
-          var vA=oA!==undefined?oA:999999;
-          var vB=oB!==undefined?oB:999999;
-          if(vA===vB)return a.localeCompare(b);
-          return vA-vB;
+          var vA = oA !== undefined ? oA : 999999;
+          var vB = oB !== undefined ? oB : 999999;
+          if (vA === vB) return naturalTitleCompare(titleA, titleB);
+          return vA - vB;
         });
       }else if(currentFilters.sort==='az'){
         filtered.sort(function(a,b){
-          var na=(data[a]&&data[a].title)?data[a].title.toLowerCase():a.toLowerCase();
-          var nb=(data[b]&&data[b].title)?data[b].title.toLowerCase():b.toLowerCase();
-          return na.localeCompare(nb);
+          var na=isQuiz?parseQuizKey(a):((data[a]&&data[a].title)?data[a].title:a);
+          var nb=isQuiz?parseQuizKey(b):((data[b]&&data[b].title)?data[b].title:b);
+          return naturalTitleCompare(na, nb);
         });
       }else if(currentFilters.sort==='za'){
         filtered.sort(function(a,b){
@@ -765,7 +1381,7 @@
         var cid='adgc_'+dk+'_'+(cn.replace(/\s+/g,''));
         var totalInClass=0;
         Object.keys(classes[cn]).forEach(function(s){totalInClass+=classes[cn][s].length});
-        h+='<div class="nested-row" style="background:linear-gradient(135deg,'+c+',#1e293b)" onclick="tog('+q(cid)+')"><span>'+(isQuiz?'🎓 ':cn==='💡 Skills'?'💡 ':'🎓 ')+sanitizeHTML(isQuiz||cn==='💡 Skills'?cn:'Class '+cn)+'</span><span>['+totalInClass+' Items] View [+]</span></div>';
+        h+='<div class="nested-row" style="background:linear-gradient(135deg,'+c+',#1e293b)" onclick="tog('+q(cid)+')"><span>'+(isQuiz?'🎓 ':cn==='💡 Skills'?'💡 ':'🎓 ')+sanitizeHTML(cn==='💡 Skills'?cn:'Class '+cn)+'</span><span>['+totalInClass+' Items] View [+]</span></div>';
         h+='<div id="'+cid+'" class="nested-sub"><div class="nested-list">';
         var subs=Object.keys(classes[cn]);
         subs.forEach(function(sub,si){
@@ -811,7 +1427,10 @@
             h+='<div class="item-actions">';
             if(isQuiz){
               h+='<button class="btn btn-blue btn-xs" onclick="event.stopPropagation();viewQuizGroup('+q(ek)+')">👁 View</button>';
+              h+='<button class="btn btn-teal btn-xs" title="Download exact quiz_output.csv" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'csv\')">📥 CSV</button>';
             }else{
+              h+='<button class="btn btn-teal btn-xs" title="Download exact original .html file" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'html\')">📥 HTML</button>';
+              h+='<button class="btn btn-purple btn-xs" title="Download exact original .txt file" onclick="event.stopPropagation();downloadSingleOriginal('+q(dk)+','+q(ek)+',\'txt\')">📄 TXT</button>';
               h+='<button class="btn btn-blue btn-xs" onclick="event.stopPropagation();editItem('+q(dk)+','+q(ek)+')">✏️ Edit</button>';
             }
             h+='<button class="btn btn-red btn-xs" onclick="event.stopPropagation();deleteSingle('+q(dk)+','+q(ek)+')">🗑</button>';
@@ -870,34 +1489,77 @@
       if(el)el.innerText=cnt;
     }
 
+    // =========================================================================
+    // FAST 1-SECOND PARALLEL BULK DELETE
+    // =========================================================================
+    async function removeQuizGroupFromSupabase(groupKey) {
+      if (allData && allData.quiz) delete allData.quiz[groupKey];
+      try {
+        await db.ref('questionBank/' + groupKey).remove();
+      } catch (e1) {
+        try {
+          await db.ref('questionBank/' + groupKey).set([]);
+        } catch (e2) {
+          await db.ref('questionBank').update({ [groupKey]: null });
+        }
+      }
+      try {
+        if (window.supabaseClient) {
+          var sRes = await window.supabaseClient.from('quiz_sets').select('id,quiz_key,legacy_key,metadata').eq('course', 'school');
+          if (sRes && sRes.data) {
+            for (var i = 0; i < sRes.data.length; i++) {
+              var row = sRes.data[i];
+              var rKey = row.legacy_key || row.quiz_key || (row.metadata && (row.metadata.quiz_key || row.metadata.legacy_key)) || row.id;
+              if (rKey === groupKey || row.id === groupKey) {
+                await window.supabaseClient.from('quiz_questions').delete().eq('quiz_set_id', row.id);
+                await window.supabaseClient.from('quiz_sets').delete().eq('id', row.id);
+              }
+            }
+          }
+        }
+      } catch (e3) {
+        console.warn('Direct Supabase quiz delete fallback:', e3);
+      }
+    }
+
     function deleteSelected(){
       var sk=Object.keys(selectedItems);
       if(sk.length===0){toast('No items selected!','error');return}
       if(!confirm('Delete '+sk.length+' items?'))return;
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
       var rp=rm[currentTab];
-      var done=0;
-      function dn(idx){
-        if(idx>=sk.length){
-          toast('Deleted '+done+' items!','success');
+      if(!rp){toast('Cannot delete on this tab','error');return;}
+      toast('Deleting '+sk.length+' items instantly...','info');
+      if(currentTab==='quiz'){
+        Promise.all(sk.map(function(k){ return removeQuizGroupFromSupabase(k); })).then(function(){
+          toast('Deleted '+sk.length+' quiz groups permanently!','success');
           selectedItems={};
           refreshUI();
-          return;
-        }
-        db.ref(rp+'/'+sk[idx]).remove().then(function(){
-          done++;
-          dn(idx+1);
-        }).catch(function(){
-          done++;
-          dn(idx+1);
         });
+        return;
       }
-      dn(0);
+      var promises=sk.map(function(k){
+        return db.ref(rp+'/'+k).remove().catch(function(){});
+      });
+      Promise.all(promises).then(function(){
+        toast('Deleted '+sk.length+' items!','success');
+        selectedItems={};
+        refreshUI();
+      });
     }
 
     function deleteSingle(dk,id){
       if(!confirm('Delete permanently?'))return;
       var rm={'theory':'theoryDatabase','quiz':'questionBank','mindmap':'mindMapDatabase','papers':'papersDatabase','games':'gamesDatabase','projects':'projectsDatabase','videos':'videosDatabase','skills':'skillsDatabase'};
+      if(!rm[dk])return;
+      if(dk==='quiz'){
+        removeQuizGroupFromSupabase(id).then(function(){
+          toast('Quiz group deleted permanently!','success');
+          delete selectedItems[id];
+          refreshUI();
+        });
+        return;
+      }
       db.ref(rm[dk]+'/'+id).remove().then(function(){
         toast('Deleted!','success');
         delete selectedItems[id];
@@ -905,59 +1567,170 @@
       }).catch(function(err){toast('Error','error')});
     }
 
-    function downloadData(dk){
-      var data=allData[dk]||{};
-      var ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data);
-      var ed={};
-      for(var i=0;i<ks.length;i++)ed[ks[i]]=data[ks[i]];
-      var blob=new Blob([q(ed,null,2)],{type:'application/json'});
-      var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');
-      a.href=url;
-      a.download=dk+'_data.json';
+    // =========================================================================
+    // LOSSLESS 1:1 EXACT FORMAT DOWNLOADERS (HTML, TXT, CSV, JSON)
+    // =========================================================================
+    function triggerBlobDownload(contentStr, mimeType, fileName) {
+      var blob = new Blob([contentStr], { type: mimeType });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
-      toast('Downloaded JSON!','success');
+      setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 200);
     }
 
-    function downloadCSV(dk){
-      var data=allData[dk]||{};
-      var ks=Object.keys(selectedItems).length>0?Object.keys(selectedItems):Object.keys(data);
-      var iq=(dk=='quiz');
-      var csv='';
+    function getExactModuleFileName(dk, item, ext) {
+      var modNames = {
+        theory: 'THEORY',
+        mindmap: 'MIND_MAP',
+        papers: 'PAPERS',
+        projects: 'PROJECTS',
+        games: 'GAMES',
+        videos: 'VIDEOS',
+        skills: 'SKILLS',
+        quiz: 'quiz_output'
+      };
+      var baseMod = modNames[dk] || dk.toUpperCase();
+      var clsPart = item && item.class ? ('Class_' + item.class + '_') : '';
+      var subPart = item && item.subject ? (String(item.subject).replace(/\s+/g, '_') + '_') : '';
+      var chPart = item && (item.title || item.topic || item.chapter) ? (String(item.title || item.topic || item.chapter).replace(/[^a-zA-Z0-9_\-]/g, '_') + '_') : '';
+      return clsPart + subPart + chPart + baseMod + '.' + ext;
+    }
 
-      if(iq){
-        csv='Class,Subject,Chapter,Topic,Subtopic,Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer,Explanation\n';
-        for(var i=0;i<ks.length;i++){
-          var g=data[ks[i]];
-          if(!Array.isArray(g))continue;
-          for(var j=0;j<g.length;j++){
-            var qItem=g[j];
-            csv+='"Class '+qItem.class+'","'+qItem.subject+'","Chapter '+qItem.chapter+'","'+escCSV(qItem.topic||'')+'","'+escCSV(qItem.subtopic||'')+'","'+escCSV(qItem.question)+'","'+escCSV(qItem.options.A||'')+'","'+escCSV(qItem.options.B||'')+'","'+escCSV(qItem.options.C||'')+'","'+escCSV(qItem.options.D||'')+'","'+qItem.correctAnswer+'","'+escCSV(qItem.explanation||'')+'"\n';
-          }
+    // Downloads a single item in its exact uploaded format (.html, .txt, or quiz_output.csv)
+    function downloadSingleOriginal(dk, id, ext) {
+      var data = allData[dk] || {};
+      var item = data[id];
+      if (!item) { toast('Item not found!', 'error'); return; }
+
+      if (dk === 'quiz') {
+        if (!Array.isArray(item) || !item.length) { toast('No questions in this group', 'error'); return; }
+        var csv = '\uFEFFClass,Subject,Chapter,Level,Question_Type,Question,Option_A,Option_B,Option_C,Option_D,Answer,Explanation\r\n';
+        for (var j = 0; j < item.length; j++) {
+          var qItem = item[j];
+          var opts = qItem.options || {};
+          var clsStr = String(qItem.class || '').indexOf('Class') === 0 ? qItem.class : ('Class ' + (qItem.class || 9));
+          var chStr = String(qItem.chapter || '').indexOf('Chapter') === 0 ? qItem.chapter : ('Chapter' + (qItem.chapter || 1));
+          var lvlStr = qItem.topic || 'Medium';
+          var qTypeStr = qItem.subtopic || 'Concept_Identification';
+          csv += '"' + escCSV(String(clsStr)) + '",'
+               + '"' + escCSV(String(qItem.subject || 'Social')) + '",'
+               + '"' + escCSV(String(chStr)) + '",'
+               + '"' + escCSV(String(lvlStr)) + '",'
+               + '"' + escCSV(String(qTypeStr)) + '",'
+               + '"' + escCSV(String(qItem.question || '')) + '",'
+               + '"' + escCSV(String(opts.A || '')) + '",'
+               + '"' + escCSV(String(opts.B || '')) + '",'
+               + '"' + escCSV(String(opts.C || '')) + '",'
+               + '"' + escCSV(String(opts.D || '')) + '",'
+               + '"' + escCSV(String(qItem.correctAnswer || 'A')) + '",'
+               + '"' + escCSV(String(qItem.explanation || '')) + '"\r\n';
         }
-      }else if(dk==='games'||dk==='projects'){
-        csv='Title,Subject,Class,Topic,Content\n';
-        for(var m=0;m<ks.length;m++){
-          var it=data[ks[m]];
-          csv+='"'+escCSV(it.title||'')+'","'+(it.subject||'')+'","'+(it.class||'')+'","'+(it.topic||'')+'","'+escCSV((it.content||'').substring(0,200))+'"\n';
-        }
-      }else{
-        csv='Title,Subject,Class,Content\n';
-        for(var m=0;m<ks.length;m++){
-          var it=data[ks[m]];
-          csv+='"'+escCSV(it.title||'')+'","'+(it.subject||'')+'","'+(it.class||'')+'","'+escCSV((it.content||'').replace(/<[^>]*>/g,'').substring(0,200))+'"\n';
-        }
+        var qFileName = id + '_quiz_output.csv';
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', qFileName);
+        toast('Downloaded exact ' + qFileName + '!', 'success');
+        return;
       }
 
-      var blob=new Blob([csv],{type:'text/csv'});
-      var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');
-      a.href=url;
-      a.download=dk+'_export.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-      toast('Downloaded CSV!','success');
+      var rawContent = item.content || '';
+      var fName = getExactModuleFileName(dk, item, ext || 'html');
+      var mime = (ext === 'txt') ? 'text/plain;charset=utf-8;' : 'text/html;charset=utf-8;';
+      triggerBlobDownload(rawContent, mime, fName);
+      toast('Downloaded exact ' + fName + '!', 'success');
+    }
+
+    // Toolbar button: Downloads all selected (or all visible) items in their exact original format
+    function downloadOriginalFiles(dk) {
+      var data = allData[dk] || {};
+      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
+      if (!ks.length) { toast('No data to download!', 'error'); return; }
+
+      if (dk === 'quiz') {
+        downloadCSV('quiz');
+        return;
+      }
+
+      ks.forEach(function(k, idx) {
+        setTimeout(function() {
+          downloadSingleOriginal(dk, k, 'html');
+        }, idx * 250);
+      });
+    }
+
+    // Lossless JSON Download (Exact structure ready for re-upload)
+    function downloadData(dk) {
+      var data = allData[dk] || {};
+      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
+      var ed = {};
+      for (var i = 0; i < ks.length; i++) ed[ks[i]] = data[ks[i]];
+      var jsonStr = JSON.stringify(ed, null, 2);
+      triggerBlobDownload(jsonStr, 'application/json;charset=utf-8;', dk + '_exact_backup.json');
+      toast('Downloaded exact JSON!', 'success');
+    }
+
+    // Lossless Full CSV Download (NEVER strips HTML tags and NEVER truncates to 200 chars!)
+    function downloadCSV(dk) {
+      var data = allData[dk] || {};
+      var ks = Object.keys(selectedItems).length > 0 ? Object.keys(selectedItems) : Object.keys(data);
+      var iq = (dk === 'quiz');
+      var csv = '\uFEFF';
+
+      if (iq) {
+        csv += 'Class,Subject,Chapter,Level,Question_Type,Question,Option_A,Option_B,Option_C,Option_D,Answer,Explanation\r\n';
+        for (var i = 0; i < ks.length; i++) {
+          var g = data[ks[i]];
+          if (!Array.isArray(g)) continue;
+          for (var j = 0; j < g.length; j++) {
+            var qItem = g[j];
+            var opts = qItem.options || {};
+            var clsStr = String(qItem.class || '').indexOf('Class') === 0 ? qItem.class : ('Class ' + (qItem.class || 9));
+            var chStr = String(qItem.chapter || '').indexOf('Chapter') === 0 ? qItem.chapter : ('Chapter' + (qItem.chapter || 1));
+            csv += '"' + escCSV(String(clsStr)) + '",'
+                 + '"' + escCSV(String(qItem.subject || 'Social')) + '",'
+                 + '"' + escCSV(String(chStr)) + '",'
+                 + '"' + escCSV(String(qItem.topic || 'Medium')) + '",'
+                 + '"' + escCSV(String(qItem.subtopic || 'Concept_Identification')) + '",'
+                 + '"' + escCSV(String(qItem.question || '')) + '",'
+                 + '"' + escCSV(String(opts.A || '')) + '",'
+                 + '"' + escCSV(String(opts.B || '')) + '",'
+                 + '"' + escCSV(String(opts.C || '')) + '",'
+                 + '"' + escCSV(String(opts.D || '')) + '",'
+                 + '"' + escCSV(String(qItem.correctAnswer || 'A')) + '",'
+                 + '"' + escCSV(String(qItem.explanation || '')) + '"\r\n';
+          }
+        }
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', 'quiz_output.csv');
+      } else if (dk === 'skills') {
+        csv += 'Category,Title,Content\r\n';
+        for (var s = 0; s < ks.length; s++) {
+          var sit = data[ks[s]];
+          if (!sit) continue;
+          csv += '"' + escCSV(String(sit.category || 'Competitive skills')) + '",'
+               + '"' + escCSV(String(sit.title || '')) + '",'
+               + '"' + escCSV(String(sit.content || '')) + '"\r\n';
+        }
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', dk + '_exact.csv');
+      } else {
+        csv += 'Subject,Class,Topic,Title,Content,ImageUrls\r\n';
+        for (var m = 0; m < ks.length; m++) {
+          var it = data[ks[m]];
+          if (!it) continue;
+          var imgs = Array.isArray(it.imageUrls) ? it.imageUrls.join('\n') : '';
+          csv += '"' + escCSV(String(it.subject || '')) + '",'
+               + '"' + escCSV(String(it.class || '')) + '",'
+               + '"' + escCSV(String(it.topic || it.title || '')) + '",'
+               + '"' + escCSV(String(it.title || '')) + '",'
+               + '"' + escCSV(String(it.content || '')) + '",'
+               + '"' + escCSV(String(imgs)) + '"\r\n';
+        }
+        triggerBlobDownload(csv, 'text/csv;charset=utf-8;', dk + '_exact.csv');
+      }
+      toast('Downloaded 100% Exact Format CSV!', 'success');
     }
 
     function smartSplit(line){
@@ -999,75 +1772,116 @@
     function buildUploadBox(dk){
       var isQuiz=(dk==='quiz');
       var isSkills=(dk==='skills');
+      var defCls=settings.bulkDefaultClass||9;
+      var defSub=settings.bulkDefaultSubject||'Social';
       var h='<div class="csv-box">';
       h+='<h3>'+((isQuiz?'🏗️ Manage Hierarchy · 📥 Bulk Upload Quiz':'📥 Bulk Upload '+dk.toUpperCase()))+'</h3>';
       h+='<div>';
       h+='<span class="fmt-badge">CSV</span><span class="fmt-badge">TSV</span><span class="fmt-badge">TXT</span><span class="fmt-badge">JSON</span><span class="fmt-badge">HTML</span><span class="fmt-badge">XLSX</span><span class="fmt-badge">XLS</span>';
       h+='</div>';
       if(isQuiz){
-        h+='<div class="csv-fmt"><strong>12 Columns:</strong> Class | Subject | Sub-Subject | Topic | Sub-Topic | Question | Option A | Option B | Option C | Option D | Correct Answer | Explanation\n';
-        h+='🖼 Option C & Option D columns are OPTIONAL — leave blank for 2-option questions (A/B only). Questions with only A/B work automatically on the Student app.\n';
-        h+='🖼 Sub-Subject = chapter (e.g. Ch1). Topic & Sub-Topic optional.\n';
-        h+='🖼 HTML/SVG with double‑quotes fully supported. Drag & drop a .tsv file directly.</div>';
+        h+='<div class="csv-fmt"><strong>12-Column Standard & Python Pipeline (14-Column) CSV/JSON Supported:</strong>\n';
+        h+='🖼 Class | Subject | Sub-Subject/Chapter | Topic/Level | Question | Option A | Option B | Option C | Option D | Correct Answer | Explanation\n';
+        h+='🖼 Option C & Option D columns are OPTIONAL. Drag & drop one or multiple files directly.</div>';
       }else if(isSkills){
         h+='<div class="csv-fmt"><strong>Columns:</strong> Category | Title | Content (HTML allowed)\n🖼 Drag & drop any file directly.</div>';
       }else{
-        h+='<div class="csv-fmt"><strong>Columns:</strong> Subject | Class | Topic/Chapter | Title | Content (HTML allowed) | ImageUrls\n🖼 Drag & drop any file directly.</div>';
+        h+='<div class="csv-fmt"><strong>Columns:</strong> Subject | Class | Topic/Chapter | Title | Content (HTML allowed) | ImageUrls\n🖼 Or directly drop generated <code>'+dk.toUpperCase()+'.html / .txt</code> files!</div>';
       }
       if(!isQuiz&&!isSkills){
         h+='<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:10px 0;padding:10px;background:rgba(0,0,0,.15);border-radius:8px;">';
-        h+='<div style="font-size:12px;font-weight:800;color:#ffb300;">Default Class &amp; Subject (used when the file has no Class/Subject column - e.g. plain .txt):</div>';
-        h+='<label style="font-size:13px;">Class</label><select id="uploadClassSel" class="form-inp" style="width:auto;" onchange="uploadDefaultsChanged()">';
+        h+='<div style="font-size:12px;font-weight:800;color:#ffb300;">Default Class, Subject &amp; Title (used when the file has no Class/Subject column - e.g. plain .html/.txt):</div>';
+        h+='<label style="font-size:13px;">Class</label><select id="uploadClassSel" class="form-inp" style="width:auto;margin-bottom:0;" onchange="uploadDefaultsChanged()">';
         for(var uci=0;uci<CLASSES.length;uci++){
           var ucV=CLASSES[uci];
-          h+='<option value="'+ucV+'" '+(ucV===7?'selected':'')+'>Class '+ucV+'</option>';
+          h+='<option value="'+ucV+'" '+(ucV==defCls?'selected':'')+'>Class '+ucV+'</option>';
         }
         h+='</select>';
-        h+='<label style="font-size:13px;">Subject</label><select id="uploadSubjectSel" class="form-inp" style="width:auto;" onchange="uploadDefaultsChanged()">';
+        h+='<label style="font-size:13px;">Subject</label><select id="uploadSubjectSel" class="form-inp" style="width:auto;margin-bottom:0;" onchange="uploadDefaultsChanged()">';
         for(var usi=0;usi<SUBJECTS.length;usi++){
           var usV=SUBJECTS[usi];
-          h+='<option value="'+usV+'" '+(usV==='Science'?'selected':'')+'>'+usV+'</option>';
+          h+='<option value="'+usV+'" '+(usV===defSub?'selected':'')+'>'+usV+'</option>';
         }
         h+='</select>';
+        h+='<input type="text" id="uploadTopicInp" class="form-inp" placeholder="Chapter / Topic Title (optional)" style="width:230px;margin-bottom:0;">';
         h+='</div>';
       }
       h+='<div class="dropzone" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="event.preventDefault();this.classList.remove(\'over\');handleDropEvent(event)" onclick="document.getElementById(\'csvFileInput\').click()">';
-      h+='<div class="dz-icon">📂</div><strong>Drag & drop file here</strong><br><small>or click to browse</small>';
+      h+='<div class="dz-icon">📂</div><strong>Drag & drop file(s) here</strong><br><small>or click to browse (supports multiple files)</small>';
       h+='</div>';
-      h+='<div class="form-group"><label>📁 Select File</label><input type="file" id="csvFileInput" class="form-inp" accept=".csv,.tsv,.txt,.json,.html,.htm,.xlsx,.xls" onchange="handleFileEvent(event)"></div>';
+      h+='<div class="form-group"><label>📁 Select File(s)</label><input type="file" id="csvFileInput" class="form-inp" multiple accept=".csv,.tsv,.txt,.json,.html,.htm,.xlsx,.xls" onchange="handleFileEvent(event)"></div>';
       h+='<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste CSV/TSV/TXT/JSON/HTML data..."></textarea><button class="btn btn-teal btn-sm" onclick="parsePastedEvent()">🔍 Parse</button></div>';
       h+='<div id="csvPreviewArea"></div>';
       h+='</div>';
       return h;
     }
 
-    function handleFileEvent(event){
-      var file=event.target.files[0];
-      if(!file)return;
-      if(file.size>20*1024*1024){toast('File too large (max 20MB)','error');return}
-      readUploadFile(file);
+    async function handleFileEvent(event){
+      var files=event.target.files;
+      if(!files||!files.length)return;
+      if(files.length===1){
+        if(files[0].size>20*1024*1024){toast('File too large (max 20MB)','error');return}
+        readUploadFile(files[0]);
+      }else{
+        await readMultipleUploadFiles(files);
+      }
     }
 
-    function handleDropEvent(ev){
+    async function handleDropEvent(ev){
       ev.preventDefault();
       ev.stopPropagation();
-      var f=ev.dataTransfer&&ev.dataTransfer.files?ev.dataTransfer.files[0]:null;
-      if(!f)return;
-      if(f.size>20*1024*1024){toast('File too large (max 20MB)','error');return}
-      readUploadFile(f);
+      var files=ev.dataTransfer&&ev.dataTransfer.files?ev.dataTransfer.files:null;
+      if(!files||!files.length)return;
+      if(files.length===1){
+        if(files[0].size>20*1024*1024){toast('File too large (max 20MB)','error');return}
+        readUploadFile(files[0]);
+      }else{
+        await readMultipleUploadFiles(files);
+      }
+    }
+
+    async function readMultipleUploadFiles(files){
+      var combinedRows=[];
+      var customTopic=getVal('uploadTopicInp');
+      for(var i=0;i<files.length;i++){
+        var f=files[i];
+        var txt=await new Promise(function(resolve){
+          var r=new FileReader();
+          r.onload=function(e){resolve(e.target.result||'')};
+          r.onerror=function(){resolve('')};
+          r.readAsText(f);
+        });
+        if(!txt.trim())continue;
+        if(currentTab!=='quiz'){
+          var meta=inferMetaFromRelativePath(f.name,f.name,txt,currentTab);
+          var finalT=customTopic||meta.chapter||'Chapter1';
+          combinedRows.push({
+            Title:finalT,
+            Subject:getUploadDefaultSubject(),
+            Class:getUploadDefaultClass(),
+            Topic:finalT,
+            Content:txt
+          });
+        }else{
+          var qParsed=parseQuizRowsFromRawText(txt,getUploadDefaultClass(),getUploadDefaultSubject(),f.name.replace(/\.[^.]+$/,''));
+          combinedRows=combinedRows.concat(qParsed);
+        }
+      }
+      if(combinedRows.length)showUploadPreview(combinedRows);
+      else toast('No valid records found in selected files','error');
     }
 
     function parsePastedEvent(){
       var txt=document.getElementById('csvPasteInput').value.trim();
       if(!txt){toast('Paste data first!','error');return}
-      parseUploadText(txt);
+      parseUploadText(txt,'');
     }
 
     function readUploadFile(file){
       var nm=(file.name||'').toLowerCase();
       if(nm.indexOf('.xlsx')!==-1||nm.indexOf('.xls')!==-1){readXLSX(file);return}
       var reader=new FileReader();
-      reader.onload=function(e){parseUploadText(e.target.result)};
+      reader.onload=function(e){parseUploadText(e.target.result,file.name)};
       reader.readAsText(file);
     }
 
@@ -1082,14 +1896,14 @@
             var aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
             if(!aoa||!aoa.length){toast('Empty Excel file','error');return}
             var txt=aoa.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join('\t')}).join('\n');
-            parseUploadText(txt);
+            parseUploadText(txt,file.name);
           }catch(err){toast('Excel parse error: '+err.message,'error')}
         };
         reader.readAsArrayBuffer(file);
       });
     }
 
-    function parseUploadText(text){
+    function parseUploadText(text,fileName){
       var t0=text.replace(/^\uFEFF/,'').trim();
       if(!t0){toast('Empty data','error');return}
       var first=t0.charAt(0);
@@ -1097,7 +1911,23 @@
         try{parseJSONUpload(t0);return}
         catch(e){toast('Invalid JSON: '+e.message,'error');return}
       }
-      if(/<table[\s>]/i.test(t0)){
+
+      if(currentTab!=='quiz'&&(/^<!doctype\s+html/i.test(t0)||/^<html/i.test(t0)||/^<div[\s>]/i.test(t0)||/^<svg[\s>]/i.test(t0))){
+        var customTitle=getVal('uploadTopicInp');
+        var meta=inferMetaFromRelativePath(fileName||'',fileName||'',t0,currentTab);
+        var extractedTitle=customTitle||meta.chapter||(currentTab.toUpperCase()+' Module');
+
+        showUploadPreview([{
+          Title:extractedTitle.substring(0,100),
+          Subject:getUploadDefaultSubject(),
+          Class:getUploadDefaultClass(),
+          Topic:extractedTitle.substring(0,100),
+          Content:t0
+        }]);
+        return;
+      }
+
+      if(/<table[\s>]/i.test(t0)&&currentTab==='quiz'){
         parseHTMLTable(t0);
         return;
       }
@@ -1163,10 +1993,17 @@
 
     function parseTabular(text){
       var lines=smartBlockSplit(text).map(function(l){return l.trim()}).filter(function(l){return l!==''});
-      if(lines.length<2){toast('Need header + data rows','error');return}
+      if(lines.length<2){
+        if(currentTab!=='quiz'&&lines.length===1){
+          var customT=getVal('uploadTopicInp')||'Content';
+          showUploadPreview([{Title:customT,Content:text,Subject:getUploadDefaultSubject(),Class:getUploadDefaultClass(),Topic:customT}]);
+          return;
+        }
+        toast('Need header + data rows','error');return;
+      }
       var headers=smartSplit(lines[0].trim());
       if(!headers||!headers.length){toast('No headers found','error');return}
-      var knownCols=['class','classname','classno','subject','topic','chapter','title','name','content','body','data','question','category','subsubject','subtopic','option','correct','explanation','imageurls','round','section','difficulty','scope','project','paper','item','marks','answer','question','col1','col2','col3'];
+      var knownCols=['class','classname','classno','subject','topic','chapter','title','name','content','body','data','question','category','subsubject','subtopic','option','optiona','optionb','optionc','optiond','correct','correctanswer','explanation','imageurls','round','section','difficulty','level','questiontype','sourcepdf','page','scope','project','paper','item','marks','answer','col1','col2','col3'];
       var matches=0;
       for(var ki=0;ki<headers.length;ki++){
         var hh=String(headers[ki]).toLowerCase().replace(/[\s_\-]/g,'');
@@ -1175,10 +2012,12 @@
       if(matches===0&&currentTab!=='quiz'){
         var whole=lines.join('\n');
         var rec={};
-        rec['Title']=String(lines[0]).trim().substring(0,80)||'Content';
+        var cTitle=getVal('uploadTopicInp')||cleanExtractedTitle(lines[0]).substring(0,80)||'Content';
+        rec['Title']=cTitle;
         rec['Content']=whole;
-        rec['Subject']='';
-        rec['Class']='';
+        rec['Subject']=getUploadDefaultSubject();
+        rec['Class']=getUploadDefaultClass();
+        rec['Topic']=cTitle;
         showUploadPreview([rec]);
         return;
       }
@@ -1212,7 +2051,7 @@
       var kSubject=findKey(['subject']);
       var kSubSub=findKey(['subsubject','sub-subject','subsubjectname']);
       var kChapter=findKey(['chapter']);
-      var kTopic=findKey(['topic']);
+      var kTopic=findKey(['topic','level','questiontype']);
       var kSubTopic=findKey(['subtopic','sub-topic','subtopic2']);
       var kQues=findKey(['question','ques']);
       var kOptA=findKey(['optiona','opta','opt-a','a']);
@@ -1234,15 +2073,16 @@
         var r=rows[i];
         h+='<tr><td>'+(i+1)+'</td>';
         if(isQuiz){
-          h+='<td>'+sanitizeHTML(kSubject?(r[kSubject]||''):'')+'</td>';
-          h+='<td>'+sanitizeHTML(kSubSub?(r[kSubSub]||''):(kChapter?(r[kChapter]||''):''))+'</td>';
-          h+='<td>'+sanitizeHTML(kTopic?(r[kTopic]||''):'')+'</td>';
-          h+='<td>'+sanitizeHTML(kSubTopic?(r[kSubTopic]||''):'')+'</td>';
-          h+='<td>'+sanitizeHTML(((r[kQues]||'')+'').substring(0,40))+'</td>';
-          h+='<td>'+sanitizeHTML((r[kOptA]||'')+'')+'</td><td>'+sanitizeHTML((r[kOptB]||'')+'')+'</td><td>'+sanitizeHTML((r[kOptC]||'')+'')+'</td><td>'+sanitizeHTML((r[kOptD]||'')+'')+'</td>';
-          h+='<td>'+sanitizeHTML((r[kCorrect]||'')+'')+'</td>';
+          var optObj=r.options||{};
+          h+='<td>'+sanitizeHTML(kSubject?(r[kSubject]||''):(r.subject||''))+'</td>';
+          h+='<td>'+sanitizeHTML(kSubSub?(r[kSubSub]||''):(kChapter?(r[kChapter]||''):(r.chapter||'')))+'</td>';
+          h+='<td>'+sanitizeHTML(kTopic?(r[kTopic]||''):(r.topic||''))+'</td>';
+          h+='<td>'+sanitizeHTML(kSubTopic?(r[kSubTopic]||''):(r.subtopic||''))+'</td>';
+          h+='<td>'+sanitizeHTML((((kQues?r[kQues]:r.question)||'')+'').substring(0,40))+'</td>';
+          h+='<td>'+sanitizeHTML(((kOptA?r[kOptA]:optObj.A)||'')+'')+'</td><td>'+sanitizeHTML(((kOptB?r[kOptB]:optObj.B)||'')+'')+'</td><td>'+sanitizeHTML(((kOptC?r[kOptC]:optObj.C)||'')+'')+'</td><td>'+sanitizeHTML(((kOptD?r[kOptD]:optObj.D)||'')+'')+'</td>';
+          h+='<td>'+sanitizeHTML(((kCorrect?r[kCorrect]:r.correctAnswer)||'')+'')+'</td>';
         }else{
-          h+='<td>'+sanitizeHTML((r[kTitle]||'')+'')+'</td><td>'+sanitizeHTML((r[kSubject]||'')+'')+'</td>';
+          h+='<td>'+sanitizeHTML((r[kTitle]||r.Title||'')+'')+'</td><td>'+sanitizeHTML((r[kSubject]||r.Subject||'')+'')+'</td>';
         }
         h+='</tr>';
       }
@@ -1271,19 +2111,12 @@
 
     function uploadMappedQuiz(){
       var st=document.getElementById('csvUploadStatus');
-      st.innerHTML='<span class="spinner"></span> Uploading...';
+      st.innerHTML='<span class="spinner"></span> Uploading Quiz to Supabase...';
       var rows=mappedRows;
       var groups={};
       var allQ=[];
+
       rows.forEach(function(r){
-        function v(k,names){
-          if(!k)return'';
-          for(var i=0;i<names.length;i++){
-            var want=names[i].toLowerCase().replace(/[\s_\-]/g,'');
-            if(k.toLowerCase().replace(/[\s_\-]/g,'')===want)return r[k]!==undefined?String(r[k]).trim():'';
-          }
-          return'';
-        }
         var keys=Object.keys(r);
         function findKey(names){
           for(var i=0;i<names.length;i++){
@@ -1296,10 +2129,10 @@
         }
         var kClass=findKey(['class','classname','classno']);
         var kSubject=findKey(['subject']);
-        var kSubSub=findKey(['subsubject','sub-subject','subsubjectname']);
+        var kSubSub=findKey(['subsubject','sub-subject','subsubjectname','chapter']);
         var kChapter=findKey(['chapter']);
-        var kTopic=findKey(['topic']);
-        var kSubTopic=findKey(['subtopic','sub-topic','subtopic2']);
+        var kTopic=findKey(['topic','level','questiontype']);
+        var kSubTopic=findKey(['subtopic','sub-topic','subtopic2','questiontype']);
         var kQues=findKey(['question','ques']);
         var kOptA=findKey(['optiona','opta','opt-a','a']);
         var kOptB=findKey(['optionb','optb','opt-b','b']);
@@ -1311,8 +2144,8 @@
         var clsTxt=kClass?(r[kClass]||''):'';clsTxt=String(clsTxt).trim();
         var subTxt=kSubject?(r[kSubject]||''):getUploadDefaultSubject();subTxt=String(subTxt).trim();
         var chTxt=String((kSubSub?(r[kSubSub]||''):'')||(kChapter?(r[kChapter]||''):'')||'1').trim();
-        var topTxt=kTopic?(String(r[kTopic]||'').trim()):'';
-        var subTopTxt=kSubTopic?(String(r[kSubTopic]||'').trim()):'';
+        var topTxt=kTopic?(String(r[kTopic]||'').trim()):'General';
+        var subTopTxt=kSubTopic?(String(r[kSubTopic]||'').trim()):'All Questions';
         var ques=kQues?(String(r[kQues]||'').trim()):'';
         var optA=kOptA?(String(r[kOptA]||'').trim()):'';
         var optB=kOptB?(String(r[kOptB]||'').trim()):'';
@@ -1337,23 +2170,13 @@
         if(r&&!exp&&(r.explanation!==undefined))exp=String(r.explanation||'').trim();
         if(r&&!clsTxt&&(r.class!==undefined))clsTxt=String(r.class||'').trim();
         if(r&&!chTxt&&(r.chapter!==undefined))chTxt=String(r.chapter||'').trim();
-        if(r&&!chTxt&&(r.subSubject!==undefined))chTxt=String(r.subSubject||'').trim();
 
-        var m=clsTxt.match(/(\d+)/),cn=m?parseInt(m[1]):null;
-        if(!cn){
-          var tMap={'ONE':1,'TWO':2,'THREE':3,'FOUR':4,'FIVE':5,'SIX':6,'SEVEN':7,'EIGHT':8,'NINE':9,'TEN':10};
-          for(var tk in tMap){if(clsTxt.toUpperCase().indexOf(tk)!==-1){cn=tMap[tk];break}}
-        }
-        if(!cn||cn<1||cn>10)return;
-
-        var subMap={'MATHS':'Maths','SCIENCE':'Science','TELUGU':'Telugu','ENGLISH':'English','HINDI':'Hindi','SOCIAL':'Social','SOCIALSTUDIES':'Social','SOCIALSCIENCE':'Social','GENERALSCIENCE':'Science','EVS':'Science'};
-        var subNorm=subTxt.toUpperCase().replace(/\s+/g,'').replace(/STUDIES$/,'').replace(/SCIENCE$/,'');
-        var sub=subMap[subNorm]||subMap[subTxt.toUpperCase().replace(/\s+/g,'')]||null;
-        if(!sub)return;
-
+        var cn=extractClassNumber(clsTxt)||getUploadDefaultClass()||9;
+        var sub=normalizeSubjectName(subTxt)||getUploadDefaultSubject()||'Social';
         if(!ques||!optA||!optB||['A','B','C','D'].indexOf(ans)===-1)return;
 
-        var gk='Class'+cn+'_'+sub+'_Chapter'+chTxt.replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1';
+        var chNorm=chTxt.replace(/^chapter\s*/i,'').replace(/^ch\s*/i,'').replace(/\s+/g,'')||'1';
+        var gk='Class'+cn+'_'+sub+'_Chapter'+chNorm;
         if(!groups[gk])groups[gk]=[];
         groups[gk].push({
           question:ques,
@@ -1361,40 +2184,39 @@
           correctAnswer:ans,
           subject:sub,
           class:cn,
-          chapter:chTxt.replace(/^chapter\s*/i,'').replace(/\s+/g,'')||'1',
-          topic:topTxt,
-          subtopic:subTopTxt,
+          chapter:chNorm,
+          topic:topTxt||'General',
+          subtopic:subTopTxt||'All Questions',
           explanation:exp||'',
           imageUrls:[],
-          order:Date.now()
+          order:safeOrderInt()
         });
         allQ.push(true);
       });
 
       var gKeys=Object.keys(groups);
-      if(!gKeys.length){st.innerHTML='<span style="color:#ef4444;">No valid rows found</span>';return}
-      var total=gKeys.length,done=0,upQ=0;
+      if(!gKeys.length){st.innerHTML='<span style="color:#ef4444;">No valid quiz rows found</span>';return}
+      var total=gKeys.length,upQ=0;
 
-      function next(idx){
-        if(idx>=total){
-          st.innerHTML='<span style="color:#22c55e;">✅ Done! '+upQ+' questions.</span>';
-          toast('Upload Complete!','success');
-          setTimeout(function(){clearCSVData();refreshUI()},1500);
-          return;
+      async function runQuizUpload(){
+        for(var idx=0;idx<total;idx++){
+          var k=gKeys[idx];
+          var qs=groups[k];
+          try{
+            await saveUniversalQuizGroup(k, qs, settings.bulkQuizMode||'replace');
+            upQ+=qs.length;
+            st.innerHTML='<span style="color:#38bdf8;">⏳ Verified & Uploaded '+upQ+'/'+allQ.length+' questions...</span>';
+          }catch(err){
+            console.error('Quiz group upload error:', err);
+            st.innerHTML='<span style="color:#ef4444;">⚠️ Error: '+(err.message||err)+'</span>';
+            return;
+          }
         }
-        var k=gKeys[idx];
-        var qs=groups[k];
-        db.ref('questionBank/'+k).once('value').then(function(snap){
-          var ex=snap.val();
-          var fin=(ex&&Array.isArray(ex))?ex.concat(qs):qs;
-          return db.ref('questionBank/'+k).set(fin);
-        }).then(function(){
-          upQ+=qs.length;done++;
-          st.innerHTML='<span>'+upQ+'/'+allQ.length+'</span>';
-          next(idx+1);
-        }).catch(function(){done++;next(idx+1)});
+        st.innerHTML='<span style="color:#22c55e;">✅ Verified! '+upQ+' questions saved to database.</span>';
+        toast('Uploaded '+upQ+' Quiz Questions!','success');
+        setTimeout(function(){clearCSVData();refreshUI()},1200);
       }
-      next(0);
+      runQuizUpload();
     }
 
     function uploadMappedContent(){
@@ -1411,35 +2233,27 @@
           var title=r['Title']||r['title']||r['Name']||r['name']||r['col2']||'Skill';
           var content=r['Content']||r['content']||r['Body']||r['body']||r['col3']||'';
           var cat=subMapS[String(catTxt).toUpperCase().trim()]||String(catTxt).trim()||'Competitive skills';
-          items.push({title:String(title),content:String(content),category:cat,key:'',imageUrls:[]});
+          items.push({title:String(title),content:String(content),category:cat,key:'',imageUrls:[],order:safeOrderInt()});
         });
         uploadContentItems(rp,items,st);
         return;
       }
-      var subMap={'MATHS':'Maths','SCIENCE':'Science','TELUGU':'Telugu','ENGLISH':'English','HINDI':'Hindi','SOCIAL':'Social','SOCIALSTUDIES':'Social','SOCIALSCIENCE':'Social','GENERALSCIENCE':'Science','EVS':'Science'};
       var items=[];
       rows.forEach(function(r,idx){
         var clsTxt=r['Class']||r['class']||r['CLASS']||'';
         var subTxt=r['Subject']||r['subject']||getUploadDefaultSubject();
-        var topicTxt=r['Topic']||r['topic']||r['Chapter']||r['chapter']||'General';
-        var title=r['Title']||r['title']||r['Name']||r['name']||r['Topic']||r['topic']||('Item '+(idx+1));
+        var topicTxt=r['Topic']||r['topic']||r['Chapter']||r['chapter']||getVal('uploadTopicInp')||'General';
+        var title=r['Title']||r['title']||r['Name']||r['name']||getVal('uploadTopicInp')||r['Topic']||r['topic']||('Item '+(idx+1));
         var content=r['Content']||r['content']||r['Body']||r['body']||r['Data']||r['data']||r['HTML']||r['html']||'';
         var imgs=r['ImageUrls']||r['imageUrls']||r['Images']||r['images']||'';
-        var m=String(clsTxt).match(/(\d+)/),cn=m?parseInt(m[1]):null;
-        if(!cn)cn=getUploadDefaultClass();
-        var sub=subMap[String(subTxt).toUpperCase().replace(/\s+/g,'').replace(/STUDIES$/,'').replace(/SCIENCE$/,'')]||null;
-        if(!sub)sub=getUploadDefaultSubject();
+        var cn=extractClassNumber(clsTxt)||getUploadDefaultClass();
+        var sub=normalizeSubjectName(subTxt)||getUploadDefaultSubject();
         var rowKeys=Object.keys(r),firstVal='';
         for(var rki=0;rki<rowKeys.length;rki++){if(String(r[rowKeys[rki]]||'').trim()){firstVal=String(r[rowKeys[rki]]).trim();break}}
         if(!content&&firstVal)content=firstVal;
-        if((!title||title.indexOf('Item ')===0)&&firstVal)title=firstVal.substring(0,60);
-        var item={title:String(title),content:String(content),imageUrls:imgs?String(imgs).split('\n').map(function(l){return l.trim()}).filter(Boolean):[]};
-        var isGP=(currentTab==='games'||currentTab==='projects');
-        if(isGP){
-          item.subject=sub;item.class=cn;item.topic=String(topicTxt);
-        }else{
-          item.subject=sub;item.class=cn;item.topic=String(topicTxt);
-        }
+        if((!title||title.indexOf('Item ')===0)&&firstVal)title=cleanExtractedTitle(firstVal).substring(0,60)||'Chapter1';
+        var item={title:String(title),content:String(content),imageUrls:imgs?String(imgs).split('\n').map(function(l){return l.trim()}).filter(Boolean):[],order:safeOrderInt()};
+        item.subject=sub;item.class=cn;item.topic=String(topicTxt);
         item.key='';
         items.push(item);
       });
@@ -1451,19 +2265,23 @@
       var idx=0;
       function nx(){
         if(idx>=items.length){
-          st.innerHTML='<span style="color:#22c55e;">✅ Done! '+items.length+' items.</span>';
+          st.innerHTML='<span style="color:#22c55e;">✅ Done! '+items.length+' items synced (no duplicates).</span>';
           toast('Upload Complete!','success');
           setTimeout(function(){clearCSVData();refreshUI()},1500);
           return;
         }
         var it=items[idx];
-        var nr=db.ref(rp).push();
-        it.key=nr.key;
-        nr.set(it).then(function(){
+        var fixedKey=makeUniqueModuleKey(currentTab, it.class||9, it.subject||'Social', it.title||it.topic||('item_'+idx));
+        it.key=fixedKey;
+        it.order=getNaturalChapterOrder(it.title||it.topic, idx);
+        db.ref(rp+'/'+fixedKey).set(it).then(function(){
           idx++;
           st.innerHTML='<span>'+idx+'/'+items.length+'</span>';
           nx();
-        }).catch(function(){idx++;nx()});
+        }).catch(function(err){
+          console.error('Upload error:',err);
+          idx++;nx();
+        });
       }
       nx();
     }
@@ -1597,26 +2415,22 @@
       var ques=getVal('qz-question');
       var a=getVal('qz-a'),b=getVal('qz-b'),c=getVal('qz-c'),d=getVal('qz-d');
       var ans=getVal('qz-ans').toUpperCase();
-      var topic=getVal('qz-topic'),subt=getVal('qz-subtopic'),exp=getVal('qz-exp');
+      var topic=getVal('qz-topic')||'General',subt=getVal('qz-subtopic')||'All Questions',exp=getVal('qz-exp');
       if(!cn||cn<1||cn>10){toast('Select a valid Class','error');return}
       if(!sub){toast('Select a Subject','error');return}
       if(!ch){toast('Enter Chapter / Sub-Subject','error');return}
       if(!ques){toast('Enter the Question','error');return}
       if(!a||!b){toast('Option A and Option B are required','error');return}
       if((ans==='C'&&!c)||(ans==='D'&&!d)){toast('Correct answer option cannot be empty','error');return}
-      var chNorm=String(ch).replace(/^chapter\s*/i,'').replace(/\s+/g,'');
-      var gk='Class'+cn+'_'+sub+'_Chapter'+(chNorm||'1');
-      var qObj={question:ques,options:{A:a,B:b,C:c,D:d},correctAnswer:ans,subject:sub,class:cn,chapter:chNorm||'1',topic:topic,subtopic:subt,explanation:exp,imageUrls:[],order:Date.now()};
-      db.ref('questionBank/'+gk).once('value').then(function(snap){
-        var ex=snap.val();
-        var fin=(ex&&Array.isArray(ex))?ex.concat([qObj]):[qObj];
-        return db.ref('questionBank/'+gk).set(fin);
-      }).then(function(){
+      var chNorm=String(ch).replace(/^chapter\s*/i,'').replace(/^ch\s*/i,'').replace(/\s+/g,'')||'1';
+      var gk='Class'+cn+'_'+sub+'_Chapter'+chNorm;
+      var qObj={question:ques,options:{A:a,B:b,C:c,D:d},correctAnswer:ans,subject:sub,class:cn,chapter:chNorm,topic:topic,subtopic:subt,explanation:exp,imageUrls:[],order:safeOrderInt()};
+      saveUniversalQuizGroup(gk, [qObj], 'append').then(function(){
         toast('Question saved!','success');
         cancelEditForm();
         refreshUI();
       }).catch(function(err){
-        toast('Save failed: '+err.message,'error');
+        toast('Save failed: '+(err.message||err),'error');
       });
     }
 
@@ -1652,10 +2466,15 @@
         if(!subject||!cls){toast('Subject & Class required','error');return}
       }
 
+      var targetKey = editingId ? editingId : makeUniqueModuleKey(dk, cls||9, subject||'Social', title);
+      var ex = (editingId && allData[dk]) ? allData[dk][editingId] : null;
+
       var item={
         title:title,
         content:content||'',
-        imageUrls:images?images.split('\n').map(function(l){return l.trim()}).filter(function(l){return l}):[]
+        imageUrls:images?images.split('\n').map(function(l){return l.trim()}).filter(function(l){return l}):[],
+        order:(ex&&ex.order&&ex.order<=2147483647)?ex.order:safeOrderInt(),
+        key:targetKey
       };
 
       if(isGP){
@@ -1669,23 +2488,11 @@
         item.class=cls;
       }
 
-      if(editingId){
-        var ex=allData[dk]?allData[dk][editingId]:null;
-        item.key=ex?ex.key||editingId:editingId;
-        db.ref(rp+'/'+editingId).update(item).then(function(){
-          toast('Updated!','success');
-          cancelEditForm();
-          refreshUI();
-        }).catch(function(){toast('Error','error')});
-      }else{
-        var nr=db.ref(rp).push();
-        item.key=nr.key;
-        nr.set(item).then(function(){
-          toast('Added!','success');
-          cancelEditForm();
-          refreshUI();
-        }).catch(function(){toast('Error','error')});
-      }
+      db.ref(rp+'/'+targetKey).set(item).then(function(){
+        toast(editingId?'Updated!':'Added (Zero Duplicates)!','success');
+        cancelEditForm();
+        refreshUI();
+      }).catch(function(){toast('Error','error')});
     }
 
     function renderUsers(){
@@ -1805,6 +2612,18 @@
       var cp=settings.adminPass||DEFAULT_ADMIN_PASS;
       var gid=settings.guestId||DEFAULT_GUEST_ID;
       var gpass=settings.guestPass||DEFAULT_GUEST_PASS;
+      var bMode=settings.bulkQuizMode||'replace';
+      var bCls=settings.bulkDefaultClass||9;
+      var bSub=settings.bulkDefaultSubject||'Social';
+
+      var clsOpts='';
+      for(var ci=0;ci<CLASSES.length;ci++){
+        clsOpts+='<option value="'+CLASSES[ci]+'" '+(CLASSES[ci]==bCls?'selected':'')+'>Class '+CLASSES[ci]+'</option>';
+      }
+      var subOpts='';
+      for(var si=0;si<SUBJECTS.length;si++){
+        subOpts+='<option value="'+SUBJECTS[si]+'" '+(SUBJECTS[si]===bSub?'selected':'')+'>'+SUBJECTS[si]+'</option>';
+      }
 
       ac.innerHTML='<div class="card"><h3>⚙️ Settings</h3>'
         +'<div class="toggle-setting-row">'
@@ -1826,6 +2645,14 @@
         +'<div class="toggle-right">'
         +'<label class="toggle-switch"><input type="checkbox" id="set-guest-auto" '+(settings.guestAutoLogin?'checked':'')+' onchange="updateSettingToggle(\'guestAuto\')"><span class="toggle-slider"></span></label>'
         +'<span id="guestAuto-status">'+(settings.guestAutoLogin?'<span class="toggle-status on">ON</span>':'<span class="toggle-status off">OFF</span>')+'</span>'
+        +'</div></div>'
+
+        +'<div class="card" style="margin-top:15px;border-color:#10b981;">'
+        +'<h3 style="color:#34d399;">🚀 Bulk & Multi-Module Upload Settings</h3>'
+        +'<div style="display:flex;gap:15px;flex-wrap:wrap;">'
+        +'<div class="form-group" style="flex:1;min-width:200px;"><label>Quiz Bulk Upload Behavior</label><select id="set-bulk-quiz-mode" class="form-inp"><option value="replace" '+(bMode==='replace'?'selected':'')+'>Replace / Overwrite Chapter Questions (Zero Duplicates)</option><option value="append" '+(bMode==='append'?'selected':'')+'>Append Questions to Existing Chapter</option></select></div>'
+        +'<div class="form-group" style="flex:1;min-width:160px;"><label>Default Fallback Class</label><select id="set-bulk-def-class" class="form-inp">'+clsOpts+'</select></div>'
+        +'<div class="form-group" style="flex:1;min-width:160px;"><label>Default Fallback Subject</label><select id="set-bulk-def-sub" class="form-inp">'+subOpts+'</select></div>'
         +'</div></div>'
 
         +'<div class="form-group"><label>Guest ID</label><input id="set-guest-id" class="form-inp" value="'+escapeAttr(gid)+'" style="max-width:300px;"></div>'
@@ -1852,6 +2679,9 @@
       var ap=getVal('set-admin-pass');
       var gid=getVal('set-guest-id');
       var gpass=getVal('set-guest-pass');
+      var bMode=getVal('set-bulk-quiz-mode')||'replace';
+      var bCls=parseInt(getVal('set-bulk-def-class'),10)||9;
+      var bSub=getVal('set-bulk-def-sub')||'Social';
 
       if(!ap||!gid||!gpass){toast('All fields required','error');return}
 
@@ -1861,7 +2691,10 @@
         copyEnabled:ce,
         guestAutoLogin:ga,
         guestId:gid,
-        guestPass:gpass
+        guestPass:gpass,
+        bulkQuizMode:bMode,
+        bulkDefaultClass:bCls,
+        bulkDefaultSubject:bSub
       }).then(function(){
         settings.loginEnabled=le;
         settings.adminPass=ap;
@@ -1869,6 +2702,9 @@
         settings.guestAutoLogin=ga;
         settings.guestId=gid;
         settings.guestPass=gpass;
+        settings.bulkQuizMode=bMode;
+        settings.bulkDefaultClass=bCls;
+        settings.bulkDefaultSubject=bSub;
         if(ce)document.body.classList.remove('protected-mode');
         else document.body.classList.add('protected-mode');
         updateGuestDisplay();
@@ -1900,6 +2736,7 @@
     }
 
     function initApp(){
+      initTheme();
       db.ref('appSettings').once('value').then(function(s){
         var v = s.val() || {};
         if (typeof v === 'string') { try { v = JSON.parse(v); } catch(e) { v = {}; } }
@@ -1911,6 +2748,9 @@
         settings.guestAutoLogin=v.guestAutoLogin!==undefined?v.guestAutoLogin:false;
         settings.guestId=v.guestId||DEFAULT_GUEST_ID;
         settings.guestPass=v.guestPass||DEFAULT_GUEST_PASS;
+        settings.bulkQuizMode=v.bulkQuizMode||'replace';
+        settings.bulkDefaultClass=v.bulkDefaultClass||9;
+        settings.bulkDefaultSubject=v.bulkDefaultSubject||'Social';
         if(settings.copyEnabled)document.body.classList.remove('protected-mode');
         else document.body.classList.add('protected-mode');
         checkAuth();
