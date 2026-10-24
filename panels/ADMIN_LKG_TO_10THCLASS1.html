@@ -1075,7 +1075,7 @@
       h+='<option value="za" '+(currentFilters.sort==='za'?'selected':'')+'>Z-A</option>';
       h+='</select>';
 
-      h+='<button class="btn btn-orange btn-sm" onclick="autoFixAllChapterOrders(''+dk+'')" title="Arrange all chapters in 1 to 10 order and save to DB">🔢 Auto-Order (Ch 1➔10)</button><button class="btn btn-blue btn-sm" onclick="selectAllItems()">☑ Select All</button>';
+      h+='<button class="btn btn-orange btn-sm" onclick="autoFixAllChapterOrders('+q(dk)+')" title="Arrange all chapters in 1 to 10 order and save to DB">🔢 Auto-Order (Ch 1➔10)</button><button class="btn btn-blue btn-sm" onclick="selectAllItems()">☑ Select All</button>';
       h+='<button class="btn btn-dark btn-sm" onclick="deselectAllItems()">☐ Deselect</button>';
       h+='<button class="btn btn-red btn-sm" onclick="deleteSelected()">🗑 Delete (<span id="selCount">0</span>)</button>';
       h+='<button class="btn btn-purple btn-sm" onclick="downloadData(\''+dk+'\')">📥 JSON</button>';
@@ -1152,7 +1152,7 @@
         if(isQuiz){
           return (it&&it.length&&it[0].order!==undefined)?it[0].order:def;
         }
-        return (it&&it.order!==undefined)?it[order]!==undefined?it.order:def:def;
+        return (it&&it.order!==undefined)?it.order:def;
       }
 
       var orderA=(idxA+1)*1000;
