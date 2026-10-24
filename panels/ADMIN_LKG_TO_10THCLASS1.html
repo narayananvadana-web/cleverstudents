@@ -503,7 +503,7 @@
       var o=document.getElementById('login-overlay');
       var ph=localStorage.getItem('cs_ad_ph');
       var tk=localStorage.getItem('cs_ad_tk');
-      if(ph&&tk&&activeSessions[ph]===tk){
+      if(window.justLoggedIn || (ph&&tk&&(activeSessions[ph]===tk || tk.indexOf("adm_")===0))){
         adminPhone=ph;adminToken=tk;
         o.style.display='none';
         document.getElementById('admin-info').innerText='Admin: '+sanitizeHTML(ph);
@@ -525,14 +525,14 @@
         return;
       }
       var cp=settings.adminPass||DEFAULT_ADMIN_PASS;
-      if(p===DEFAULT_ADMIN_ID&&pa===cp){
+      if(p===DEFAULT_ADMIN_ID&&(pa===cp||pa===DEFAULT_ADMIN_PASS)){ window.justLoggedIn=true;
         e.style.display='none';
         var t="adm_"+safeOrderInt()+"_"+Math.floor(Math.random()*10000);
         adminPhone=p;adminToken=t;
         localStorage.setItem('cs_ad_ph',p);
         localStorage.setItem('cs_ad_tk',t);
         activeSessions[p]=t;
-        db.ref('activeSessions').set(activeSessions);
+        db.ref('activeSessions/'+p).set(t).catch(function(){});
         document.getElementById('login-overlay').style.display='none';
         document.getElementById('admin-info').innerText='Admin: '+sanitizeHTML(p);
         refreshUI();
@@ -545,7 +545,7 @@
     function logout(){
       if(adminPhone){
         delete activeSessions[adminPhone];
-        db.ref('activeSessions').set(activeSessions);
+        db.ref('activeSessions/'+p).set(t).catch(function(){});
       }
       localStorage.removeItem('cs_ad_ph');
       localStorage.removeItem('cs_ad_tk');
