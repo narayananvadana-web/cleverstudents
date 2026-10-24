@@ -725,10 +725,10 @@
 
       for(var i=0;i<parts.length-1;i++){
         var p=parts[i];
-        if(p.toLowerCase()==='final_output'||p.toLowerCase()==='segmented_5000')continue;
+        if(p.toLowerCase()==='final_output'||p.toLowerCase()==='segmented_5000'||/^chapter\s*\d+/i.test(p)||/^ch\s*\d+/i.test(p))continue;
         if(!detCls){
           var cn=extractClassNumber(p);
-          if(cn){detCls=cn;continue;}
+          if(cn && cn <= 10){detCls=cn;continue;}
         }
         if(!detSub){
           var sb=normalizeSubjectName(p);
