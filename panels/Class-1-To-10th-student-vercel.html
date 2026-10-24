@@ -133,12 +133,12 @@
     .login-inp{width:100%;padding:14px;margin-bottom:16px;border-radius:8px;border:1px solid var(--brd);background:rgba(0,0,0,.2);color:var(--txt);font-size:1rem;outline:0}
     .login-info{background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:20px;font-size:.85rem;color:var(--txt)}
 
-    .mm-theory-view{padding:20px;background:rgba(0,0,0,.15);border-radius:8px;border:1px solid var(--brd);max-height:70vh;overflow-y:auto;line-height:1.8;color:#f8fafc}
+    .mm-theory-view{padding:0!important;background:transparent!important;border-radius:8px;border:none!important;max-height:none!important;height:auto!important;overflow:visible!important;line-height:1.8;color:#f8fafc}
     .mm-theory-view img{max-width:100%;border-radius:8px;margin:10px 0;cursor:pointer}
     body.light-mode .mm-theory-view{color:#334155;background:rgba(0,0,0,.02)}
 
-    .game-iframe-container{width:100%;min-height:550px;background:#fff;border-radius:0 0 6px 6px;overflow:hidden}
-    .game-iframe-container iframe{width:100%;height:550px;border:none;display:block}
+    .game-iframe-container{width:100%!important;min-height:92vh!important;background:#0f172a!important;border-radius:0 0 8px 8px;overflow:hidden;border:none!important}
+    .game-iframe-container iframe{width:100%!important;min-height:92vh!important;height:92vh!important;border:none!important;display:block;background:#0f172a!important}
 
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;display:none;justify-content:center;align-items:center}
     .modal.show{display:flex}.modal img{max-width:92%;max-height:92%;border-radius:8px}
@@ -179,7 +179,7 @@
   <div class="main-wrap">
     <div id="shell" class="shell"><div class="sub-row" id="sub-row"></div><div class="cls-row" id="cls-row"></div><div class="content" id="content-area"></div></div>
     <div id="quiz-player" class="q-player" style="display:none;"></div>
-    <div id="mm-inline" style="display:none;padding:20px;background:var(--srf);border-radius:8px;border:1px solid var(--brd);max-width:1400px;margin:0 auto;"><button class="btn btn-dark btn-sm" style="margin-bottom:16px;" onclick="closeInlineMM()">← Back</button><div class="mm-theory-view" id="mmTheoryContainer"></div></div>
+    <div id="mm-inline" style="display:none;padding:12px 0;background:transparent;border:none;width:100%!important;max-width:1400px;margin:0 auto;"><button class="btn btn-dark btn-sm" style="margin-bottom:16px;" onclick="closeInlineMM()">← Back</button><div class="mm-theory-view" id="mmTheoryContainer"></div></div>
   </div>
 
   <div id="img-modal" class="modal" onclick="closeModal()"><span class="modal-close">×</span><img id="modal-img" src=""></div>
@@ -187,16 +187,15 @@
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
   <script>
+ // ==========================================
+    // ROBUST VERCEL KV / SUPABASE ADAPTER FOR STUDENTS
     // ==========================================
-    // SMART VERCEL KV WRAPPER (FIREBASE SIMULATOR)
-    // ==========================================
-    const legacyDb = {
+    const fallbackApiDb = {
       ref: function(path) {
         let parts = path.split('/').filter(Boolean);
         let rootKey = parts[0];
-
         return {
-          once: async function(event) {
+          once: async function() {
             try {
               const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
               const data = await res.json();
@@ -211,75 +210,12 @@
               console.error("DB Fetch Error:", err);
               return { val: () => null };
             }
-          },
-          set: async function(dataToSet) {
-            if (parts.length === 1) {
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: dataToSet }) }).then(res => res.json());
-            } else {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const fetched = await res.json();
-              let rootObj = fetched.result || {};
-              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-              let current = rootObj;
-              for (let i = 1; i < parts.length - 1; i++) {
-                if (!current[parts[i]]) current[parts[i]] = {};
-                current = current[parts[i]];
-              }
-              current[parts[parts.length - 1]] = dataToSet;
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
-            }
-          },
-          update: async function(updatesObj) {
-            if (parts.length === 1) {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const fetched = await res.json();
-              let rootObj = fetched.result || {};
-              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-
-              Object.keys(updatesObj).forEach(updPath => {
-                let updParts = updPath.split('/').filter(Boolean);
-                let current = rootObj;
-                for (let i = 0; i < updParts.length - 1; i++) {
-                  if (!current[updParts[i]]) current[updParts[i]] = {};
-                  current = current[updParts[i]];
-                }
-                current[updParts[updParts.length - 1]] = updatesObj[updPath];
-              });
-
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
-            }
-          },
-          remove: async function() {
-            if (parts.length === 1) {
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', path: rootKey }) }).then(res => res.json());
-            } else {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const fetched = await res.json();
-              let rootObj = fetched.result || {};
-              if (typeof rootObj === 'string') { try { rootObj = JSON.parse(rootObj); } catch(e) { rootObj = {}; } }
-              let current = rootObj;
-              for (let i = 1; i < parts.length - 1; i++) {
-                if (!current[parts[i]]) return;
-                current = current[parts[i]];
-              }
-              delete current[parts[parts.length - 1]];
-              return fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set', path: rootKey, data: rootObj }) }).then(res => res.json());
-            }
-          },
-          push: function() {
-            const newKey = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-            const pushPath = path + (path.endsWith('/') ? '' : '/') + newKey;
-            return {
-              key: newKey,
-              set: function(data) {
-                 return db.ref(pushPath).set(data);
-              }
-            };
           }
         };
       }
     };
-    const db = window.supabaseDb;
+
+    const db = window.supabaseDb || fallbackApiDb;
 
     var newsWithLinks=[{text:'🎓 Class 10 Maths - New Study Materials',action:function(){switchMode('learning');sub='Maths';cls=10;studyType='theory';refreshUI()}},{text:'📚 Science Quiz - 500+ Questions',action:function(){switchMode('learning');sub='Science';studyType='quiz';refreshUI()}},{text:'💡 Explore Skills',action:function(){switchMode('skills');refreshUI()}},{text:'🎮 Play Games',action:function(){switchMode('learning');studyType='games';refreshUI()}},{text:'🔬 Science Projects',action:function(){switchMode('learning');studyType='projects';refreshUI()}}];
 
@@ -360,14 +296,71 @@
       localStorage.setItem('cs_st_th',l?'light':'dark');
       document.getElementById('theme-toggle').innerText=l?'Dark Mode':'Light Mode';
     }
+    var KNOWN_CHAPTER_MAP = [
+      {kw: 'size and location', num: 1, label: 'CHAPTER 1: India – Size and Location'},
+      {kw: 'sizeandlocation', num: 1, label: 'CHAPTER 1: India – Size and Location'},
+      {kw: 'physical features', num: 2, label: 'CHAPTER 2: Physical Features of India'},
+      {kw: 'physicalfeatures', num: 2, label: 'CHAPTER 2: Physical Features of India'},
+      {kw: 'drainage', num: 3, label: 'CHAPTER 3: Drainage'},
+      {kw: 'french revolution', num: 4, label: 'CHAPTER 4: The French Revolution'},
+      {kw: 'frenchrevolution', num: 4, label: 'CHAPTER 4: The French Revolution'},
+      {kw: 'socialism in europe', num: 5, label: 'CHAPTER 5: Socialism in Europe and the Russian Revolution'},
+      {kw: 'russianrevolution', num: 5, label: 'CHAPTER 5: Socialism in Europe and the Russian Revolution'},
+      {kw: 'what is democracy', num: 6, label: 'CHAPTER 6: What is Democracy? Why Democracy?'},
+      {kw: 'whydemocracy', num: 6, label: 'CHAPTER 6: What is Democracy? Why Democracy?'},
+      {kw: 'constitutional design', num: 7, label: 'CHAPTER 7: Constitutional Design'},
+      {kw: 'constitutionaldesign', num: 7, label: 'CHAPTER 7: Constitutional Design'},
+      {kw: 'electoral politics', num: 8, label: 'CHAPTER 8: Electoral Politics'},
+      {kw: 'electoralpolitics', num: 8, label: 'CHAPTER 8: Electoral Politics'},
+      {kw: 'palampur', num: 9, label: 'CHAPTER 9: The Story of Village Palampur'},
+      {kw: 'pallampurr', num: 9, label: 'CHAPTER 9: The Story of Village Palampur'},
+      {kw: 'people as resource', num: 10, label: 'CHAPTER 10: People as Resource'},
+      {kw: 'peopleasresource', num: 10, label: 'CHAPTER 10: People as Resource'}
+    ];
+
+    function extractStudentChapNum(str) {
+      if (!str) return 9999;
+      var s = String(str);
+      var m = s.match(/(?:chapter|ch|unit|lesson)[_\-\s]*0*(\d{1,3})/i) || s.match(/^\s*0*(\d{1,3})\b/);
+      if (m) return parseInt(m[1], 10);
+      var low = s.toLowerCase();
+      for (var i = 0; i < KNOWN_CHAPTER_MAP.length; i++) {
+        if (low.indexOf(KNOWN_CHAPTER_MAP[i].kw) !== -1) return KNOWN_CHAPTER_MAP[i].num;
+      }
+      var m2 = s.match(/0*(\d{1,3})/);
+      if (m2) return parseInt(m2[1], 10);
+      return 9999;
+    }
+
+    function formatQuizChapDisplay(cn) {
+      var s = String(cn || '').replace(/^_+/, '').replace(/_/g, ' ').trim();
+      var low = s.toLowerCase();
+      for (var i = 0; i < KNOWN_CHAPTER_MAP.length; i++) {
+        if (low.indexOf(KNOWN_CHAPTER_MAP[i].kw) !== -1) return KNOWN_CHAPTER_MAP[i].label;
+      }
+      if (/^\d+/.test(s)) return 'CHAPTER ' + s;
+      return 'Chapter ' + s;
+    }
+
     function getArr(o){
       if(!o)return[];
       var r=[];
-      Object.keys(o).forEach(function(k){r.push(o[k])});
+      Object.keys(o).forEach(function(k){
+        if(o[k] && typeof o[k] === 'object'){
+          if(!o[k].key) o[k].key = k;
+          r.push(o[k]);
+        }
+      });
       r.sort(function(a,b){
-        var oA=a.order!==undefined?a.order:999999;
-        var oB=b.order!==undefined?b.order:999999;
-        return oA-oB;
+        var tA = a.title || a.topic || a.key || '';
+        var tB = b.title || b.topic || b.key || '';
+        var nA = extractStudentChapNum(tA);
+        var nB = extractStudentChapNum(tB);
+        if (nA !== nB) return nA - nB;
+        var oA = a.order !== undefined ? a.order : 999999;
+        var oB = b.order !== undefined ? b.order : 999999;
+        if (oA !== oB) return oA - oB;
+        return String(tA).localeCompare(String(tB), undefined, {numeric: true, sensitivity: 'base'});
       });
       return r;
     }
@@ -559,19 +552,22 @@
       if(b)b.style.display=settings.guestAutoLogin?'block':'none';
     }
 
-    function loadAllData(cb){
+function loadAllData(cb){
       var p={theory:'theoryDatabase',quiz:'questionBank',mindmap:'mindMapDatabase',papers:'papersDatabase',games:'gamesDatabase',projects:'projectsDatabase',videos:'videosDatabase',skills:'skillsDatabase'};
       var k=Object.keys(p);
       var promises = k.map(function(kk) {
-        return db.ref(p[kk]).once('value').then(function(s) {
-          let val = s.val();
+        var refObj = (db && typeof db.ref === 'function') ? db.ref(p[kk]) : fallbackApiDb.ref(p[kk]);
+        return refObj.once('value').then(function(s) {
+          let val = s ? s.val() : null;
           if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) { val = {}; } }
           DB[kk] = val || {};
-        }).catch(function() {
+        }).catch(function(err) {
+          console.error("Load error for " + kk, err);
           DB[kk] = {};
         });
       });
       Promise.all(promises).then(function() {
+        console.log("All DB modules loaded successfully into student panel:", DB);
         if (cb) cb();
       });
     }
@@ -743,8 +739,9 @@
         iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-pointer-lock allow-orientation-lock allow-presentation');
         iframe.setAttribute('allow','accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
         iframe.setAttribute('allowfullscreen','true');
-        var gh=isFullHTML?content:'<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>body{margin:0;padding:10px;font-family:Arial;background:#fff;color:#000}</style></head><body>'+content+'</body></html>';
+        var gh=isFullHTML?content:'<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>html,body{margin:0!important;padding:0!important;width:100%!important;min-height:100vh;font-family:\'Segoe UI\',system-ui,sans-serif;background:#0f172a!important;color:#f8fafc;overflow-x:hidden}</style></head><body>'+content+'</body></html>';
         iframe.srcdoc=gh;
+        iframe.onload=function(){try{var h=iframe.contentWindow.document.documentElement.scrollHeight;if(h>600)iframe.style.height=(h+30)+'px';}catch(e){}};
         container.appendChild(iframe);
         cd.appendChild(container);
       }else{
@@ -808,14 +805,17 @@
         }
       });
       var ck=Object.keys(ch).sort(function(a,b){
-        return(parseInt(a.replace(/\D/g,''))||0)-(parseInt(b.replace(/\D/g,''))||0)||a.localeCompare(b);
+        var nA = extractStudentChapNum(a);
+        var nB = extractStudentChapNum(b);
+        if (nA !== nB) return nA - nB;
+        return a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'});
       });
       if(!ck.length)return '<div style="padding:40px;text-align:center;color:var(--mut)">No quizzes found.</div>';
 
       var h='';
       ck.forEach(function(cn, cIndex){
         var cid='qc_'+cn.replace(/[^a-z0-9]/gi,'_');
-        h+='<div class="ch-row" style="background:'+g+'" onclick="tog('+q(cid)+')"><span>Chapter '+sanitizeHTML(cn)+'</span><span>View [+]</span></div>';
+        h+='<div class="ch-row" style="background:'+g+'" onclick="tog('+q(cid)+')"><span>'+sanitizeHTML(formatQuizChapDisplay(cn))+'</span><span>View [+]</span></div>';
         h+='<div id="'+cid+'" class="ch-content">'+renderChapterNested(d,ch[cn],g,cIndex)+'</div>';
       });
       return h;
