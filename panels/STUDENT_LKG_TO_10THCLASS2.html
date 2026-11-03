@@ -1,4 +1,4 @@
-student_code = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -62,7 +62,6 @@ student_code = """<!DOCTYPE html>
     .banner h1{font-size:1.4rem!important;font-weight:900!important;color:#fff!important}
     .banner p{font-size:.95rem!important;font-weight:700!important;color:#fff!important;border-left:2px solid rgba(255,255,255,.6);padding-left:12px}
     
-    /* Subject Buttons Row (SSC Model) */
     .sub-row{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:14px;background:rgba(0,0,0,.22);border-bottom:1px solid var(--brd)}
     .btn-sub{padding:9px 20px;border:2px solid transparent;border-radius:8px;color:#fff;font-weight:800;font-size:.9rem;cursor:pointer;opacity:.7;transform:scale(.96);white-space:nowrap;font-family:var(--font);transition:.2s}
     .btn-sub:hover{opacity:.95;transform:scale(1)}
@@ -72,7 +71,6 @@ student_code = """<!DOCTYPE html>
     .btn-cls{background:rgba(255,255,255,.05);border:1px solid var(--brd);color:var(--mut);font-weight:700;font-size:.85rem;cursor:pointer;padding:6px 14px;border-radius:20px;white-space:nowrap;transition:.2s}
     .btn-cls.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
 
-    /* Study Tabs Row (SSC Quiz First -> Grand Master -> Other modules) */
     .study-tabs-row{display:flex;gap:6px;padding:10px 15px;background:rgba(0,0,0,.15);flex-wrap:wrap;justify-content:center;overflow-x:auto}
     .study-tab-btn{padding:8px 16px;border-radius:50px;border:1px solid var(--brd);background:0 0;color:var(--mut);font-weight:800;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:.2s;font-family:var(--font)}
     .study-tab-btn:hover{color:var(--txt);border-color:var(--txt)}
@@ -82,15 +80,11 @@ student_code = """<!DOCTYPE html>
 
     .content{min-height:150px;background:var(--srf);padding-bottom:20px}
     
-    /* Collapsible Subject/Topic Rows with Alternating SSC Grad Shading */
     .ch-row{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin:12px 15px 0;color:#fff;font-weight:800;font-size:1.02rem;border-radius:8px;cursor:pointer;transition:.2s;box-shadow:0 3px 8px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12)}
     .ch-row:hover{filter:brightness(1.12);transform:translateY(-1px)}
-    .ch-sub-row{display:flex;justify-content:space-between;align-items:center;padding:11px 18px;margin:8px 10px 0;color:#fff;font-weight:800;font-size:.94rem;border-radius:8px;cursor:pointer;transition:.2s;border-left:4px solid rgba(255,255,255,.7);box-shadow:0 2px 6px rgba(0,0,0,.2)}
-    .ch-sub-row:hover{filter:brightness(1.12)}
     .ch-content{display:none;background:rgba(0,0,0,.28);border:1px solid var(--brd);margin:0 15px 12px;padding:18px;border-radius:0 0 8px 8px;line-height:1.8;color:#f8fafc;overflow-x:auto}
-    .ch-sub-content{display:none;background:rgba(0,0,0,.2);border:1px solid var(--brd);margin:0 10px 10px;padding:14px;border-radius:0 0 8px 8px}
     body.light-mode .ch-content{color:#334155;background:rgba(0,0,0,.03)}
-    .ch-content.show,.ch-sub-content.show{display:block;animation:fadeIn .25s ease}
+    .ch-content.show{display:block;animation:fadeIn .25s ease}
     @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 
     .badge-pill{background:rgba(0,0,0,.35);padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:800;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.18)}
@@ -102,7 +96,7 @@ student_code = """<!DOCTYPE html>
     .q-card:hover{transform:translateY(-4px);filter:brightness(1.12)}
     .q-card h4{font-weight:900;font-size:1.05rem;margin-bottom:6px}
 
-    /* Grand Master Builder Styles */
+    /* Grand Master Styles */
     .gt-subject-section{background:rgba(0,0,0,.2);border-radius:8px;padding:15px;margin:12px 15px;border:1px solid var(--brd)}
     .gt-subject-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:800;font-size:1rem;flex-wrap:wrap;gap:8px}
     .gt-subject-header-left{display:flex;align-items:center;gap:8px}
@@ -115,14 +109,13 @@ student_code = """<!DOCTYPE html>
     .gt-warning{background:rgba(239,68,68,.1);border:1px solid #ef4444;border-radius:8px;padding:12px;margin:10px 15px;color:#ef4444;font-size:.85rem;display:none}
     .gt-select-all-btn{font-size:.7rem;padding:4px 10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--txt);border-radius:15px;cursor:pointer;font-family:var(--font)}
 
-    /* Quiz Player & APPSC Results Screen */
+    /* Quiz Player & Analytics */
     .q-player{padding:20px;background:var(--srf);border:1px solid var(--brd);border-radius:8px;max-width:1400px;margin:0 auto}
     .q-panel{border-radius:16px;padding:20px;background:rgba(0,0,0,.2)}
     .opt-btn{padding:14px 18px;background:rgba(255,255,255,.05);border:2px solid var(--brd);border-radius:8px;cursor:pointer;font-weight:700;font-size:1rem;color:var(--txt);text-align:left;margin-bottom:10px;width:100%;transition:.2s;font-family:var(--font);display:flex;align-items:center;gap:10px}
     .opt-btn:hover{border-color:#3b82f6}
     .opt-btn.correct{background:#15803d!important;border-color:#22c55e!important;color:#fff!important}
     .opt-btn.wrong{background:#b91c1c!important;border-color:#ef4444!important;color:#fff!important}
-    .opt-btn.reveal{background:rgba(34,197,94,.2)!important;border-color:#22c55e!important}
     .feedback{display:none;padding:14px;border-radius:8px;font-weight:700;color:#fff!important;margin-bottom:20px;line-height:1.6}
     .feedback.show{display:block}
     .feedback.correct{background:#15803d;border-left:4px solid #22c55e}
@@ -136,7 +129,6 @@ student_code = """<!DOCTYPE html>
     .results-summary-item .val{font-size:1.8rem;font-weight:900}
     .results-summary-item .lbl{font-size:.7rem;color:var(--mut)}
     .analysis-card{background:rgba(255,255,255,.03);border:1px solid var(--brd);border-radius:8px;padding:15px;margin-bottom:12px}
-    .analysis-card h4{margin-bottom:8px}
     .progress-bar-bg{background:rgba(0,0,0,.3);border-radius:20px;height:12px;overflow:hidden;margin:5px 0}
     .progress-bar-fill{height:100%;border-radius:20px;transition:width .5s}
     .result-item{background:rgba(255,255,255,.05);border:1px solid var(--brd);border-radius:8px;padding:15px;margin-bottom:10px}
@@ -173,7 +165,7 @@ student_code = """<!DOCTYPE html>
       .results-score{font-size:3rem}.gt-topic-grid{grid-template-columns:1fr}
       .gt-subject-header{flex-direction:column;align-items:flex-start}
       .sub-row{gap:6px;padding:10px}.btn-sub{padding:8px 14px;font-size:.8rem}
-      .ch-row,.ch-sub-row{flex-direction:column;align-items:flex-start;gap:6px}
+      .ch-row{flex-direction:column;align-items:flex-start;gap:6px}
     }
   </style>
 </head>
@@ -196,7 +188,7 @@ student_code = """<!DOCTYPE html>
     <div class="news-ticker-wrap"><span class="news-icon">📢</span><div class="ticker-container"><span id="newsTicker"></span></div></div>
     <div id="google_translate_element"></div>
     <select class="lang-select" id="lang-select" onchange="changeLanguage(this.value)">
-      <option value="en">🌐 English</option><option value="te">🔴 తెలుగు</option><option value="hi">🔴 हिन्दी</option><option value="ta">🔴 தமிழ்</option><option value="ml">🔴 മലയാളం</option><option value="kn">🔴 ಕನ್ನಡ</option>
+      <option value="en">🌐 English</option><option value="te">🔴 తెలుగు</option><option value="hi">🔴 हिन्दी</option><option value="ta">🔴 தமிழ்</option><option value="ml">🔴 മലയാളം</option><option value="kn">🔴 ಕನ್ನಡ</option>
     </select>
   </div>
 
@@ -228,55 +220,42 @@ student_code = """<!DOCTYPE html>
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
   <script>
-    // ==================== PALETTES (SSC LIGHT & DARK ALTERNATING SHADES) ====================
     var SUBJECT_THEMES = {
       'Maths': {
         name: 'Maths',
         grad: 'linear-gradient(135deg,#059669,#047857)',
         lightGrad: 'linear-gradient(135deg,#10b981,#059669)',
-        darkGrad:  'linear-gradient(135deg,#047857,#064e3b)',
-        subLightGrad: 'linear-gradient(135deg,#34d399,#10b981)',
-        subDarkGrad:  'linear-gradient(135deg,#059669,#065f46)'
+        darkGrad:  'linear-gradient(135deg,#047857,#064e3b)'
       },
       'Science': {
         name: 'Science',
         grad: 'linear-gradient(135deg,#2563eb,#1d4ed8)',
         lightGrad: 'linear-gradient(135deg,#3b82f6,#2563eb)',
-        darkGrad:  'linear-gradient(135deg,#1e40af,#172554)',
-        subLightGrad: 'linear-gradient(135deg,#60a5fa,#3b82f6)',
-        subDarkGrad:  'linear-gradient(135deg,#1d4ed8,#1e3a8a)'
+        darkGrad:  'linear-gradient(135deg,#1e40af,#172554)'
       },
       'Telugu': {
         name: 'Telugu',
         grad: 'linear-gradient(135deg,#d97706,#b45309)',
         lightGrad: 'linear-gradient(135deg,#f59e0b,#d97706)',
-        darkGrad:  'linear-gradient(135deg,#b45309,#78350f)',
-        subLightGrad: 'linear-gradient(135deg,#fbbf24,#f59e0b)',
-        subDarkGrad:  'linear-gradient(135deg,#d97706,#92400e)'
+        darkGrad:  'linear-gradient(135deg,#b45309,#78350f)'
       },
       'English': {
         name: 'English',
         grad: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
         lightGrad: 'linear-gradient(135deg,#8b5cf6,#7c3aed)',
-        darkGrad:  'linear-gradient(135deg,#5b21b6,#3b0764)',
-        subLightGrad: 'linear-gradient(135deg,#a78bfa,#8b5cf6)',
-        subDarkGrad:  'linear-gradient(135deg,#6d28d9,#4c1d95)'
+        darkGrad:  'linear-gradient(135deg,#5b21b6,#3b0764)'
       },
       'Hindi': {
         name: 'Hindi',
         grad: 'linear-gradient(135deg,#dc2626,#b91c1c)',
         lightGrad: 'linear-gradient(135deg,#ef4444,#dc2626)',
-        darkGrad:  'linear-gradient(135deg,#b91c1c,#7f1d1d)',
-        subLightGrad: 'linear-gradient(135deg,#f87171,#ef4444)',
-        subDarkGrad:  'linear-gradient(135deg,#dc2626,#991b1b)'
+        darkGrad:  'linear-gradient(135deg,#b91c1c,#7f1d1d)'
       },
       'Social': {
         name: 'Social',
         grad: 'linear-gradient(135deg,#ea580c,#c2410c)',
         lightGrad: 'linear-gradient(135deg,#f97316,#ea580c)',
-        darkGrad:  'linear-gradient(135deg,#c2410c,#7c2d12)',
-        subLightGrad: 'linear-gradient(135deg,#fb923c,#f97316)',
-        subDarkGrad:  'linear-gradient(135deg,#ea580c,#9a3412)'
+        darkGrad:  'linear-gradient(135deg,#c2410c,#7c2d12)'
       }
     };
     var SUBJECTS = ['Maths','Science','Telugu','English','Hindi','Social'];
@@ -285,40 +264,36 @@ student_code = """<!DOCTYPE html>
 
     var fallbackApiDb = {
       ref: function(path) {
-        let parts = String(path || '').split('/').filter(Boolean);
-        let rootKey = parts[0];
+        var parts = String(path || '').split('/').filter(Boolean);
+        var rootKey = parts[0];
         return {
           once: async function() {
             try {
-              const res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
-              const data = await res.json();
-              let val = data.result;
+              var res = await fetch('/api/db?path=' + encodeURIComponent(rootKey));
+              var data = await res.json();
+              var val = data.result;
               if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) {} }
-              for (let i = 1; i < parts.length; i++) {
+              for (var i = 1; i < parts.length; i++) {
                 if (val && typeof val === 'object') { val = val[parts[i]]; }
                 else { val = null; break; }
               }
-              return { val: () => val };
+              return { val: function() { return val; } };
             } catch (err) {
-              return { val: () => null };
+              return { val: function() { return null; } };
             }
           }
         };
       }
     };
-    const db = window.supabaseDb || fallbackApiDb;
+    var db = window.supabaseDb || fallbackApiDb;
 
     var DB = { theory:{}, quiz:{}, mindmap:{}, papers:{}, games:{}, projects:{}, videos:{}, skills:{} };
     var settings = { loginEnabled: true, users: {}, grandMasterEnabled: true };
     var currentUser = { phone: '', isGuest: false };
-    // Default studyType is 'quiz' so Quiz opens first like SSC model
     var sub = 'Maths', cls = 9, studyType = 'quiz', skillCat = 'Competitive skills';
     var qActive = [], qIdx = 0, qTimer = null, qSec = 0, qAns = [], qSourceInfo = [];
 
     function sanitizeHTML(s){ if(!s) return ''; var d = document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
-    function escapeAttr(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function q(s){ if(s===undefined||s===null) return "''"; return "'" + String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'\\r') + "'"; }
-
     window.tog = function(id){ var el = document.getElementById(id); if(el) el.classList.toggle('show'); };
     function shuffleArray(arr){ var a = arr.slice(); for(var i=a.length-1; i>0; i--){ var j = Math.floor(Math.random()*(i+1)); var tmp = a[i]; a[i] = a[j]; a[j] = tmp; } return a; }
 
@@ -327,7 +302,8 @@ student_code = """<!DOCTYPE html>
 
     function initTheme(){
       var t = localStorage.getItem('cs_st_th') || 'dark', b = document.getElementById('theme-toggle');
-      t === 'light' ? (document.body.classList.add('light-mode'), b.innerText = 'Dark Mode') : (document.body.classList.remove('light-mode'), b.innerText = 'Light Mode');
+      if(t === 'light'){ document.body.classList.add('light-mode'); b.innerText = 'Dark Mode'; }
+      else { document.body.classList.remove('light-mode'); b.innerText = 'Light Mode'; }
     }
     initTheme();
     function toggleTheme(){
@@ -336,8 +312,7 @@ student_code = """<!DOCTYPE html>
       document.getElementById('theme-toggle').innerText = l ? 'Dark Mode' : 'Light Mode';
     }
 
-    // Google Translate
-    window.googleTranslateElementInit=function(){
+    window.googleTranslateElementInit = function(){
       new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'te,hi,ta,ml,kn,en',layout:google.translate.TranslateElement.InlineLayout.HORIZONTAL,autoDisplay:true},'google_translate_element');
     };
     function changeLanguage(l){
@@ -412,12 +387,12 @@ student_code = """<!DOCTYPE html>
       return key;
     }
 
-    // ==================== MAIN UI RENDERER ====================
     function refreshUI(){
       if(studyType === 'grandmaster'){ openGrandMasterConfig(); return; }
 
       var sr = document.getElementById('sub-row'), cr = document.getElementById('cls-row'), str = document.getElementById('study-tabs-row'), ca = document.getElementById('content-area');
       var so = SUBJECT_THEMES[sub] || SUBJECT_THEMES['Maths'];
+      cr.style.display = 'flex';
 
       sr.innerHTML = SUBJECTS.map(function(s){
         var th = SUBJECT_THEMES[s];
@@ -428,7 +403,6 @@ student_code = """<!DOCTYPE html>
         return '<button class="btn-cls ' + (cls===c ? 'active' : '') + '" onclick="setCls(' + c + ')">' + (cls===c ? '✔ ' : '') + 'Class ' + c + '</button>';
       }).join('');
 
-      // Tab Order: 1. Quiz -> 2. Grand Master -> 3. Theory -> 4. Mindmap -> 5. Papers -> 6. Games -> 7. Projects -> 8. Videos -> 9. Skills
       var tList = [
         { id: 'quiz', label: '📝 Quiz' },
         { id: 'grandmaster', label: '🏆 Grand Master' },
@@ -460,7 +434,6 @@ student_code = """<!DOCTYPE html>
       else if(studyType === 'skills') renderSkillsView(ca, h);
     }
 
-    // ==================== 1. QUIZ VIEW (SSC ALTERNATING LIGHT/DARK TOPICS) ====================
     function renderQuizView(so, ca, h){
       var prefix = 'Class' + cls + '_' + sub;
       var qData = DB.quiz || {};
@@ -497,7 +470,6 @@ student_code = """<!DOCTYPE html>
       ca.innerHTML = h;
     }
 
-    // ==================== 2. GRAND MASTER BUILDER (SSC MULTI-TOPIC EXAM PAPER) ====================
     function openGrandMasterConfig(){
       studyType = 'grandmaster';
       var sr = document.getElementById('sub-row'), cr = document.getElementById('cls-row'), str = document.getElementById('study-tabs-row'), ca = document.getElementById('content-area');
@@ -511,105 +483,185 @@ student_code = """<!DOCTYPE html>
                     + '<button class="study-tab-btn grand-master-btn active">🏆 Grand Master</button>'
                     + '<button class="study-tab-btn" onclick="setStudyType(\'theory\')">📖 Theory</button>';
 
-      var qData = DB.quiz || {};
-      var allSubjTopics = {};
-      Object.keys(qData).forEach(function(k){
-        var arr = qData[k] || [];
-        if(!arr.length) return;
-        var parts = k.split('_');
-        var sName = parts[1] || 'Social';
-        if(!allSubjTopics[sName]) allSubjTopics[sName] = {};
-        allSubjTopics[sName][k] = { name: parseQuizKey(k), count: arr.length };
+      var quizData = DB.quiz || {}, allTopics = {};
+      Object.keys(quizData).forEach(function(key){
+        var arr = quizData[key];
+        if(!arr || !Array.isArray(arr) || !arr.length) return;
+        var parts = key.split('_');
+        var ms = parts[1] || 'Social';
+        var dt = parseQuizKey(key);
+        if(!allTopics[ms]) allTopics[ms] = {};
+        allTopics[ms][key] = { name: dt, count: arr.length, subject: ms };
       });
 
-      var h = '<div class="banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);"><h1>🏆 Grand Master Custom Exam</h1><p>Select multiple subjects and topics to generate custom test paper</p></div>';
-      h += '<div class="gt-warning" id="gtWarning">⚠️ Please check at least one subject, select its topics, and enter marks > 0 to start.</div>';
+      var h = '<div class="banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);"><h1>🏆 Grand Master Custom Exam</h1><p>Customize Your Exam Across Subjects &amp; Chapters</p></div>';
+      h += '<div style="padding:10px 15px;color:var(--mut);font-size:.85rem;">📋 <b>Steps:</b> 1️⃣ Check Subject → 2️⃣ Select Topics → 3️⃣ Enter Marks → 4️⃣ Click Start</div>';
+      h += '<div class="gt-warning" id="gtWarning">⚠️ Please check at least one subject, select its topics, and enter marks > 0 to enable Start.</div><div id="gtConfigForm">';
 
-      SUBJECTS.forEach(function(s){
-        var topics = allSubjTopics[s];
-        if(!topics) return;
-        var tKeys = Object.keys(topics);
-        var totalAvailable = 0;
-        tKeys.forEach(function(tk){ totalAvailable += topics[tk].count; });
-        var si = s.replace(/[^a-z0-9]/gi, '_');
+      SUBJECTS.forEach(function(sn){
+        if(!allTopics[sn]) return;
+        var tps = allTopics[sn], tks = Object.keys(tps).sort(), stq = 0;
+        tks.forEach(function(tk){ stq += tps[tk].count; });
+        var si = sn.replace(/[^a-z0-9]/gi, '_');
 
         h += '<div class="gt-subject-section">'
-          + '<div class="gt-subject-header" onclick="tog(\'gt_topics_' + si + '\')">'
+          + '<div class="gt-subject-header" onclick="toggleGTSection(\'' + si + '\')">'
           + '<div class="gt-subject-header-left">'
-          + '<input type="checkbox" class="gt-subj-check" data-subject="' + s + '" onchange="gtOnSubjectToggle(\'' + s + '\')" onclick="event.stopPropagation();" style="accent-color:#f59e0b;width:18px;height:18px;">'
-          + '<span style="color:#fff;">' + s + '</span> <small style="color:var(--mut);">(' + totalAvailable + ' Qs)</small>'
+          + '<input type="checkbox" class="gt-subj-check" data-subject="' + sn + '" onchange="gtOnSubjectToggle(\'' + sn + '\')" onclick="event.stopPropagation();" style="accent-color:#f59e0b;width:18px;height:18px;">'
+          + '<span style="color:#fff;">' + sn + '</span><small style="color:var(--mut);">(' + stq + ' Qs available)</small>'
           + '</div>'
           + '<div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation();">'
           + '<span style="font-size:.8rem;color:var(--mut);">Marks:</span>'
-          + '<input type="number" class="gt-marks-input gt-subj-marks" data-subject="' + s + '" value="0" min="0" max="' + totalAvailable + '" onchange="gtOnMarksChange(\'' + s + '\')" oninput="gtOnMarksInput(\'' + s + '\')">'
-          + '</div><span>▼</span></div>'
+          + '<input type="number" class="gt-marks-input gt-subj-marks" data-subject="' + sn + '" value="0" min="0" max="' + stq + '" onchange="gtOnMarksChange(\'' + sn + '\')" oninput="gtOnMarksInput(\'' + sn + '\')" style="width:80px;" placeholder="0">'
+          + '<span style="font-size:.7rem;color:var(--mut);">/ ' + stq + '</span>'
+          + '</div><span style="cursor:pointer;font-size:.8rem;">▼</span></div>'
+          + '<div style="padding:5px 0;" onclick="event.stopPropagation();">'
+          + '<button class="gt-select-all-btn" onclick="gtSelectAllTopics(\'' + sn + '\')">✅ Select All</button> '
+          + '<button class="gt-select-all-btn" onclick="gtDeselectAllTopics(\'' + sn + '\')">☐ Deselect All</button>'
+          + '</div>'
           + '<div class="gt-topic-grid" id="gt_topics_' + si + '" style="display:none;">';
 
-        tKeys.forEach(function(tk){
-          var it = topics[tk];
+        tks.forEach(function(tk){
+          var t = tps[tk];
           h += '<label class="gt-checkbox" onclick="event.stopPropagation();">'
-            + '<input type="checkbox" class="gt-topic-check" data-subject="' + s + '" data-key="' + tk + '" data-count="' + it.count + '" onchange="gtOnTopicToggle(\'' + s + '\')" disabled>'
-            + '<span>' + it.name + '</span> <small style="color:var(--mut);margin-left:auto;">(' + it.count + ')</small>'
+            + '<input type="checkbox" class="gt-topic-check" data-subject="' + sn + '" data-key="' + tk + '" data-count="' + t.count + '" onchange="gtOnTopicToggle(\'' + sn + '\')" disabled>'
+            + '<span>' + t.name + '</span> <small style="color:var(--mut);margin-left:auto;">(' + t.count + ')</small>'
             + '</label>';
         });
-        h += '</div></div>';
+
+        h += '</div><div style="font-size:.75rem;color:var(--mut);margin-top:5px;" id="gt_distribution_' + si + '"></div></div>';
       });
 
-      h += '<div class="gt-total-bar"><span>📊 Total Questions: <span id="gtTotalMarks">0</span></span><button class="btn btn-green" onclick="startGrandMasterExam()" id="gtStartBtn" disabled>🚀 Start Grand Master Test</button></div>';
+      h += '<div class="gt-total-bar"><span>📊 Total Questions: <span id="gtTotalMarks" style="font-size:1.3rem;">0</span></span><button class="btn btn-green" onclick="startGrandMasterExam()" id="gtStartBtn" disabled>🚀 Start Grand Master Test</button></div></div>';
       ca.innerHTML = h;
+      setTimeout(function(){ updateGTTotal(); }, 100);
     }
 
+    function toggleGTSection(id){
+      var el = document.getElementById('gt_topics_' + id);
+      if(el) el.style.display = (el.style.display === 'none' ? 'grid' : 'none');
+    }
     function gtOnSubjectToggle(sn){
-      var ic = document.querySelector('.gt-subj-check[data-subject="'+sn+'"]').checked;
-      document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]').forEach(function(cb){ cb.disabled = !ic; if(!ic) cb.checked = false; });
-      if(!ic) document.querySelector('.gt-subj-marks[data-subject="'+sn+'"]').value = 0;
+      var ic = document.querySelector('.gt-subj-check[data-subject="' + sn + '"]').checked;
+      document.querySelectorAll('.gt-topic-check[data-subject="' + sn + '"]').forEach(function(cb){
+        cb.disabled = !ic;
+        if(!ic) cb.checked = false;
+      });
+      if(!ic) document.querySelector('.gt-subj-marks[data-subject="' + sn + '"]').value = 0;
       gtOnTopicToggle(sn);
+      updateGTTotal();
     }
     function gtOnTopicToggle(sn){
       var ta = 0;
-      document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]:checked').forEach(function(cb){ ta += parseInt(cb.dataset.count)||0; });
-      var me = document.querySelector('.gt-subj-marks[data-subject="'+sn+'"]');
-      if(me){ me.max = ta; if(parseInt(me.value) > ta) me.value = ta; }
+      document.querySelectorAll('.gt-topic-check[data-subject="' + sn + '"]:checked').forEach(function(cb){
+        ta += parseInt(cb.dataset.count) || 0;
+      });
+      var me = document.querySelector('.gt-subj-marks[data-subject="' + sn + '"]');
+      if(me){
+        me.max = ta;
+        var cv = parseInt(me.value) || 0;
+        if(cv > ta && ta > 0) me.value = ta;
+        if(ta === 0) me.value = 0;
+      }
       updateGTTotal();
+      updateGTDistribution(sn);
     }
-    function gtOnMarksInput(sn){ updateGTTotal(); }
-    function gtOnMarksChange(sn){ updateGTTotal(); }
+    function gtOnMarksInput(sn){ updateGTTotal(); updateGTDistribution(sn); }
+    function gtOnMarksChange(sn){
+      var me = document.querySelector('.gt-subj-marks[data-subject="' + sn + '"]'), mv = parseInt(me.max) || 0, cv = parseInt(me.value) || 0;
+      if(cv < 0) me.value = 0;
+      if(mv > 0 && cv > mv) me.value = mv;
+      updateGTTotal();
+      updateGTDistribution(sn);
+    }
+    function gtSelectAllTopics(sn){
+      if(!document.querySelector('.gt-subj-check[data-subject="' + sn + '"]').checked){
+        document.querySelector('.gt-subj-check[data-subject="' + sn + '"]').checked = true;
+      }
+      document.querySelectorAll('.gt-topic-check[data-subject="' + sn + '"]').forEach(function(cb){
+        cb.disabled = false;
+        cb.checked = true;
+      });
+      gtOnTopicToggle(sn);
+    }
+    function gtDeselectAllTopics(sn){
+      document.querySelectorAll('.gt-topic-check[data-subject="' + sn + '"]').forEach(function(cb){
+        cb.checked = false;
+      });
+      gtOnTopicToggle(sn);
+    }
+    function updateGTDistribution(sn){
+      var me = document.querySelector('.gt-subj-marks[data-subject="' + sn + '"]'), m = parseInt(me ? me.value : 0) || 0;
+      var st = document.querySelectorAll('.gt-topic-check[data-subject="' + sn + '"]:checked'), tc = st.length;
+      var si = sn.replace(/[^a-z0-9]/gi, '_'), de = document.getElementById('gt_distribution_' + si);
+      if(!de) return;
+      if(tc > 0 && m > 0){
+        var pt = Math.floor(m / tc), r = m % tc, dt = '📊 Equal Distribution: ~' + pt + ' Qs per topic';
+        if(r > 0) dt += ' (' + r + ' topic(s) get 1 extra Q)';
+        de.innerHTML = dt;
+        de.style.color = '#22c55e';
+      } else if(tc > 0 && m === 0){
+        de.innerHTML = '⚠️ Enter marks (greater than 0) to see distribution';
+        de.style.color = '#f59e0b';
+      } else if(m > 0 && tc === 0){
+        de.innerHTML = '⚠️ Select at least one topic above';
+        de.style.color = '#ef4444';
+      } else {
+        de.innerHTML = '';
+      }
+    }
     function updateGTTotal(){
-      var total = 0, valid = false;
+      var t = 0, hv = false;
       document.querySelectorAll('.gt-subj-check:checked').forEach(function(cb){
-        var sn = cb.dataset.subject;
-        var m = parseInt(document.querySelector('.gt-subj-marks[data-subject="'+sn+'"]').value) || 0;
-        var st = document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]:checked').length;
-        if(m > 0 && st > 0){ valid = true; total += m; }
+        var sn = cb.dataset.subject, me = document.querySelector('.gt-subj-marks[data-subject="' + sn + '"]');
+        var m = parseInt(me ? me.value : 0) || 0;
+        var st = document.querySelectorAll('.gt-topic-check[data-subject="' + sn + '"]:checked').length;
+        if(m > 0 && st > 0){ hv = true; t += m; }
       });
-      document.getElementById('gtTotalMarks').innerText = total;
-      document.getElementById('gtStartBtn').disabled = !(total > 0 && valid);
+      var te = document.getElementById('gtTotalMarks'), sb = document.getElementById('gtStartBtn'), we = document.getElementById('gtWarning');
+      if(te) te.innerText = t;
+      if(sb) sb.disabled = !(t > 0 && hv);
+      if(we){
+        var ac = document.querySelectorAll('.gt-subj-check:checked').length > 0;
+        we.style.display = (ac && !hv) ? 'block' : 'none';
+      }
     }
 
-    // Launch Grand Master Test with Equal Balanced Distribution
     function startGrandMasterExam(){
+      var btn = document.getElementById('gtStartBtn');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Preparing Grand Master Test...'; }
       var asq = [];
-      document.querySelectorAll('.gt-subj-check:checked').forEach(function(cb){
+      var checkedSubjs = document.querySelectorAll('.gt-subj-check:checked');
+      for (var sIdx = 0; sIdx < checkedSubjs.length; sIdx++) {
+        var cb = checkedSubjs[sIdx];
         var sn = cb.dataset.subject;
-        var tm = parseInt(document.querySelector('.gt-subj-marks[data-subject="'+sn+'"]').value) || 0;
-        if(tm === 0) return;
+        var tm = parseInt(document.querySelector('.gt-subj-marks[data-subject="' + sn + '"]').value) || 0;
+        if (tm === 0) continue;
         var stk = [];
-        document.querySelectorAll('.gt-topic-check[data-subject="'+sn+'"]:checked').forEach(function(tcb){ stk.push(tcb.dataset.key); });
-        if(!stk.length) return;
+        document.querySelectorAll('.gt-topic-check[data-subject="' + sn + '"]:checked').forEach(function(tcb){ stk.push(tcb.dataset.key); });
+        if (stk.length === 0) continue;
 
-        var tc = stk.length, bpt = Math.floor(tm / tc), ext = tm % tc;
-        stk.forEach(function(k, idx){
-          var take = bpt + (idx < ext ? 1 : 0);
-          var fullSet = DB.quiz[k] || [];
-          var sf = shuffleArray(fullSet);
-          var chosen = sf.slice(0, Math.min(take, sf.length));
-          chosen.forEach(function(qObj){
-            asq.push({ question: qObj, source: k, subject: sn, topic: parseQuizKey(k) });
-          });
+        var tc = stk.length, bpt = Math.floor(tm / tc), ext = tm % tc, dist = [];
+        for (var i = 0; i < tc; i++) dist.push({ key: stk[i], count: bpt + (i < ext ? 1 : 0) });
+        dist = shuffleArray(dist).filter(function(d){ return d.count > 0; });
+
+        dist.forEach(function(d){
+          var qs = DB.quiz[d.key] || [];
+          var sf = shuffleArray(qs);
+          var tp = Math.min(d.count, sf.length);
+          var tName = parseQuizKey(d.key);
+          for (var j = 0; j < tp; j++) {
+            asq.push({ question: sf[j], source: d.key, subject: sn, topic: tName });
+          }
         });
-      });
+      }
 
-      if(!asq.length){ alert('No questions loaded!'); return; }
+      if (asq.length === 0) {
+        alert('⚠️ No questions could be loaded! Please check your selection.');
+        if (btn) { btn.disabled = false; btn.innerHTML = '🚀 Start Grand Master Test'; }
+        return;
+      }
+
       asq = shuffleArray(asq);
       qActive = asq.map(function(i){ return i.question; });
       qSourceInfo = asq.map(function(i){ return { source: i.source, subject: i.subject, topic: i.topic }; });
@@ -653,7 +705,6 @@ student_code = """<!DOCTYPE html>
       renderQ();
     }
 
-    // ==================== QUIZ PLAYER & FEEDBACK ====================
     function renderQ(){
       var q = qActive[qIdx], pa = qAns[qIdx], c = document.getElementById('quiz-player').dataset.theme || '';
       var m = String(Math.floor(qSec/60)).padStart(2,'0'), s = String(qSec%60).padStart(2,'0'), si = qSourceInfo[qIdx];
@@ -694,7 +745,6 @@ student_code = """<!DOCTYPE html>
     function nextQ(){ if(qIdx < qActive.length - 1){ qIdx++; renderQ(); } else { finishGrandMaster(); } }
     function closeQ(){ if(qTimer) clearInterval(qTimer); document.getElementById('quiz-player').style.display = 'none'; document.getElementById('shell').style.display = 'block'; refreshUI(); }
 
-    // ==================== APPSC MODEL EXAM RESULTS ANALYTICS ====================
     function finishGrandMaster(){
       if(qTimer) clearInterval(qTimer);
       var total = qActive.length, ok = 0, wrong = 0, skipped = 0;
@@ -730,7 +780,6 @@ student_code = """<!DOCTYPE html>
                + '<div class="results-summary-item"><div class="val" style="color:#f59e0b;">' + timeStr + '</div><div class="lbl">⏱️ Time</div></div>'
                + '</div></div>';
 
-      // 1. Subject-wise Analysis
       html += '<h3 style="margin:20px 0 10px;color:#f59e0b;">📊 Subject-wise Performance Analysis</h3>';
       Object.keys(subjectAnalysis).forEach(function(sn){
         var sa = subjectAnalysis[sn], sp = sa.total > 0 ? Math.round((sa.correct / sa.total) * 100) : 0;
@@ -739,7 +788,6 @@ student_code = """<!DOCTYPE html>
              + '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + sp + '%;background:' + bc + ';"></div></div></div>';
       });
 
-      // 2. Question-level Review
       html += '<h3 style="margin:20px 0 10px;color:#f59e0b;">📋 Detailed Question Review</h3>';
       for(var j=0; j<qActive.length; j++){
         var qq = qActive[j], ans = qAns[j], si = qSourceInfo[j];
@@ -760,7 +808,6 @@ student_code = """<!DOCTYPE html>
       document.getElementById('quiz-player').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // ==================== 3. THEORY, PAPERS, VIDEOS VIEWS ====================
     function renderListView(dbObj, so, ca, h, typeLabel){
       var items = getArr(dbObj).filter(function(it){
         return (!it.subject || it.subject === sub) && (!it.class || String(it.class) === String(cls));
@@ -783,7 +830,6 @@ student_code = """<!DOCTYPE html>
       ca.innerHTML = h;
     }
 
-    // ==================== 4. GAMES & PROJECTS VIEW ====================
     function renderIframeView(dbObj, ca, h, type){
       var items = getArr(dbObj).filter(function(it){
         return (!it.subject || it.subject === sub) && (!it.class || String(it.class) === String(cls));
@@ -819,7 +865,6 @@ student_code = """<!DOCTYPE html>
       el.classList.add('show');
     }
 
-    // ==================== 5. SKILLS VIEW ====================
     function renderSkillsView(ca, h){
       var items = getArr(DB.skills).filter(function(s){ return s.category === skillCat; });
       h += '<div class="sub-row" style="background:rgba(0,0,0,.15);">';
@@ -841,7 +886,6 @@ student_code = """<!DOCTYPE html>
       ca.innerHTML = h;
     }
 
-    // ==================== FAST DATA LOADER ====================
     async function loadAllStudentData(){
       var modules = { theory:'theoryDatabase', quiz:'questionBank', mindmap:'mindMapDatabase', papers:'papersDatabase', games:'gamesDatabase', projects:'projectsDatabase', videos:'videosDatabase', skills:'skillsDatabase' };
       var keys = Object.keys(modules);
