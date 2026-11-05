@@ -891,8 +891,10 @@
       var keys = Object.keys(modules);
       await Promise.all(keys.map(async function(k){
         try{
-          var snap = await db.ref(modules[k]).once('value');
-          var val = snap ? snap.val() : null;
+          var origin = window.location.protocol === 'file:' ? 'https://cleverstudents.in' : '';
+          var res = await fetch(origin + '/api/db?path=' + encodeURIComponent(modules[k]));
+          var json = await res.json();
+          var val = json ? json.data : null;
           if(typeof val === 'string'){ try{ val = JSON.parse(val); }catch(e){} }
           DB[k] = val || {};
         }catch(err){ DB[k] = {}; }
@@ -907,7 +909,7 @@
   </script>
 
   <!-- Global Navbar & Footer -->
-  <script src="/footer.js"></script>
-  <script src="/global-navbar.js"></script>
+  <script src="../footer.js"></script>
+  <script src="../global-navbar.js"></script>
 </body>
 </html>
