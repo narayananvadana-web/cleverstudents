@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="../supabase-client.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Clever Students | Smart Learning Platform</title>
@@ -170,7 +171,7 @@
   </style>
 </head>
 <body class="protected-mode">
-<script src="../supabase-client.js"></script>
+
 
   <div id="login-overlay">
     <div class="login-box">
@@ -217,7 +218,7 @@
 
   <div id="img-modal" class="modal" onclick="closeModal()"><span class="modal-close">×</span><img id="modal-img" src=""></div>
 
-  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
   <script>
     var SUBJECT_THEMES = {
@@ -886,19 +887,31 @@
       ca.innerHTML = h;
     }
 
+        async function ensureDbReady(){
+      var maxWait = 50;
+      while((!window.db || typeof window.db.ref !== 'function') && maxWait > 0){
+        await new Promise(res => setTimeout(res, 100));
+        maxWait--;
+      }
+      return window.db;
+    }
+
     async function loadAllStudentData(){
+      await ensureDbReady();
       var modules = { theory:'theoryDatabase', quiz:'questionBank', mindmap:'mindMapDatabase', papers:'papersDatabase', games:'gamesDatabase', projects:'projectsDatabase', videos:'videosDatabase', skills:'skillsDatabase' };
-      var keys = Object.keys(modules);
-      await Promise.all(keys.map(async function(k){
+      await Promise.all(Object.keys(modules).map(async function(k){
         try{
-          var origin = window.location.protocol === 'file:' ? 'https://cleverstudents.in' : '';
-          var res = await fetch(origin + '/api/db?path=' + encodeURIComponent(modules[k]));
-          var json = await res.json();
-          var val = json ? json.data : null;
-          if(typeof val === 'string'){ try{ val = JSON.parse(val); }catch(e){} }
-          DB[k] = val || {};
+          if(window.db && typeof window.db.ref === 'function'){
+            var snap = await window.db.ref(modules[k]).once('value');
+            var val = snap ? snap.val() : null;
+            if(typeof val === 'string'){ try{ val = JSON.parse(val); }catch(e){} }
+            DB[k] = val || {};
+          } else {
+            DB[k] = {};
+          }
         }catch(err){ DB[k] = {}; }
       }));
+      console.log('All Student Data Loaded via Supabase:', DB);
     }
 
     async function initApp(){
