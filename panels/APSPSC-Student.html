@@ -366,18 +366,19 @@
       quizRows.forEach(function(r) {
         var m = r.metadata || {};
         var k = r.quiz_key || r.legacy_key || r.id;
-        var parts = k.split('_');
-        var rawSubj = r.subject || m.subject || parts[0] || 'History';
+        var rawGroup = r.group_name || m.group || 'ALL';
+        var rawStage = r.stage || m.stage || 'ALL';
+        var rawSubj = r.subject || m.subject || 'History';
         var mappedSubj = mapKeyToSubject(rawSubj);
-        var mainTopic = r.sub_subject || m.subSubject || (parts.length > 2 ? parts[1] : rawSubj) || 'General';
-        var subTopic = r.topic || m.topic || (parts.length > 2 ? parts.slice(2).join(' ') : parts.slice(1).join(' ')) || r.title || k;
+        var mainTopic = r.sub_subject || m.subSubject || 'General';
+        var subTopic = r.topic || m.topic || r.title || k;
 
         quizMap[k] = {
           id: r.id,
           key: k,
           count: Number(m.count) || 20,
-          group: r.group_name || m.group || 'ALL',
-          stage: r.stage || m.stage || 'ALL',
+          group: rawGroup,
+          stage: rawStage,
           subject: mappedSubj,
           subSubject: mainTopic.replace(/_/g, ' '),
           topic: subTopic.replace(/_/g, ' '),
@@ -391,18 +392,25 @@
       buildDynamicSubCategories();
     }
 
+    function matchesGroupAndStage(item) {
+      if (!item) return false;
+      if (currentGroup !== 'ALL' && item.group && item.group !== 'ALL' && item.group !== currentGroup) return false;
+      if (currentStage !== 'ALL' && item.stage && item.stage !== 'ALL' && item.stage !== currentStage) return false;
+      return true;
+    }
+
     function buildDynamicSubCategories() {
       SUBJECTS.forEach(function(sObj) {
         var subCatSet = {};
         Object.keys(DB.quiz).forEach(function(k) {
           var q = DB.quiz[k];
-          if (q.subject === sObj.id && q.subSubject && q.subSubject !== 'General') {
+          if (q.subject === sObj.id && matchesGroupAndStage(q) && q.subSubject && q.subSubject !== 'General') {
             subCatSet[q.subSubject] = true;
           }
         });
         Object.keys(DB.syllabus).forEach(function(k) {
           var it = DB.syllabus[k];
-          if (it.subject === sObj.id && it.subSubject && it.subSubject !== 'General') {
+          if (it.subject === sObj.id && matchesGroupAndStage(it) && it.subSubject && it.subSubject !== 'General') {
             subCatSet[it.subSubject] = true;
           }
         });
@@ -411,6 +419,20 @@
         });
         sObj.hasSubCats = sObj.subCats.length > 0;
       });
+    }
+
+    function getVisibleSubjects() {
+      if (currentGroup === 'ALL' && currentStage === 'ALL') return SUBJECTS;
+      var activeSubjIds = {};
+      var sourceDB = (studyType === 'syllabus') ? DB.syllabus : ((studyType === 'essay') ? DB.essay : DB.quiz);
+      Object.keys(sourceDB).forEach(function(k) {
+        var item = sourceDB[k];
+        if (matchesGroupAndStage(item)) {
+          activeSubjIds[item.subject] = true;
+        }
+      });
+      var filtered = SUBJECTS.filter(function(s) { return activeSubjIds[s.id]; });
+      return filtered.length > 0 ? filtered : SUBJECTS;
     }
 
     async function fetchQuizSetQuestions(quizKey) {
@@ -468,8 +490,8 @@
     function sendChat(){var i=document.getElementById('chat-inp'),m=i.value.trim(),b=document.getElementById('chat-send-btn');if(!m)return;appendChat(m,'user');i.value='';if(b)b.disabled=true;var tid='t_'+Date.now();appendChat('🤔 Thinking...','bot',tid);setTimeout(function(){var found=getArr(DB.syllabus).find(function(t){return (t.content&&t.content.toLowerCase().indexOf(m.toLowerCase())!==-1)||(t.title&&t.title.toLowerCase().indexOf(m.toLowerCase())!==-1);});appendChat(found?'<strong>['+found.subject+' - '+found.title+']</strong><br>'+(found.content||'').replace(/<[^>]*>/g,' ').substring(0,320)+'...':'💡 Ask about APPSC History, Polity, Economy, Geography, Science, or practice with our Topic-wise Quizzes & Grand Test!','bot');var n=document.getElementById(tid);if(n)n.remove();if(b)b.disabled=false;},400);}
     function appendChat(t,s,i){var b=document.getElementById('chat-msgs');b.innerHTML+='<div class="chat-msg '+s+'" '+(i?'id="'+i+'"':'')+'><div class="msg-bub">'+t+'</div></div>';b.scrollTop=b.scrollHeight;}
 
-    function updateGroupFilter(val){currentGroup=val;refreshUI();}
-    function updateStageFilter(val){currentStage=val;refreshUI();}
+    function updateGroupFilter(val){currentGroup=val;subCategory='ALL';buildDynamicSubCategories();refreshUI();}
+    function updateStageFilter(val){currentStage=val;subCategory='ALL';buildDynamicSubCategories();refreshUI();}
 
     // ==================== UTILITY ====================
     function getArr(obj){if(!obj)return[];var r=[];Object.keys(obj).forEach(function(k){r.push(obj[k]);});r.sort(function(a,b){return(a.order||999999)-(b.order||999999);});return r;}
