@@ -278,10 +278,9 @@
         rows.forEach(function(r) {
           var m = r.metadata || {};
           var k = r.quiz_key || r.legacy_key || r.id;
-          var parts = k.split('_');
-          var rawSubj = r.subject || m.subject || parts[0] || 'History';
-          var mainTopic = r.sub_subject || m.subSubject || (parts.length > 2 ? parts[1] : rawSubj) || 'General';
-          var subTopic = r.topic || m.topic || (parts.length > 2 ? parts.slice(2).join(' ') : parts.slice(1).join(' ')) || r.title || k;
+          var rawSubj = r.subject || m.subject || 'History';
+          var mainTopic = r.sub_subject || m.subSubject || 'General';
+          var subTopic = r.topic || m.topic || r.title || k;
           idx[k] = {
             id: r.id,
             count: Number(m.count) || 20,
@@ -493,7 +492,7 @@
 
       if (isQuiz) {
         h += '<div class="csv-box"><h3>📥 Bulk Upload APPSC Quiz (CSV/JSON/TXT)</h3>';
-        h += '<div class="csv-fmt"><strong>10 Columns:</strong> Group | Stage | Subject | Topic | Question | Option A | Option B | Option C | Option D | Correct | Explanation<br>🖼 Supports 2 or 4 options (A/B/C/D). Option C &amp; D columns optional.</div>';
+        h += '<div class="csv-fmt"><strong>11/12 Columns Workflow:</strong> Group | Stage | Subject | SubSubject | Topic | Question | Option A | Option B | Option C | Option D | Correct | Explanation<br>🖼 Supports both 11-col &amp; 12-col formats (SubSubject optional, defaults to Topic/Subject).</div>';
         h += '<div class="file-upload-area" id="fileDropZone" onclick="document.getElementById(\'csvFileInput\').click()"><div class="file-upload-icon">📁</div><div style="font-weight:700;color:#38bdf8;">Click or Drag & Drop Files</div><div class="file-types-info">.csv .tsv .txt .json .html</div></div>';
         h += '<input type="file" id="csvFileInput" style="display:none;" accept=".csv,.tsv,.txt,.json,.html,text/*" onchange="window.handleFileEvent(event)">';
         h += '<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste Excel Data/CSV/JSON here..." style="min-height:80px;"></textarea><button class="btn btn-teal btn-sm notranslate" onclick="window.parsePastedEvent()">🔍 Parse Data</button></div>';
@@ -918,13 +917,14 @@
       var delimiter = window.detectDelimiter(rows);
       var headers = window.smartSplitLine(rows[0], delimiter);
 
-      var colMap={group:-1,stage:-1,subject:-1,topic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};
+      var colMap={group:-1,stage:-1,subject:-1,subSubject:-1,topic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};
       for(var hi=0;hi<headers.length;hi++){
         var hdr=headers[hi].toLowerCase().replace(/[\s_"-]/g,'');
         if(hdr==='group')colMap.group=hi;
         else if(hdr==='stage')colMap.stage=hi;
         else if(hdr==='subject')colMap.subject=hi;
-        else if(hdr==='topic')colMap.topic=hi;
+        else if(hdr==='subsubject'||hdr==='subcat'||hdr==='subcategory')colMap.subSubject=hi;
+        else if(hdr==='topic'||hdr==='subtopic')colMap.topic=hi;
         else if(hdr==='question'||hdr==='ques'||hdr==='q')colMap.question=hi;
         else if(hdr==='optiona'||hdr==='opta'||hdr==='a')colMap.optA=hi;
         else if(hdr==='optionb'||hdr==='optb'||hdr==='b')colMap.optB=hi;
@@ -954,7 +954,12 @@
           continue;
         }
 
-        var group=window.getCol(cols,colMap.group)||'Group 1', stage=window.getCol(cols,colMap.stage)||'Prelims', subject=window.getCol(cols,colMap.subject)||'History', topic=window.getCol(cols,colMap.topic)||'General';
+        var group = (window.getCol(cols,colMap.group)||'Group 1').trim();
+        var stage = (window.getCol(cols,colMap.stage)||'Prelims').trim();
+        var rawSubj = (window.getCol(cols,colMap.subject)||'History').trim();
+        var subject = mapKeyToSubject(rawSubj);
+        var subSubject = (colMap.subSubject !== -1 ? window.getCol(cols,colMap.subSubject) : rawSubj).trim() || subject;
+        var topic = (window.getCol(cols,colMap.topic)||'General').trim();
         var question=window.getCol(cols,colMap.question), optA=window.getCol(cols,colMap.optA), optB=window.getCol(cols,colMap.optB), optC=window.getCol(cols,colMap.optC), optD=window.getCol(cols,colMap.optD), ans=window.getCol(cols,colMap.correct).toUpperCase().trim().charAt(0), exp=window.getCol(cols,colMap.explanation)||'';
 
         var errorMsg = "";
@@ -967,8 +972,8 @@
           continue;
         }
 
-        var key=(group+'_'+stage+'_'+subject+'_'+topic).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
-        csvRows.push({key:key,group:group,stage:stage,subject:subject,topic:topic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
+        var key=(group+'__'+stage+'__'+subject+'__'+subSubject+'__'+topic).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+        csvRows.push({key:key,group:group,stage:stage,subject:subject,subSubject:subSubject,topic:topic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
       }
       window.showCSVPreview(errors, sourceName+' ('+(delimiter==='\t'?'TSV':'CSV')+')');
     }
@@ -987,11 +992,14 @@
       csvRows=[]; var errors=[];
       for(var i=0;i<rows.length;i++){
         var r=rows[i];
-        var group=r.group||r.Group||'Group 1', stage=r.stage||r.Stage||'Prelims', subject=r.subject||r.Subject||'History', topic=r.topic||r.Topic||'General';
+        var group=(r.group||r.Group||'Group 1').trim(), stage=(r.stage||r.Stage||'Prelims').trim(), rawSubj=(r.subject||r.Subject||'History').trim();
+        var subject=mapKeyToSubject(rawSubj);
+        var subSubject=(r.subSubject||r.SubSubject||r.sub_subject||rawSubj||subject).trim();
+        var topic=(r.topic||r.Topic||'General').trim();
         var question=r.question||r.Question||'', optA=r.optionA||r.optA||(r.options&&r.options.A)||r['Option A']||'', optB=r.optionB||r.optB||(r.options&&r.options.B)||r['Option B']||'', optC=r.optionC||r.optC||(r.options&&r.options.C)||r['Option C']||'', optD=r.optionD||r.optD||(r.options&&r.options.D)||r['Option D']||'', ans=(r.correctAnswer||r.answer||r.Answer||'').toString().toUpperCase().charAt(0), exp=r.explanation||r.Explanation||'';
         if(!question||!optA||!optB||['A','B','C','D'].indexOf(ans)===-1){ errors.push('Row '+(i+1)); continue; }
-        var key=(group+'_'+stage+'_'+subject+'_'+topic).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
-        csvRows.push({key:key,group:group,stage:stage,subject:subject,topic:topic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
+        var key=(group+'__'+stage+'__'+subject+'__'+subSubject+'__'+topic).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+        csvRows.push({key:key,group:group,stage:stage,subject:subject,subSubject:subSubject,topic:topic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
       }
       window.showCSVPreview(errors,'JSON Data');
     }
@@ -1028,21 +1036,22 @@
       if(!csvRows||csvRows.length===0)return;
       var st=document.getElementById('csvUploadStatus');
       st.innerHTML='<span class="spinner"></span> Preparing Upload...';
+      var db = await window.supabaseReady;
 
       var groups={};
       for(var i=0;i<csvRows.length;i++){
         var r=csvRows[i];
-        if(!groups[r.key])groups[r.key]=[];
-        groups[r.key].push({
+        if(!groups[r.key]){
+          groups[r.key]={
+            meta:{group:r.group,stage:r.stage,subject:r.subject,subSubject:r.subSubject||r.subject,topic:r.topic},
+            questions:[]
+          };
+        }
+        groups[r.key].questions.push({
           question:r.question,
           options:{A:r.optionA,B:r.optionB,C:r.optionC||'',D:r.optionD||''},
           correctAnswer:r.correctAnswer,
-          group:r.group,
-          stage:r.stage,
-          subject:r.subject,
-          topic:r.topic,
-          explanation:r.explanation||'',
-          order:Date.now()
+          explanation:r.explanation||''
         });
       }
 
@@ -1051,17 +1060,61 @@
 
       for(var j=0; j<gKeys.length; j++){
         var k = gKeys[j];
-        var newQs = groups[k];
+        var gObj = groups[k];
+        var m = gObj.meta;
         st.innerHTML='<span class="spinner"></span> Uploading Group '+(j+1)+' of '+gKeys.length+'...';
         try {
+          var existingSet = await db.from('quiz_sets').select('id').eq('course', 'appsc').eq('quiz_key', k).limit(1);
+          var setId = (existingSet.data && existingSet.data.length) ? existingSet.data[0].id : null;
+
+          if (!setId) {
+            var insSet = await db.from('quiz_sets').insert({
+              course: 'appsc',
+              quiz_key: k,
+              title: m.topic,
+              group_name: m.group,
+              stage: m.stage,
+              subject: m.subject,
+              sub_subject: m.subSubject,
+              topic: m.topic,
+              metadata: { group: m.group, stage: m.stage, subject: m.subject, subSubject: m.subSubject, topic: m.topic, count: gObj.questions.length },
+              order_index: Date.now()
+            }).select('id').single();
+            setId = insSet.data.id;
+          }
+
           var existingQs = await fetchDB('appsc_qb_' + k) || [];
-          newQs.forEach(function(q){
+          var toInsert = [];
+          gObj.questions.forEach(function(q, idx){
             var sig = q.question+'|'+q.options.A+'|'+q.options.B;
-            if(!existingQs.some(function(x){ return (x.question||'')+'|'+((x.options&&x.options.A)||'')+'|'+((x.options&&x.options.B)||'') === sig })){
-              existingQs.push(q);
+            var exists = existingQs.some(function(x){ return (x.question||'')+'|'+((x.options&&x.options.A)||'')+'|'+((x.options&&x.options.B)||'') === sig; });
+            if(!exists){
+              toInsert.push({
+                quiz_set_id: setId,
+                question_html: q.question,
+                option_a: q.options.A,
+                option_b: q.options.B,
+                option_c: q.options.C,
+                option_d: q.options.D,
+                options: q.options,
+                correct_answer: q.correctAnswer,
+                explanation_html: q.explanation,
+                order_index: existingQs.length + idx,
+                metadata: { group: m.group, stage: m.stage, subject: m.subject, subSubject: m.subSubject, topic: m.topic }
+              });
             }
           });
-          await saveDB('appscQuestionBank/' + k, existingQs);
+
+          if (toInsert.length > 0) {
+            await db.from('quiz_questions').insert(toInsert);
+          }
+
+          var totalCount = existingQs.length + toInsert.length;
+          await db.from('quiz_sets').update({
+            group_name: m.group, stage: m.stage, subject: m.subject, sub_subject: m.subSubject, topic: m.topic,
+            metadata: { group: m.group, stage: m.stage, subject: m.subject, subSubject: m.subSubject, topic: m.topic, count: totalCount }
+          }).eq('id', setId);
+
           done++;
         } catch (err) {
           console.error("Upload failed for group:", k, err);
