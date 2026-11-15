@@ -278,14 +278,17 @@
         rows.forEach(function(r) {
           var m = r.metadata || {};
           var k = r.quiz_key || r.legacy_key || r.id;
-          var rawSubj = r.subject || m.subject || 'History';
-          var mainTopic = r.sub_subject || m.subSubject || 'General';
-          var subTopic = r.topic || m.topic || r.title || k;
+          var parts = k.indexOf('__') !== -1 ? k.split('__') : k.split('_');
+          var rawGroup = r.group_name || m.group || (k.indexOf('__') !== -1 ? parts[0].replace(/_/g,' ') : 'Group 1');
+          var rawStage = r.stage || m.stage || (k.indexOf('__') !== -1 ? parts[1] : 'Prelims');
+          var rawSubj = r.subject || m.subject || (k.indexOf('__') !== -1 ? parts[2] : parts[0]) || 'History';
+          var mainTopic = r.sub_subject || m.subSubject || (k.indexOf('__') !== -1 ? parts[3] : (parts.length > 2 ? parts[1] : rawSubj)) || 'General';
+          var subTopic = r.topic || m.topic || (k.indexOf('__') !== -1 ? parts.slice(4).join(' ') : (parts.length > 2 ? parts.slice(2).join(' ') : parts.slice(1).join(' '))) || r.title || k;
           idx[k] = {
             id: r.id,
             count: Number(m.count) || 20,
-            group: r.group_name || m.group || 'Group 1',
-            stage: r.stage || m.stage || 'Prelims',
+            group: rawGroup,
+            stage: rawStage,
             subject: mapKeyToSubject(rawSubj),
             subSubject: mainTopic.replace(/_/g, ' '),
             topic: subTopic.replace(/_/g, ' '),
@@ -492,7 +495,7 @@
 
       if (isQuiz) {
         h += '<div class="csv-box"><h3>📥 Bulk Upload APPSC Quiz (CSV/JSON/TXT)</h3>';
-        h += '<div class="csv-fmt"><strong>11/12 Columns Workflow:</strong> Group | Stage | Subject | SubSubject | Topic | Question | Option A | Option B | Option C | Option D | Correct | Explanation<br>🖼 Supports both 11-col &amp; 12-col formats (SubSubject optional, defaults to Topic/Subject).</div>';
+        h += '<div class="csv-fmt"><strong>12 Columns (Excel Model):</strong> Group | Stage | Subject | SubSubject | Topic | Question | Option A | Option B | Option C | Option D | Correct | Explanation<br>✅ Supports pasting directly from Excel WITH or WITHOUT header row!</div>';
         h += '<div class="file-upload-area" id="fileDropZone" onclick="document.getElementById(\'csvFileInput\').click()"><div class="file-upload-icon">📁</div><div style="font-weight:700;color:#38bdf8;">Click or Drag & Drop Files</div><div class="file-types-info">.csv .tsv .txt .json .html</div></div>';
         h += '<input type="file" id="csvFileInput" style="display:none;" accept=".csv,.tsv,.txt,.json,.html,text/*" onchange="window.handleFileEvent(event)">';
         h += '<div class="form-group"><label>📋 OR Paste Data</label><textarea id="csvPasteInput" class="form-inp" placeholder="Paste Excel Data/CSV/JSON here..." style="min-height:80px;"></textarea><button class="btn btn-teal btn-sm notranslate" onclick="window.parsePastedEvent()">🔍 Parse Data</button></div>';
@@ -912,41 +915,51 @@
       }
 
       var rows = window.parseCSVRows(text);
-      if(rows.length < 2){toast('Need header + data rows. Found: '+rows.length,'error');return}
+      if(rows.length < 1){toast('No valid rows found!','error');return}
 
       var delimiter = window.detectDelimiter(rows);
-      var headers = window.smartSplitLine(rows[0], delimiter);
+      var firstCols = window.smartSplitLine(rows[0], delimiter);
+
+      // Check if Row 0 is a Header Row or actual Question Data Row
+      var firstCellLower = (firstCols[0] || '').toLowerCase().replace(/[\s_"-]/g,'');
+      var hasHeader = (firstCellLower === 'group' || firstCellLower === 'stage' || firstCellLower === 'subject');
 
       var colMap={group:-1,stage:-1,subject:-1,subSubject:-1,topic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};
-      for(var hi=0;hi<headers.length;hi++){
-        var hdr=headers[hi].toLowerCase().replace(/[\s_"-]/g,'');
-        if(hdr==='group')colMap.group=hi;
-        else if(hdr==='stage')colMap.stage=hi;
-        else if(hdr==='subject')colMap.subject=hi;
-        else if(hdr==='subsubject'||hdr==='subcat'||hdr==='subcategory')colMap.subSubject=hi;
-        else if(hdr==='topic'||hdr==='subtopic')colMap.topic=hi;
-        else if(hdr==='question'||hdr==='ques'||hdr==='q')colMap.question=hi;
-        else if(hdr==='optiona'||hdr==='opta'||hdr==='a')colMap.optA=hi;
-        else if(hdr==='optionb'||hdr==='optb'||hdr==='b')colMap.optB=hi;
-        else if(hdr==='optionc'||hdr==='optc'||hdr==='c')colMap.optC=hi;
-        else if(hdr==='optiond'||hdr==='optd'||hdr==='d')colMap.optD=hi;
-        else if(hdr==='correct'||hdr==='answer'||hdr==='ans')colMap.correct=hi;
-        else if(hdr==='explanation'||hdr==='exp')colMap.explanation=hi;
+
+      if (hasHeader) {
+        for(var hi=0;hi<firstCols.length;hi++){
+          var hdr=firstCols[hi].toLowerCase().replace(/[\s_"-]/g,'');
+          if(hdr==='group')colMap.group=hi;
+          else if(hdr==='stage')colMap.stage=hi;
+          else if(hdr==='subject')colMap.subject=hi;
+          else if(hdr==='subsubject'||hdr==='subcat'||hdr==='subcategory')colMap.subSubject=hi;
+          else if(hdr==='topic'||hdr==='subtopic')colMap.topic=hi;
+          else if(hdr==='question'||hdr==='ques'||hdr==='q')colMap.question=hi;
+          else if(hdr==='optiona'||hdr==='opta'||hdr==='a')colMap.optA=hi;
+          else if(hdr==='optionb'||hdr==='optb'||hdr==='b')colMap.optB=hi;
+          else if(hdr==='optionc'||hdr==='optc'||hdr==='c')colMap.optC=hi;
+          else if(hdr==='optiond'||hdr==='optd'||hdr==='d')colMap.optD=hi;
+          else if(hdr==='correct'||hdr==='answer'||hdr==='ans')colMap.correct=hi;
+          else if(hdr==='explanation'||hdr==='exp')colMap.explanation=hi;
+        }
       }
 
-      if(colMap.group===-1&&headers.length>0)colMap.group=0;
-      if(colMap.stage===-1&&headers.length>1)colMap.stage=1;
-      if(colMap.subject===-1&&headers.length>2)colMap.subject=2;
-      if(colMap.topic===-1&&headers.length>3)colMap.topic=3;
-      if(colMap.question===-1&&headers.length>4)colMap.question=4;
-      if(colMap.optA===-1&&headers.length>5)colMap.optA=5;
-      if(colMap.optB===-1&&headers.length>6)colMap.optB=6;
-      if(colMap.correct===-1&&headers.length>7)colMap.correct=7;
+      // Positional fallback if no headers or missing header names
+      if (colMap.question === -1) {
+        if (firstCols.length >= 12) {
+          // 12 Columns: Group | Stage | Subject | SubSubject | Topic | Question | OptA | OptB | OptC | OptD | Correct | Explanation
+          colMap = {group:0, stage:1, subject:2, subSubject:3, topic:4, question:5, optA:6, optB:7, optC:8, optD:9, correct:10, explanation:11};
+        } else {
+          // 11 Columns: Group | Stage | Subject | Topic | Question | OptA | OptB | OptC | OptD | Correct | Explanation
+          colMap = {group:0, stage:1, subject:2, subSubject:-1, topic:3, question:4, optA:5, optB:6, optC:7, optD:8, correct:9, explanation:10};
+        }
+      }
 
       csvRows=[]; var errors=[];
-      window.skippedRowsData = rows[0] + delimiter + '"Error_Reason"\n';
+      var startRow = hasHeader ? 1 : 0;
+      window.skippedRowsData = (hasHeader ? rows[0] : 'Group	Stage	Subject	SubSubject	Topic	Question	Option A	Option B	Option C	Option D	Correct	Explanation') + delimiter + '"Error_Reason"\n';
 
-      for(var l=1;l<rows.length;l++){
+      for(var l=startRow; l<rows.length; l++){
         var cols = window.smartSplitLine(rows[l], delimiter);
         if(cols.length < 5){
           errors.push('Row '+(l+1)+': too few columns');
@@ -960,11 +973,17 @@
         var subject = mapKeyToSubject(rawSubj);
         var subSubject = (colMap.subSubject !== -1 ? window.getCol(cols,colMap.subSubject) : rawSubj).trim() || subject;
         var topic = (window.getCol(cols,colMap.topic)||'General').trim();
-        var question=window.getCol(cols,colMap.question), optA=window.getCol(cols,colMap.optA), optB=window.getCol(cols,colMap.optB), optC=window.getCol(cols,colMap.optC), optD=window.getCol(cols,colMap.optD), ans=window.getCol(cols,colMap.correct).toUpperCase().trim().charAt(0), exp=window.getCol(cols,colMap.explanation)||'';
+        var question = window.getCol(cols,colMap.question);
+        var optA = window.getCol(cols,colMap.optA);
+        var optB = window.getCol(cols,colMap.optB);
+        var optC = window.getCol(cols,colMap.optC);
+        var optD = window.getCol(cols,colMap.optD);
+        var ans = window.getCol(cols,colMap.correct).toUpperCase().trim().charAt(0);
+        var exp = window.getCol(cols,colMap.explanation)||'';
 
         var errorMsg = "";
         if(!question||!optA||!optB||!ans) errorMsg = "Missing Q/A/B/Correct";
-        else if(['A','B','C','D'].indexOf(ans)===-1) errorMsg = "Correct must be A/B/C/D";
+        else if(['A','B','C','D'].indexOf(ans)===-1) errorMsg = "Correct must be A/B/C/D (found: "+ans+")";
 
         if(errorMsg !== "") {
           errors.push('Row '+(l+1)+': ' + errorMsg);
@@ -972,8 +991,15 @@
           continue;
         }
 
-        var key=(group+'__'+stage+'__'+subject+'__'+subSubject+'__'+topic).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
-        csvRows.push({key:key,group:group,stage:stage,subject:subject,subSubject:subSubject,topic:topic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
+        // Clean Unicode-friendly key preserving Telugu/English words safely
+        var safeTopicSlug = topic.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
+        var safeSubSubjSlug = subSubject.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
+        var key = (group.replace(/\s+/g,'_') + '__' + stage.replace(/\s+/g,'_') + '__' + subject.replace(/\s+/g,'_') + '__' + safeSubSubjSlug + '__' + safeTopicSlug);
+
+        csvRows.push({
+          key:key, group:group, stage:stage, subject:subject, subSubject:subSubject, topic:topic,
+          question:question, optionA:optA, optionB:optB, optionC:optC, optionD:optD, correctAnswer:ans, explanation:exp||''
+        });
       }
       window.showCSVPreview(errors, sourceName+' ('+(delimiter==='\t'?'TSV':'CSV')+')');
     }
@@ -992,14 +1018,11 @@
       csvRows=[]; var errors=[];
       for(var i=0;i<rows.length;i++){
         var r=rows[i];
-        var group=(r.group||r.Group||'Group 1').trim(), stage=(r.stage||r.Stage||'Prelims').trim(), rawSubj=(r.subject||r.Subject||'History').trim();
-        var subject=mapKeyToSubject(rawSubj);
-        var subSubject=(r.subSubject||r.SubSubject||r.sub_subject||rawSubj||subject).trim();
-        var topic=(r.topic||r.Topic||'General').trim();
+        var group=r.group||r.Group||'Group 1', stage=r.stage||r.Stage||'Prelims', subject=r.subject||r.Subject||'History', topic=r.topic||r.Topic||'General';
         var question=r.question||r.Question||'', optA=r.optionA||r.optA||(r.options&&r.options.A)||r['Option A']||'', optB=r.optionB||r.optB||(r.options&&r.options.B)||r['Option B']||'', optC=r.optionC||r.optC||(r.options&&r.options.C)||r['Option C']||'', optD=r.optionD||r.optD||(r.options&&r.options.D)||r['Option D']||'', ans=(r.correctAnswer||r.answer||r.Answer||'').toString().toUpperCase().charAt(0), exp=r.explanation||r.Explanation||'';
         if(!question||!optA||!optB||['A','B','C','D'].indexOf(ans)===-1){ errors.push('Row '+(i+1)); continue; }
-        var key=(group+'__'+stage+'__'+subject+'__'+subSubject+'__'+topic).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
-        csvRows.push({key:key,group:group,stage:stage,subject:subject,subSubject:subSubject,topic:topic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
+        var key=(group+'_'+stage+'_'+subject+'_'+topic).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+        csvRows.push({key:key,group:group,stage:stage,subject:subject,topic:topic,question:question,optionA:optA,optionB:optB,optionC:optC,optionD:optD,correctAnswer:ans,explanation:exp||''});
       }
       window.showCSVPreview(errors,'JSON Data');
     }
@@ -1041,17 +1064,18 @@
       var groups={};
       for(var i=0;i<csvRows.length;i++){
         var r=csvRows[i];
-        if(!groups[r.key]){
-          groups[r.key]={
-            meta:{group:r.group,stage:r.stage,subject:r.subject,subSubject:r.subSubject||r.subject,topic:r.topic},
-            questions:[]
-          };
-        }
-        groups[r.key].questions.push({
+        if(!groups[r.key])groups[r.key]=[];
+        groups[r.key].push({
           question:r.question,
           options:{A:r.optionA,B:r.optionB,C:r.optionC||'',D:r.optionD||''},
           correctAnswer:r.correctAnswer,
-          explanation:r.explanation||''
+          group:r.group,
+          stage:r.stage,
+          subject:r.subject,
+          subSubject:r.subSubject||r.subject,
+          topic:r.topic,
+          explanation:r.explanation||'',
+          order:Date.now()
         });
       }
 
@@ -1060,60 +1084,35 @@
 
       for(var j=0; j<gKeys.length; j++){
         var k = gKeys[j];
-        var gObj = groups[k];
-        var m = gObj.meta;
+        var newQs = groups[k];
+        var firstQ = newQs[0];
         st.innerHTML='<span class="spinner"></span> Uploading Group '+(j+1)+' of '+gKeys.length+'...';
         try {
-          var existingSet = await db.from('quiz_sets').select('id').eq('course', 'appsc').eq('quiz_key', k).limit(1);
-          var setId = (existingSet.data && existingSet.data.length) ? existingSet.data[0].id : null;
-
-          if (!setId) {
-            var insSet = await db.from('quiz_sets').insert({
-              course: 'appsc',
-              quiz_key: k,
-              title: m.topic,
-              group_name: m.group,
-              stage: m.stage,
-              subject: m.subject,
-              sub_subject: m.subSubject,
-              topic: m.topic,
-              metadata: { group: m.group, stage: m.stage, subject: m.subject, subSubject: m.subSubject, topic: m.topic, count: gObj.questions.length },
-              order_index: Date.now()
-            }).select('id').single();
-            setId = insSet.data.id;
-          }
-
           var existingQs = await fetchDB('appsc_qb_' + k) || [];
-          var toInsert = [];
-          gObj.questions.forEach(function(q, idx){
+          newQs.forEach(function(q){
             var sig = q.question+'|'+q.options.A+'|'+q.options.B;
-            var exists = existingQs.some(function(x){ return (x.question||'')+'|'+((x.options&&x.options.A)||'')+'|'+((x.options&&x.options.B)||'') === sig; });
-            if(!exists){
-              toInsert.push({
-                quiz_set_id: setId,
-                question_html: q.question,
-                option_a: q.options.A,
-                option_b: q.options.B,
-                option_c: q.options.C,
-                option_d: q.options.D,
-                options: q.options,
-                correct_answer: q.correctAnswer,
-                explanation_html: q.explanation,
-                order_index: existingQs.length + idx,
-                metadata: { group: m.group, stage: m.stage, subject: m.subject, subSubject: m.subSubject, topic: m.topic }
-              });
+            if(!existingQs.some(function(x){ return (x.question||'')+'|'+((x.options&&x.options.A)||'')+'|'+((x.options&&x.options.B)||'') === sig })){
+              existingQs.push(q);
             }
           });
+          // 1. Save via compatible supabase-client bridge
+          await saveDB('appscQuestionBank/' + k, existingQs);
 
-          if (toInsert.length > 0) {
-            await db.from('quiz_questions').insert(toInsert);
-          }
-
-          var totalCount = existingQs.length + toInsert.length;
-          await db.from('quiz_sets').update({
-            group_name: m.group, stage: m.stage, subject: m.subject, sub_subject: m.subSubject, topic: m.topic,
-            metadata: { group: m.group, stage: m.stage, subject: m.subject, subSubject: m.subSubject, topic: m.topic, count: totalCount }
-          }).eq('id', setId);
+          // 2. Also enrich quiz_sets metadata so Group, Stage, Subject, SubSubject, Topic filter cleanly
+          try {
+            await db.from('quiz_sets').update({
+              title: firstQ.topic,
+              subject: firstQ.subject,
+              metadata: {
+                group: firstQ.group,
+                stage: firstQ.stage,
+                subject: firstQ.subject,
+                subSubject: firstQ.subSubject,
+                topic: firstQ.topic,
+                count: existingQs.length
+              }
+            }).eq('course', 'appsc').eq('quiz_key', k);
+          } catch(metaErr) { console.warn('Meta update note:', metaErr); }
 
           done++;
         } catch (err) {
