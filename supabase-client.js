@@ -44,7 +44,6 @@
   };
   var safeSettings = ['loginEnabled', 'copyEnabled', 'guestAutoLogin', 'guestId', 'sscHierarchy', 'bulkQuizMode', 'bulkDefaultClass', 'bulkDefaultSubject'];
 
-  // Cache of discovered valid columns per table so we never send invalid columns twice
   var invalidColsCache = { quiz_sets: {}, quiz_questions: {}, study_materials: {} };
 
   function ok(r) {
@@ -141,11 +140,6 @@
     return n;
   }
 
-  // =========================================================================
-  // AUTO-HEALING SUPABASE WRITER
-  // Automatically strips any non-existent column reported by PostgREST 400 error
-  // and moves it safely into `metadata` JSONB!
-  // =========================================================================
   function stripBadColFromRow(row, colName) {
     var copyRow = Object.assign({}, row);
     if (copyRow[colName] !== undefined) {
@@ -189,7 +183,6 @@
         continue;
       }
 
-      // If onConflict failed (e.g. constraint issue), try plain insert or update
       if (attempt === 0 && cleanRow.id) {
         var updRes = await db.from(table).update(cleanRow).eq('id', cleanRow.id).select();
         if (!updRes.error && updRes.data && updRes.data.length > 0) return updRes.data;
@@ -386,17 +379,39 @@
   }
 
   // =========================================================================
-  // AUTO-HEALING QUIZ WRITER FOR questionBank (quiz_sets & quiz_questions)
+  // FIXED QUIZ WRITER: SEPARATE CLEAN HANDLING FOR APPSC / SSC vs SCHOOL
   // =========================================================================
+  function resolveAppscSubjectAndSubSubject(rawSubj, rawSubSubj) {
+    var s1 = String(rawSubj || '').trim();
+    var s2 = String(rawSubSubj || '').trim();
+    var l1 = s1.toLowerCase(), l2 = s2.toLowerCase();
+    var eras = ['ancient', 'medieval', 'medival', 'modern', 'ancient history', 'medieval history', 'modern history', 'ap history', 'biology', 'chemistry', 'physics', 'indian economy', 'ap economy'];
+    var mainSubjs = ['history', 'polity', 'india polity', 'indian polity', 'economy', 'economics', 'geography', 'general science', 'science', 'ecology', 'current affairs', 'mental ability'];
+
+    // If user put "Ancient" in Subject column and "History" in SubSubject column, swap them automatically!
+    if (eras.indexOf(l1) !== -1 && (mainSubjs.indexOf(l2) !== -1 || !s2)) {
+      var tmp = s1; s1 = s2 || 'History'; s2 = tmp;
+    }
+
+    var finalSubj = s1 || 'History';
+    var finalSubSubj = s2 || '';
+
+    // Normalize SubSubject to "Ancient", "Medieval", "Modern" so it matches the Ancient Tile Model!
+    var lowSS = finalSubSubj.toLowerCase();
+    if (/history/i.test(finalSubj)) {
+      finalSubj = 'History';
+      if (lowSS.indexOf('ancient') !== -1) finalSubSubj = 'Ancient';
+      else if (lowSS.indexOf('mediev') !== -1 || lowSS.indexOf('mediv') !== -1) finalSubSubj = 'Medieval';
+      else if (lowSS.indexOf('modern') !== -1) finalSubSubj = 'Modern';
+      else if (lowSS.indexOf('ap') !== -1) finalSubSubj = 'AP History';
+      else if (!finalSubSubj || finalSubSubj.toLowerCase() === 'history') finalSubSubj = 'Ancient';
+    }
+    return { subject: finalSubj, subSubject: finalSubSubj || finalSubj };
+  }
+
   async function writeQuizGroup(courseName, groupKey, questionsList) {
     var db = await ready;
     var existingSets = await all('quiz_sets', filt({ course: courseName }));
-
-    // Inspect existing quiz_sets row to discover exact column names if any exist
-    if (existingSets.length > 0 && !g._loggedQuizSetCols) {
-      g._loggedQuizSetCols = true;
-      console.log('📋 Discovered quiz_sets columns:', Object.keys(existingSets[0]));
-    }
 
     var matchedSet = existingSets.filter(function (s) {
       return key(s) === groupKey || s.quiz_key === groupKey || s.legacy_key === groupKey || s.id === groupKey;
@@ -412,40 +427,76 @@
 
     var qArr = Array.isArray(questionsList) ? questionsList : Object.values(questionsList);
     var firstQ = qArr[0] || {};
-    var partsKey = String(groupKey).split('_');
-    var parsedCls = safeInt(firstQ.class || (partsKey[0] || '').replace(/\D+/g, ''), 9);
-    var parsedSub = firstQ.subject || partsKey[1] || 'Social';
-    var parsedChap = String(firstQ.chapter || partsKey.slice(2).join('_').replace(/^Chapter/i, '') || '1');
-
     var setId = matchedSet ? matchedSet.id : crypto.randomUUID();
-    var setPayload = {
-      id: setId,
-      course: courseName,
-      quiz_key: groupKey,
-      legacy_key: groupKey,
-      title: 'Class ' + parsedCls + ' - ' + parsedSub + ' - Ch ' + parsedChap,
-      subject: parsedSub,
-      class_level: parsedCls,
-      sub_subject: parsedChap,
-      topic: firstQ.topic || 'General',
-      sub_topic: firstQ.subtopic || 'All Questions',
-      order_index: safeInt(firstQ.order, 1),
-      metadata: {
+    var setPayload;
+
+    if (courseName === 'appsc' || courseName === 'ssc') {
+      var resolved = resolveAppscSubjectAndSubSubject(firstQ.subject, firstQ.subSubject || firstQ.sub_subject);
+      var cleanGroup = firstQ.group || firstQ.group_name || 'Group 2';
+      var cleanStage = firstQ.stage || 'Prelims';
+      var cleanSubj = resolved.subject;
+      var cleanSubSubj = resolved.subSubject;
+      var cleanTopic = firstQ.topic || groupKey;
+      var cleanSubTopic = firstQ.subTopic || firstQ.sub_topic || '';
+
+      setPayload = {
+        id: setId,
+        course: courseName,
         quiz_key: groupKey,
         legacy_key: groupKey,
-        chapter: parsedChap,
-        class: parsedCls,
-        subject: parsedSub
-      }
-    };
+        title: cleanSubTopic || cleanTopic,
+        group_name: cleanGroup,
+        stage: cleanStage,
+        subject: cleanSubj,
+        sub_subject: cleanSubSubj,
+        topic: cleanTopic,
+        sub_topic: cleanSubTopic,
+        order_index: safeInt(firstQ.order, 1),
+        metadata: {
+          quiz_key: groupKey,
+          legacy_key: groupKey,
+          group: cleanGroup,
+          stage: cleanStage,
+          subject: cleanSubj,
+          subSubject: cleanSubSubj,
+          topic: cleanTopic,
+          subTopic: cleanSubTopic,
+          count: qArr.length
+        }
+      };
+    } else {
+      // School (Class 1 to 10) logic
+      var partsKey = String(groupKey).split('_');
+      var parsedCls = safeInt(firstQ.class || (partsKey[0] || '').replace(/\D+/g, ''), 9);
+      var parsedSub = firstQ.subject || partsKey[1] || 'Social';
+      var parsedChap = String(firstQ.chapter || partsKey.slice(2).join('_').replace(/^Chapter/i, '') || '1');
 
-    // Auto-healing upsert into quiz_sets
+      setPayload = {
+        id: setId,
+        course: courseName,
+        quiz_key: groupKey,
+        legacy_key: groupKey,
+        title: 'Class ' + parsedCls + ' - ' + parsedSub + ' - Ch ' + parsedChap,
+        subject: parsedSub,
+        class_level: parsedCls,
+        sub_subject: parsedChap,
+        topic: firstQ.topic || 'General',
+        sub_topic: firstQ.subtopic || 'All Questions',
+        order_index: safeInt(firstQ.order, 1),
+        metadata: {
+          quiz_key: groupKey,
+          legacy_key: groupKey,
+          chapter: parsedChap,
+          class: parsedCls,
+          subject: parsedSub,
+          count: qArr.length
+        }
+      };
+    }
+
     await smartUpsert('quiz_sets', setPayload, 'id');
-
-    // Clear old questions in this set
     await db.from('quiz_questions').delete().eq('quiz_set_id', setId);
 
-    // Build question rows and auto-heal batch insert into quiz_questions
     var questionRows = qArr.map(function (qItem, idx) {
       return tableRow('quiz_questions', qItem, {
         id: crypto.randomUUID(),
