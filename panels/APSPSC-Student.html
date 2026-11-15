@@ -366,12 +366,13 @@
       quizRows.forEach(function(r) {
         var m = r.metadata || {};
         var k = r.quiz_key || r.legacy_key || r.id;
-        var rawGroup = r.group_name || m.group || 'ALL';
-        var rawStage = r.stage || m.stage || 'ALL';
-        var rawSubj = r.subject || m.subject || 'History';
+        var parts = k.indexOf('__') !== -1 ? k.split('__') : k.split('_');
+        var rawGroup = r.group_name || m.group || (k.indexOf('__') !== -1 ? parts[0].replace(/_/g,' ') : 'ALL');
+        var rawStage = r.stage || m.stage || (k.indexOf('__') !== -1 ? parts[1] : 'ALL');
+        var rawSubj = r.subject || m.subject || (k.indexOf('__') !== -1 ? parts[2] : parts[0]) || 'History';
         var mappedSubj = mapKeyToSubject(rawSubj);
-        var mainTopic = r.sub_subject || m.subSubject || 'General';
-        var subTopic = r.topic || m.topic || r.title || k;
+        var mainTopic = r.sub_subject || m.subSubject || (k.indexOf('__') !== -1 ? parts[3] : (parts.length > 2 ? parts[1] : rawSubj)) || 'General';
+        var subTopic = r.topic || m.topic || (k.indexOf('__') !== -1 ? parts.slice(4).join(' ') : (parts.length > 2 ? parts.slice(2).join(' ') : parts.slice(1).join(' '))) || r.title || k;
 
         quizMap[k] = {
           id: r.id,
