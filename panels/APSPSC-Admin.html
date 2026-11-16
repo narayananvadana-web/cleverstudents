@@ -271,6 +271,126 @@
     // ============ 0.2-SECOND DIRECT SUPABASE HELPERS ============
     async function fetchDB(key) {
       var db = await window.supabaseReady;
+
+    // ==================== FIXED HIERARCHY PARSER (NO 'chAPter' -> 'AP History' BUG!) ====================
+    function parseSmartRowHierarchy(rawGroup, rawStage, colSubj, colSubSubj, colTopic, colSubTopic) {
+      var g = String(rawGroup || 'Group 2').replace(/_/g, ' ').trim();
+      var st = String(rawStage || 'Prelims').replace(/_/g, ' ').trim();
+      var s1 = String(colSubj || '').replace(/_/g, ' ').trim();
+      var s2 = String(colSubSubj || '').replace(/_/g, ' ').trim();
+      var t1 = String(colTopic || '').replace(/_/g, ' ').trim();
+      var t2 = String(colSubTopic || '').replace(/_/g, ' ').trim();
+
+      var subject = 'History', subSubject = 'Ancient', topic = '', subTopic = '';
+
+      // CASE 1: User Excel has Subject="Ancient" (or Medieval/Modern) and SubSubject="Chapter2"
+      if (/^(ancient|medieval|medival|modern)(\s+history)?$/i.test(s1)) {
+        subject = 'History';
+        if (/^ancient/i.test(s1)) subSubject = 'Ancient';
+        else if (/^med/i.test(s1)) subSubject = 'Medieval';
+        else subSubject = 'Modern';
+
+        // If s2 is "Chapter2" or a Topic name (and not "History"), s2 becomes Level-2 Topic, and t1 becomes Level-3 SubTopic!
+        if (s2 && !/^history$/i.test(s2)) {
+          topic = s2;
+          subTopic = t1;
+        } else {
+          topic = t1;
+          subTopic = t2;
+        }
+      } else {
+        // CASE 2: Standard columns (Subject="History", SubSubject="Ancient", Topic="...", SubTopic="...")
+        subject = mapKeyToSubject(s1 || s2 || 'History');
+        subSubject = s2 || s1 || 'General';
+
+        // If SubSubject is "Chapter2" while Subject is "History", keep SubSubject as "Ancient" and push "Chapter2" to Topic!
+        if (subject === 'History' && /^chapter\s*\d+/i.test(subSubject)) {
+          subTopic = t1;
+          topic = subSubject;
+          subSubject = 'Ancient';
+        } else {
+          topic = t1;
+          subTopic = t2;
+        }
+      }
+
+      // Strictly normalize History SubSubjects (Use word boundary \bap\b so "chapter" NEVER matches "ap"!)
+      if (subject === 'History') {
+        var lowSS = subSubject.toLowerCase();
+        if (lowSS.indexOf('ancient') !== -1) subSubject = 'Ancient';
+        else if (lowSS.indexOf('mediev') !== -1 || lowSS.indexOf('mediv') !== -1) subSubject = 'Medieval';
+        else if (lowSS.indexOf('modern') !== -1) subSubject = 'Modern';
+        else if (/\b(ap|andhra)\b/i.test(lowSS)) subSubject = 'AP History';
+        else subSubject = 'Ancient';
+      }
+
+      // Also support '>' or '::' inside topic to split into Topic > SubTopic
+      if (!subTopic && (topic.indexOf('>') !== -1 || topic.indexOf('::') !== -1)) {
+        var sep = topic.indexOf('>') !== -1 ? '>' : '::';
+        var sp = topic.split(sep);
+        topic = sp[0].trim();
+        subTopic = sp.slice(1).join(' ').trim();
+      }
+
+      topic = topic.replace(/^(\d+)\s+/, '$1. ').trim();
+      subTopic = subTopic.replace(/^(\d+)\s+/, '$1. ').trim();
+      if (!topic && subTopic) { topic = subTopic; subTopic = ''; }
+      if (!topic) topic = 'General';
+
+      return {
+        group: g || 'ALL',
+        stage: st || 'ALL',
+        subject: subject,
+        subSubject: subSubject,
+        topic: topic,
+        subTopic: subTopic
+      };
+    }
+
+    function extractCleanHierarchyFromDBRow(r) {
+      var m = r.metadata || {};
+      var k = String(r.quiz_key || r.legacy_key || r.id || '');
+      var rawG = r.group_name || m.group || 'ALL';
+      var rawSt = r.stage || m.stage || 'ALL';
+      var rawSubj = r.subject || m.subject || '';
+      var rawSubSubj = r.sub_subject || m.subSubject || '';
+      var rawTopic = r.topic || m.topic || r.title || '';
+      var rawSubTopic = r.sub_topic || m.subTopic || '';
+
+      // If key has '__' structure: e.g. Group_2__Prelims__History__Chapter2__chapter2_Prehistoric...
+      if (k.indexOf('__') !== -1) {
+        var parts = k.split('___');
+        var leftParts = parts[0].split('__');
+        var kGroup = leftParts[0] || rawG;
+        var kStage = leftParts[1] || rawSt;
+        var kSubj = leftParts[2] || rawSubj;
+        var kSubSubj = leftParts[3] || rawSubSubj;
+        var kTopic = leftParts.slice(4).join(' ') || rawTopic;
+        var kSubTopic = parts[1] || rawSubTopic;
+        return parseSmartRowHierarchy(kGroup, kStage, kSubj, kSubSubj, rawTopic || kTopic, rawSubTopic || kSubTopic);
+      }
+
+      // Legacy '_' separated keys (e.g. Economics_Indian_Economy_..., GeneralScience_Biology_..., History_Ancient_...)
+      var tokens = k.split('_').filter(Boolean);
+      var joined = tokens.join(' ');
+      if (/^(economics|economy)/i.test(joined)) {
+        return { group: rawG, stage: rawSt, subject: 'Economy', subSubject: 'Indian Economy', topic: joined.replace(/^(economics|economy)\s*(indian\s+economy\s*)?/i, '').trim() || 'Indian Economy', subTopic: '' };
+      }
+      if (/^(generalscience|general\s+science)/i.test(joined)) {
+        var sciRest = joined.replace(/^(generalscience|general\s+science)\s*/i, '').trim();
+        var sciParts = sciRest.split(/\s+/);
+        var sciSub = sciParts[0] || 'Biology';
+        return { group: rawG, stage: rawSt, subject: 'General Science', subSubject: sciSub, topic: sciParts.slice(1).join(' ') || sciSub, subTopic: '' };
+      }
+
+      // If DB stored "AP History" by mistake when key actually has "Chapter2", fix it automatically!
+      if (rawSubSubj === 'AP History' && /chapter/i.test(k + ' ' + rawTopic)) {
+        rawSubSubj = 'Ancient';
+      }
+
+      return parseSmartRowHierarchy(rawG, rawSt, rawSubj || tokens[0], rawSubSubj || tokens[1], rawTopic || tokens.slice(2).join(' '), rawSubTopic);
+    }
+
       if (key === 'appscQuestionBank_index') {
         var res = await db.from('quiz_sets').select('*').eq('course', 'appsc').limit(1000);
         var rows = (res && res.data) || [];
@@ -278,20 +398,15 @@
         rows.forEach(function(r) {
           var m = r.metadata || {};
           var k = r.quiz_key || r.legacy_key || r.id;
-          var parts = k.indexOf('__') !== -1 ? k.split('__') : k.split('_');
-          var rawGroup = r.group_name || m.group || (k.indexOf('__') !== -1 ? parts[0].replace(/_/g,' ') : 'Group 1');
-          var rawStage = r.stage || m.stage || (k.indexOf('__') !== -1 ? parts[1] : 'Prelims');
-          var rawSubj = r.subject || m.subject || (k.indexOf('__') !== -1 ? parts[2] : parts[0]) || 'History';
-          var mainTopic = r.sub_subject || m.subSubject || (k.indexOf('__') !== -1 ? parts[3] : (parts.length > 2 ? parts[1] : rawSubj)) || 'General';
-          var subTopic = r.topic || m.topic || (k.indexOf('__') !== -1 ? parts.slice(4).join(' ') : (parts.length > 2 ? parts.slice(2).join(' ') : parts.slice(1).join(' '))) || r.title || k;
+          var info = extractCleanHierarchyFromDBRow(r);
           idx[k] = {
             id: r.id,
             count: Number(m.count) || 20,
-            group: rawGroup,
-            stage: rawStage,
-            subject: mapKeyToSubject(rawSubj),
-            subSubject: mainTopic.replace(/_/g, ' '),
-            topic: subTopic.replace(/_/g, ' '),
+            group: info.group,
+            stage: info.stage,
+            subject: info.subject,
+            subSubject: info.subSubject,
+            topic: info.subTopic ? (info.topic + ' ➔ ' + info.subTopic) : info.topic,
             order: r.order_index || m.order || 0
           };
         });
@@ -919,12 +1034,10 @@
 
       var delimiter = window.detectDelimiter(rows);
       var firstCols = window.smartSplitLine(rows[0], delimiter);
-
-      // Check if Row 0 is a Header Row or actual Question Data Row
       var firstCellLower = (firstCols[0] || '').toLowerCase().replace(/[\s_"-]/g,'');
       var hasHeader = (firstCellLower === 'group' || firstCellLower === 'stage' || firstCellLower === 'subject');
 
-      var colMap={group:-1,stage:-1,subject:-1,subSubject:-1,topic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};
+      var colMap={group:-1,stage:-1,subject:-1,subSubject:-1,topic:-1,subTopic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};
 
       if (hasHeader) {
         for(var hi=0;hi<firstCols.length;hi++){
@@ -933,7 +1046,8 @@
           else if(hdr==='stage')colMap.stage=hi;
           else if(hdr==='subject')colMap.subject=hi;
           else if(hdr==='subsubject'||hdr==='subcat'||hdr==='subcategory')colMap.subSubject=hi;
-          else if(hdr==='topic'||hdr==='subtopic')colMap.topic=hi;
+          else if(hdr==='topic'||hdr==='maintopic')colMap.topic=hi;
+          else if(hdr==='subtopic'||hdr==='subchapter')colMap.subTopic=hi;
           else if(hdr==='question'||hdr==='ques'||hdr==='q')colMap.question=hi;
           else if(hdr==='optiona'||hdr==='opta'||hdr==='a')colMap.optA=hi;
           else if(hdr==='optionb'||hdr==='optb'||hdr==='b')colMap.optB=hi;
@@ -944,20 +1058,19 @@
         }
       }
 
-      // Positional fallback if no headers or missing header names
       if (colMap.question === -1) {
-        if (firstCols.length >= 12) {
-          // 12 Columns: Group | Stage | Subject | SubSubject | Topic | Question | OptA | OptB | OptC | OptD | Correct | Explanation
-          colMap = {group:0, stage:1, subject:2, subSubject:3, topic:4, question:5, optA:6, optB:7, optC:8, optD:9, correct:10, explanation:11};
+        if (firstCols.length >= 13) {
+          colMap = {group:0, stage:1, subject:2, subSubject:3, topic:4, subTopic:5, question:6, optA:7, optB:8, optC:9, optD:10, correct:11, explanation:12};
+        } else if (firstCols.length === 12) {
+          colMap = {group:0, stage:1, subject:2, subSubject:3, topic:4, subTopic:-1, question:5, optA:6, optB:7, optC:8, optD:9, correct:10, explanation:11};
         } else {
-          // 11 Columns: Group | Stage | Subject | Topic | Question | OptA | OptB | OptC | OptD | Correct | Explanation
-          colMap = {group:0, stage:1, subject:2, subSubject:-1, topic:3, question:4, optA:5, optB:6, optC:7, optD:8, correct:9, explanation:10};
+          colMap = {group:0, stage:1, subject:2, subSubject:-1, topic:3, subTopic:-1, question:4, optA:5, optB:6, optC:7, optD:8, correct:9, explanation:10};
         }
       }
 
       csvRows=[]; var errors=[];
       var startRow = hasHeader ? 1 : 0;
-      window.skippedRowsData = (hasHeader ? rows[0] : 'Group	Stage	Subject	SubSubject	Topic	Question	Option A	Option B	Option C	Option D	Correct	Explanation') + delimiter + '"Error_Reason"\n';
+      window.skippedRowsData = (hasHeader ? rows[0] : 'Group\tStage\tSubject\tSubSubject\tTopic\tSubTopic\tQuestion\tOption A\tOption B\tOption C\tOption D\tCorrect\tExplanation') + delimiter + '"Error_Reason"\n';
 
       for(var l=startRow; l<rows.length; l++){
         var cols = window.smartSplitLine(rows[l], delimiter);
@@ -967,12 +1080,16 @@
           continue;
         }
 
-        var group = (window.getCol(cols,colMap.group)||'Group 1').trim();
-        var stage = (window.getCol(cols,colMap.stage)||'Prelims').trim();
-        var rawSubj = (window.getCol(cols,colMap.subject)||'History').trim();
-        var subject = mapKeyToSubject(rawSubj);
-        var subSubject = (colMap.subSubject !== -1 ? window.getCol(cols,colMap.subSubject) : rawSubj).trim() || subject;
-        var topic = (window.getCol(cols,colMap.topic)||'General').trim();
+        var rawGroup = window.getCol(cols,colMap.group)||'Group 2';
+        var rawStage = window.getCol(cols,colMap.stage)||'Prelims';
+        var rawSubj = window.getCol(cols,colMap.subject)||'History';
+        var rawSubSubj = colMap.subSubject !== -1 ? window.getCol(cols,colMap.subSubject) : '';
+        var rawTopic = colMap.topic !== -1 ? window.getCol(cols,colMap.topic) : '';
+        var rawSubTopic = colMap.subTopic !== -1 ? window.getCol(cols,colMap.subTopic) : '';
+
+        // Parse using Smart Hierarchy (Handles Subject="Ancient", SubSubject="Chapter2", Topic="chapter2. Prehistoric...")
+        var info = parseSmartRowHierarchy(rawGroup, rawStage, rawSubj, rawSubSubj, rawTopic, rawSubTopic);
+
         var question = window.getCol(cols,colMap.question);
         var optA = window.getCol(cols,colMap.optA);
         var optB = window.getCol(cols,colMap.optB);
@@ -991,13 +1108,13 @@
           continue;
         }
 
-        // Clean Unicode-friendly key preserving Telugu/English words safely
-        var safeTopicSlug = topic.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
-        var safeSubSubjSlug = subSubject.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
-        var key = (group.replace(/\s+/g,'_') + '__' + stage.replace(/\s+/g,'_') + '__' + subject.replace(/\s+/g,'_') + '__' + safeSubSubjSlug + '__' + safeTopicSlug);
+        var safeSubSubjSlug = info.subSubject.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
+        var safeTopicSlug = info.topic.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
+        var safeSubTopicSlug = info.subTopic.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
+        var key = info.group.replace(/\s+/g,'_') + '__' + info.stage.replace(/\s+/g,'_') + '__' + info.subject.replace(/\s+/g,'_') + '__' + safeSubSubjSlug + '__' + safeTopicSlug + (safeSubTopicSlug ? ('___' + safeSubTopicSlug) : '');
 
         csvRows.push({
-          key:key, group:group, stage:stage, subject:subject, subSubject:subSubject, topic:topic,
+          key:key, group:info.group, stage:info.stage, subject:info.subject, subSubject:info.subSubject, topic:info.topic, subTopic:info.subTopic,
           question:question, optionA:optA, optionB:optB, optionC:optC, optionD:optD, correctAnswer:ans, explanation:exp||''
         });
       }

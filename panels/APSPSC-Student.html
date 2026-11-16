@@ -69,6 +69,10 @@
     .ch-sub-row:hover{filter:brightness(1.12)}
     .ch-content{display:none;background:rgba(0,0,0,.28);border:1px solid var(--brd);margin:0 15px 12px;padding:15px;border-radius:0 0 8px 8px;line-height:1.8;color:#f8fafc;overflow-x:auto}
     .ch-sub-content{display:none;background:rgba(0,0,0,.2);border:1px solid var(--brd);margin:0 10px 10px;padding:12px;border-radius:0 0 8px 8px}
+    .ch-leaf-row{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;margin:7px 8px 0;color:#fff;font-weight:800;font-size:.88rem;border-radius:8px;cursor:pointer;transition:.2s;border-left:4px solid #fde047;box-shadow:0 2px 5px rgba(0,0,0,.25)}
+    .ch-leaf-row:hover{filter:brightness(1.15);transform:translateX(2px)}
+    .ch-leaf-content{display:none;background:rgba(0,0,0,.25);border:1px solid var(--brd);margin:0 8px 8px;padding:10px;border-radius:0 0 8px 8px}
+    .ch-leaf-content.show{display:block;animation:fadeIn .25s ease}
     body.light-mode .ch-content{color:#334155;background:rgba(0,0,0,.03)}
     .ch-content.show,.ch-sub-content.show{display:block;animation:fadeIn .25s ease}
     @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
@@ -362,27 +366,142 @@
         else sylMap[k] = itemObj;
       });
 
+
+    // ==================== FIXED HIERARCHY PARSER (NO 'chAPter' -> 'AP History' BUG!) ====================
+    function parseSmartRowHierarchy(rawGroup, rawStage, colSubj, colSubSubj, colTopic, colSubTopic) {
+      var g = String(rawGroup || 'Group 2').replace(/_/g, ' ').trim();
+      var st = String(rawStage || 'Prelims').replace(/_/g, ' ').trim();
+      var s1 = String(colSubj || '').replace(/_/g, ' ').trim();
+      var s2 = String(colSubSubj || '').replace(/_/g, ' ').trim();
+      var t1 = String(colTopic || '').replace(/_/g, ' ').trim();
+      var t2 = String(colSubTopic || '').replace(/_/g, ' ').trim();
+
+      var subject = 'History', subSubject = 'Ancient', topic = '', subTopic = '';
+
+      // CASE 1: User Excel has Subject="Ancient" (or Medieval/Modern) and SubSubject="Chapter2"
+      if (/^(ancient|medieval|medival|modern)(\s+history)?$/i.test(s1)) {
+        subject = 'History';
+        if (/^ancient/i.test(s1)) subSubject = 'Ancient';
+        else if (/^med/i.test(s1)) subSubject = 'Medieval';
+        else subSubject = 'Modern';
+
+        // If s2 is "Chapter2" or a Topic name (and not "History"), s2 becomes Level-2 Topic, and t1 becomes Level-3 SubTopic!
+        if (s2 && !/^history$/i.test(s2)) {
+          topic = s2;
+          subTopic = t1;
+        } else {
+          topic = t1;
+          subTopic = t2;
+        }
+      } else {
+        // CASE 2: Standard columns (Subject="History", SubSubject="Ancient", Topic="...", SubTopic="...")
+        subject = mapKeyToSubject(s1 || s2 || 'History');
+        subSubject = s2 || s1 || 'General';
+
+        // If SubSubject is "Chapter2" while Subject is "History", keep SubSubject as "Ancient" and push "Chapter2" to Topic!
+        if (subject === 'History' && /^chapter\s*\d+/i.test(subSubject)) {
+          subTopic = t1;
+          topic = subSubject;
+          subSubject = 'Ancient';
+        } else {
+          topic = t1;
+          subTopic = t2;
+        }
+      }
+
+      // Strictly normalize History SubSubjects (Use word boundary \bap\b so "chapter" NEVER matches "ap"!)
+      if (subject === 'History') {
+        var lowSS = subSubject.toLowerCase();
+        if (lowSS.indexOf('ancient') !== -1) subSubject = 'Ancient';
+        else if (lowSS.indexOf('mediev') !== -1 || lowSS.indexOf('mediv') !== -1) subSubject = 'Medieval';
+        else if (lowSS.indexOf('modern') !== -1) subSubject = 'Modern';
+        else if (/\b(ap|andhra)\b/i.test(lowSS)) subSubject = 'AP History';
+        else subSubject = 'Ancient';
+      }
+
+      // Also support '>' or '::' inside topic to split into Topic > SubTopic
+      if (!subTopic && (topic.indexOf('>') !== -1 || topic.indexOf('::') !== -1)) {
+        var sep = topic.indexOf('>') !== -1 ? '>' : '::';
+        var sp = topic.split(sep);
+        topic = sp[0].trim();
+        subTopic = sp.slice(1).join(' ').trim();
+      }
+
+      topic = topic.replace(/^(\d+)\s+/, '$1. ').trim();
+      subTopic = subTopic.replace(/^(\d+)\s+/, '$1. ').trim();
+      if (!topic && subTopic) { topic = subTopic; subTopic = ''; }
+      if (!topic) topic = 'General';
+
+      return {
+        group: g || 'ALL',
+        stage: st || 'ALL',
+        subject: subject,
+        subSubject: subSubject,
+        topic: topic,
+        subTopic: subTopic
+      };
+    }
+
+    function extractCleanHierarchyFromDBRow(r) {
+      var m = r.metadata || {};
+      var k = String(r.quiz_key || r.legacy_key || r.id || '');
+      var rawG = r.group_name || m.group || 'ALL';
+      var rawSt = r.stage || m.stage || 'ALL';
+      var rawSubj = r.subject || m.subject || '';
+      var rawSubSubj = r.sub_subject || m.subSubject || '';
+      var rawTopic = r.topic || m.topic || r.title || '';
+      var rawSubTopic = r.sub_topic || m.subTopic || '';
+
+      // If key has '__' structure: e.g. Group_2__Prelims__History__Chapter2__chapter2_Prehistoric...
+      if (k.indexOf('__') !== -1) {
+        var parts = k.split('___');
+        var leftParts = parts[0].split('__');
+        var kGroup = leftParts[0] || rawG;
+        var kStage = leftParts[1] || rawSt;
+        var kSubj = leftParts[2] || rawSubj;
+        var kSubSubj = leftParts[3] || rawSubSubj;
+        var kTopic = leftParts.slice(4).join(' ') || rawTopic;
+        var kSubTopic = parts[1] || rawSubTopic;
+        return parseSmartRowHierarchy(kGroup, kStage, kSubj, kSubSubj, rawTopic || kTopic, rawSubTopic || kSubTopic);
+      }
+
+      // Legacy '_' separated keys (e.g. Economics_Indian_Economy_..., GeneralScience_Biology_..., History_Ancient_...)
+      var tokens = k.split('_').filter(Boolean);
+      var joined = tokens.join(' ');
+      if (/^(economics|economy)/i.test(joined)) {
+        return { group: rawG, stage: rawSt, subject: 'Economy', subSubject: 'Indian Economy', topic: joined.replace(/^(economics|economy)\s*(indian\s+economy\s*)?/i, '').trim() || 'Indian Economy', subTopic: '' };
+      }
+      if (/^(generalscience|general\s+science)/i.test(joined)) {
+        var sciRest = joined.replace(/^(generalscience|general\s+science)\s*/i, '').trim();
+        var sciParts = sciRest.split(/\s+/);
+        var sciSub = sciParts[0] || 'Biology';
+        return { group: rawG, stage: rawSt, subject: 'General Science', subSubject: sciSub, topic: sciParts.slice(1).join(' ') || sciSub, subTopic: '' };
+      }
+
+      // If DB stored "AP History" by mistake when key actually has "Chapter2", fix it automatically!
+      if (rawSubSubj === 'AP History' && /chapter/i.test(k + ' ' + rawTopic)) {
+        rawSubSubj = 'Ancient';
+      }
+
+      return parseSmartRowHierarchy(rawG, rawSt, rawSubj || tokens[0], rawSubSubj || tokens[1], rawTopic || tokens.slice(2).join(' '), rawSubTopic);
+    }
+
       var quizMap = {};
       quizRows.forEach(function(r) {
         var m = r.metadata || {};
         var k = r.quiz_key || r.legacy_key || r.id;
-        var parts = k.indexOf('__') !== -1 ? k.split('__') : k.split('_');
-        var rawGroup = r.group_name || m.group || (k.indexOf('__') !== -1 ? parts[0].replace(/_/g,' ') : 'ALL');
-        var rawStage = r.stage || m.stage || (k.indexOf('__') !== -1 ? parts[1] : 'ALL');
-        var rawSubj = r.subject || m.subject || (k.indexOf('__') !== -1 ? parts[2] : parts[0]) || 'History';
-        var mappedSubj = mapKeyToSubject(rawSubj);
-        var mainTopic = r.sub_subject || m.subSubject || (k.indexOf('__') !== -1 ? parts[3] : (parts.length > 2 ? parts[1] : rawSubj)) || 'General';
-        var subTopic = r.topic || m.topic || (k.indexOf('__') !== -1 ? parts.slice(4).join(' ') : (parts.length > 2 ? parts.slice(2).join(' ') : parts.slice(1).join(' '))) || r.title || k;
+        var info = extractCleanHierarchyFromDBRow(r);
 
         quizMap[k] = {
           id: r.id,
           key: k,
           count: Number(m.count) || 20,
-          group: rawGroup,
-          stage: rawStage,
-          subject: mappedSubj,
-          subSubject: mainTopic.replace(/_/g, ' '),
-          topic: subTopic.replace(/_/g, ' '),
+          group: info.group,
+          stage: info.stage,
+          subject: info.subject,
+          subSubject: info.subSubject,
+          topic: info.topic,
+          subTopic: info.subTopic,
           order: r.order_index || m.order || 0
         };
       });
@@ -401,21 +520,26 @@
     }
 
     function buildDynamicSubCategories() {
+      var orderMap = { 'Ancient': 1, 'Medieval': 2, 'Modern': 3 };
       SUBJECTS.forEach(function(sObj) {
         var subCatSet = {};
+        if (sObj.id === 'History') {
+          subCatSet['Ancient'] = true;
+          subCatSet['Medieval'] = true;
+          subCatSet['Modern'] = true;
+        }
         Object.keys(DB.quiz).forEach(function(k) {
           var q = DB.quiz[k];
           if (q.subject === sObj.id && matchesGroupAndStage(q) && q.subSubject && q.subSubject !== 'General') {
+            // Never show 'AP History' unless explicitly uploaded as AP History
+            if (sObj.id === 'History' && q.subSubject === 'AP History') return;
             subCatSet[q.subSubject] = true;
           }
         });
-        Object.keys(DB.syllabus).forEach(function(k) {
-          var it = DB.syllabus[k];
-          if (it.subject === sObj.id && matchesGroupAndStage(it) && it.subSubject && it.subSubject !== 'General') {
-            subCatSet[it.subSubject] = true;
-          }
+        var sorted = Object.keys(subCatSet).sort(function(a, b) {
+          return (orderMap[a] || 99) - (orderMap[b] || 99) || a.localeCompare(b);
         });
-        sObj.subCats = Object.keys(subCatSet).sort().map(function(cName) {
+        sObj.subCats = sorted.map(function(cName) {
           return { id: cName, name: '📂 ' + cName };
         });
         sObj.hasSubCats = sObj.subCats.length > 0;
@@ -863,64 +987,130 @@
       var topicGroups = {};
       Object.keys(DB.quiz).forEach(function(key){
         var qMeta = DB.quiz[key];
-        if(!qMeta || qMeta.subject !== sub) return;
-        if(currentGroup !== 'ALL' && qMeta.group && qMeta.group !== 'ALL' && qMeta.group !== currentGroup) return;
-        if(currentStage !== 'ALL' && qMeta.stage && qMeta.stage !== 'ALL' && qMeta.stage !== currentStage) return;
+        if(!qMeta || (sub !== 'ALL' && qMeta.subject !== sub)) return;
+        if(!matchesGroupAndStage(qMeta)) return;
         if(subCategory !== 'ALL' && qMeta.subSubject !== subCategory) return;
 
-        var mainTopic = (qMeta.subSubject && qMeta.subSubject !== 'General') ? qMeta.subSubject : (qMeta.topic || 'General');
-        var subTopicName = qMeta.topic || key.replace(/_/g, ' ');
+        var lvl1 = (qMeta.subSubject && qMeta.subSubject !== 'General') ? qMeta.subSubject : (qMeta.topic || 'General');
+        var lvl2 = qMeta.topic || key.replace(/_/g, ' ');
+        var lvl3 = qMeta.subTopic || '';
 
-        if(!topicGroups[mainTopic]) topicGroups[mainTopic] = {};
-        if(!topicGroups[mainTopic][subTopicName]) topicGroups[mainTopic][subTopicName] = [];
-        topicGroups[mainTopic][subTopicName].push({ key: key, count: qMeta.count || 20 });
+        if(!topicGroups[lvl1]) topicGroups[lvl1] = {};
+        if(!topicGroups[lvl1][lvl2]) topicGroups[lvl1][lvl2] = { directSets: [], subTopics: {} };
+
+        if (lvl3) {
+          if(!topicGroups[lvl1][lvl2].subTopics[lvl3]) topicGroups[lvl1][lvl2].subTopics[lvl3] = [];
+          topicGroups[lvl1][lvl2].subTopics[lvl3].push({ key: key, count: qMeta.count || 20 });
+        } else {
+          topicGroups[lvl1][lvl2].directSets.push({ key: key, count: qMeta.count || 20 });
+        }
       });
 
-      var mainTopicNames = Object.keys(topicGroups).sort();
+      var orderMap = { 'Ancient': 1, 'Medieval': 2, 'Modern': 3 };
+      var mainTopicNames = Object.keys(topicGroups).sort(function(a, b){
+        return (orderMap[a] || 99) - (orderMap[b] || 99) || a.localeCompare(b, undefined, { numeric: true });
+      });
+
       if(mainTopicNames.length){
         mainTopicNames.forEach(function(mTopic, tIdx){
           var tid = 'qt_main_' + tIdx;
-          // Alternate between Light Shade and Dark Shade of the Subject's color!
           var mainGrad = (tIdx % 2 === 0) ? so.lightGrad : so.darkGrad;
           var subTopicsObj = topicGroups[mTopic];
-          var subTopicNames = Object.keys(subTopicsObj).sort();
-          var totalTopicQs = 0;
-          subTopicNames.forEach(function(stName){
-            subTopicsObj[stName].forEach(function(g){ totalTopicQs += g.count; });
+          var subTopicNames = Object.keys(subTopicsObj).sort(function(a, b){
+            return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
           });
 
-          // Collapsible Main Topic Dropdown Bar
+          var totalTopicQs = 0;
+          subTopicNames.forEach(function(stName){
+            var node = subTopicsObj[stName];
+            node.directSets.forEach(function(g){ totalTopicQs += g.count; });
+            Object.keys(node.subTopics).forEach(function(ln){
+              node.subTopics[ln].forEach(function(g){ totalTopicQs += g.count; });
+            });
+          });
+
+          var autoOpenLvl1 = (subCategory !== 'ALL' || mainTopicNames.length === 1) ? 'show' : '';
+
+          // LEVEL 1: 📂 Ancient / Medieval / Modern
           h += '<div class="ch-row" style="background:' + mainGrad + ';" onclick="tog(\'' + tid + '\')">';
           h += '<span>📂 ' + mTopic + '</span>';
-          h += '<span class="badge-pill"><b>' + subTopicNames.length + '</b> Sub-Topics | 📝 <b>' + totalTopicQs + '</b> Qs ▼</span>';
+          h += '<span class="badge-pill"><b>' + subTopicNames.length + '</b> Topics | 📝 <b>' + totalTopicQs + '</b> Qs ▼</span>';
           h += '</div>';
 
-          h += '<div id="' + tid + '" class="ch-content">';
+          h += '<div id="' + tid + '" class="ch-content ' + autoOpenLvl1 + '">';
 
           subTopicNames.forEach(function(stName, sIdx){
             var stid = tid + '_sub_' + sIdx;
             var subGrad = (sIdx % 2 === 0) ? so.subLightGrad : so.subDarkGrad;
-            var setsList = subTopicsObj[stName];
-            var subTotalQs = 0;
-            setsList.forEach(function(g){ subTotalQs += g.count; });
+            var node = subTopicsObj[stName];
+            var leafNames = Object.keys(node.subTopics).sort(function(a, b){
+              return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+            });
 
+            var subTotalQs = 0;
+            node.directSets.forEach(function(g){ subTotalQs += g.count; });
+            leafNames.forEach(function(ln){
+              node.subTopics[ln].forEach(function(g){ subTotalQs += g.count; });
+            });
+
+            // LEVEL 2: 📌 Topic / Chapter (e.g. Chapter2 OR 1. Epigraphy)
             h += '<div class="ch-sub-row" style="background:' + subGrad + ';" onclick="tog(\'' + stid + '\')">';
             h += '<span>📌 ' + stName + '</span>';
-            h += '<span class="badge-pill">📝 <b>' + subTotalQs + '</b> Qs [+]</span>';
+            if (leafNames.length > 0) {
+              h += '<span class="badge-pill"><b>' + leafNames.length + '</b> Sub-Topics | 📝 <b>' + subTotalQs + '</b> Qs ▼</span>';
+            } else {
+              h += '<span class="badge-pill">📝 <b>' + subTotalQs + '</b> Qs [+]</span>';
+            }
             h += '</div>';
 
-            h += '<div id="' + stid + '" class="ch-sub-content"><div class="grid">';
-            setsList.forEach(function(gi){
-              var totalQs = gi.count || 20;
-              var tc = Math.max(1, Math.ceil(totalQs / 10));
-              var safeKey = gi.key.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-              for(var t = 1; t <= tc; t++){
-                var st = (t - 1) * 10, end = Math.min(st + 10, totalQs);
-                var cardGrad = (t % 2 === 1) ? so.lightGrad : so.darkGrad;
-                h += '<div class="q-card" style="background:' + cardGrad + ';" onclick="launchQ(\'' + safeKey + '\',' + st + ',' + end + ',\'' + so.grad.replace(/'/g,"\\'") + '\')"><h4>Test ' + t + '</h4><small>' + (end - st) + ' Questions</small></div>';
-              }
-            });
-            h += '</div></div>';
+            h += '<div id="' + stid + '" class="ch-sub-content">';
+
+            // LEVEL 3: 🔹 Sub-Topic inside Level 2 (e.g. chapter2. Prehistoric Cultures ప్రాచీన శిలాయుగం)
+            if (leafNames.length > 0) {
+              leafNames.forEach(function(leafName, lIdx){
+                var lfid = stid + '_leaf_' + lIdx;
+                var leafGrad = (lIdx % 2 === 0) ? so.darkGrad : so.lightGrad;
+                var leafSets = node.subTopics[leafName];
+                var leafTotalQs = 0;
+                leafSets.forEach(function(g){ leafTotalQs += g.count; });
+
+                h += '<div class="ch-leaf-row" style="background:' + leafGrad + ';" onclick="tog(\'' + lfid + '\')">';
+                h += '<span>🔹 ' + leafName + '</span>';
+                h += '<span class="badge-pill">📝 <b>' + leafTotalQs + '</b> Qs [+]</span>';
+                h += '</div>';
+
+                h += '<div id="' + lfid + '" class="ch-leaf-content"><div class="grid">';
+                leafSets.forEach(function(gi){
+                  var totalQs = gi.count || 20;
+                  var tc = Math.max(1, Math.ceil(totalQs / 10));
+                  var safeKey = gi.key.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                  for(var t = 1; t <= tc; t++){
+                    var st = (t - 1) * 10, end = Math.min(st + 10, totalQs);
+                    var cardGrad = (t % 2 === 1) ? so.lightGrad : so.darkGrad;
+                    h += '<div class="q-card" style="background:' + cardGrad + ';" onclick="launchQ(\'' + safeKey + '\',' + st + ',' + end + ',\'' + so.grad.replace(/'/g,"\\'") + '\')"><h4>Test ' + t + '</h4><small>' + (end - st) + ' Questions</small></div>';
+                  }
+                });
+                h += '</div></div>';
+              });
+            }
+
+            // Direct Tests when no Level-3 SubTopic is used
+            if (node.directSets.length > 0) {
+              h += '<div class="grid">';
+              node.directSets.forEach(function(gi){
+                var totalQs = gi.count || 20;
+                var tc = Math.max(1, Math.ceil(totalQs / 10));
+                var safeKey = gi.key.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                for(var t = 1; t <= tc; t++){
+                  var st = (t - 1) * 10, end = Math.min(st + 10, totalQs);
+                  var cardGrad = (t % 2 === 1) ? so.lightGrad : so.darkGrad;
+                  h += '<div class="q-card" style="background:' + cardGrad + ';" onclick="launchQ(\'' + safeKey + '\',' + st + ',' + end + ',\'' + so.grad.replace(/'/g,"\\'") + '\')"><h4>Test ' + t + '</h4><small>' + (end - st) + ' Questions</small></div>';
+                }
+              });
+              h += '</div>';
+            }
+
+            h += '</div>';
           });
 
           h += '</div>';
