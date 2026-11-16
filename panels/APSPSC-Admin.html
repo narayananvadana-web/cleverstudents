@@ -1022,103 +1022,148 @@
     }
 
     window.smartParse = function(text, sourceName){
-      text = text ? text.trim() : '';
-      if(!text){ toast('Invalid or empty data!','error'); return; }
+      try {
+        text = text ? text.trim() : '';
+        if(!text){ toast('Invalid or empty data!','error'); return; }
 
-      if(text.startsWith('[') || text.startsWith('{')){
-        try{ var parsed = JSON.parse(text); window.parseJSONData(parsed); return; }catch(e){}
-      }
-
-      var rows = window.parseCSVRows(text);
-      if(rows.length < 1){toast('No valid rows found!','error');return}
-
-      var delimiter = window.detectDelimiter(rows);
-      var firstCols = window.smartSplitLine(rows[0], delimiter);
-      var firstCellLower = (firstCols[0] || '').toLowerCase().replace(/[\s_"-]/g,'');
-      var hasHeader = (firstCellLower === 'group' || firstCellLower === 'stage' || firstCellLower === 'subject');
-
-      var colMap={group:-1,stage:-1,subject:-1,subSubject:-1,topic:-1,subTopic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};
-
-      if (hasHeader) {
-        for(var hi=0;hi<firstCols.length;hi++){
-          var hdr=firstCols[hi].toLowerCase().replace(/[\s_"-]/g,'');
-          if(hdr==='group')colMap.group=hi;
-          else if(hdr==='stage')colMap.stage=hi;
-          else if(hdr==='subject')colMap.subject=hi;
-          else if(hdr==='subsubject'||hdr==='subcat'||hdr==='subcategory')colMap.subSubject=hi;
-          else if(hdr==='topic'||hdr==='maintopic')colMap.topic=hi;
-          else if(hdr==='subtopic'||hdr==='subchapter')colMap.subTopic=hi;
-          else if(hdr==='question'||hdr==='ques'||hdr==='q')colMap.question=hi;
-          else if(hdr==='optiona'||hdr==='opta'||hdr==='a')colMap.optA=hi;
-          else if(hdr==='optionb'||hdr==='optb'||hdr==='b')colMap.optB=hi;
-          else if(hdr==='optionc'||hdr==='optc'||hdr==='c')colMap.optC=hi;
-          else if(hdr==='optiond'||hdr==='optd'||hdr==='d')colMap.optD=hi;
-          else if(hdr==='correct'||hdr==='answer'||hdr==='ans')colMap.correct=hi;
-          else if(hdr==='explanation'||hdr==='exp')colMap.explanation=hi;
-        }
-      }
-
-      if (colMap.question === -1) {
-        if (firstCols.length >= 13) {
-          colMap = {group:0, stage:1, subject:2, subSubject:3, topic:4, subTopic:5, question:6, optA:7, optB:8, optC:9, optD:10, correct:11, explanation:12};
-        } else if (firstCols.length === 12) {
-          colMap = {group:0, stage:1, subject:2, subSubject:3, topic:4, subTopic:-1, question:5, optA:6, optB:7, optC:8, optD:9, correct:10, explanation:11};
-        } else {
-          colMap = {group:0, stage:1, subject:2, subSubject:-1, topic:3, subTopic:-1, question:4, optA:5, optB:6, optC:7, optD:8, correct:9, explanation:10};
-        }
-      }
-
-      csvRows=[]; var errors=[];
-      var startRow = hasHeader ? 1 : 0;
-      window.skippedRowsData = (hasHeader ? rows[0] : 'Group\tStage\tSubject\tSubSubject\tTopic\tSubTopic\tQuestion\tOption A\tOption B\tOption C\tOption D\tCorrect\tExplanation') + delimiter + '"Error_Reason"\n';
-
-      for(var l=startRow; l<rows.length; l++){
-        var cols = window.smartSplitLine(rows[l], delimiter);
-        if(cols.length < 5){
-          errors.push('Row '+(l+1)+': too few columns');
-          window.skippedRowsData += rows[l] + delimiter + '"Too few columns"\n';
-          continue;
+        if(text.startsWith('[') || text.startsWith('{')){
+          try{ var parsed = JSON.parse(text); window.parseJSONData(parsed); return; }catch(e){}
         }
 
-        var rawGroup = window.getCol(cols,colMap.group)||'Group 2';
-        var rawStage = window.getCol(cols,colMap.stage)||'Prelims';
-        var rawSubj = window.getCol(cols,colMap.subject)||'History';
-        var rawSubSubj = colMap.subSubject !== -1 ? window.getCol(cols,colMap.subSubject) : '';
-        var rawTopic = colMap.topic !== -1 ? window.getCol(cols,colMap.topic) : '';
-        var rawSubTopic = colMap.subTopic !== -1 ? window.getCol(cols,colMap.subTopic) : '';
+        var rows = window.parseCSVRows(text);
+        if(rows.length < 1){ toast('No valid rows found!','error'); return; }
 
-        // Parse using Smart Hierarchy (Handles Subject="Ancient", SubSubject="Chapter2", Topic="chapter2. Prehistoric...")
-        var info = parseSmartRowHierarchy(rawGroup, rawStage, rawSubj, rawSubSubj, rawTopic, rawSubTopic);
+        var delimiter = window.detectDelimiter(rows);
+        var firstCols = window.smartSplitLine(rows[0], delimiter);
+        var firstCellLower = String(firstCols[0] || '').toLowerCase().replace(/[\s_"-]/g,'');
+        var hasHeader = (firstCellLower === 'group' || firstCellLower === 'stage' || firstCellLower === 'subject');
 
-        var question = window.getCol(cols,colMap.question);
-        var optA = window.getCol(cols,colMap.optA);
-        var optB = window.getCol(cols,colMap.optB);
-        var optC = window.getCol(cols,colMap.optC);
-        var optD = window.getCol(cols,colMap.optD);
-        var ans = window.getCol(cols,colMap.correct).toUpperCase().trim().charAt(0);
-        var exp = window.getCol(cols,colMap.explanation)||'';
+        var colMap = {group:-1,stage:-1,subject:-1,subSubject:-1,topic:-1,subTopic:-1,question:-1,optA:-1,optB:-1,optC:-1,optD:-1,correct:-1,explanation:-1};
 
-        var errorMsg = "";
-        if(!question||!optA||!optB||!ans) errorMsg = "Missing Q/A/B/Correct";
-        else if(['A','B','C','D'].indexOf(ans)===-1) errorMsg = "Correct must be A/B/C/D (found: "+ans+")";
-
-        if(errorMsg !== "") {
-          errors.push('Row '+(l+1)+': ' + errorMsg);
-          window.skippedRowsData += rows[l] + delimiter + '"' + errorMsg + '"\n';
-          continue;
+        if (hasHeader) {
+          for(var hi=0; hi<firstCols.length; hi++){
+            var hdr = String(firstCols[hi] || '').toLowerCase().replace(/[\s_"-]/g,'');
+            if(hdr==='group') colMap.group=hi;
+            else if(hdr==='stage') colMap.stage=hi;
+            else if(hdr==='subject') colMap.subject=hi;
+            else if(hdr==='subsubject'||hdr==='subcat'||hdr==='subcategory') colMap.subSubject=hi;
+            else if(hdr==='topic'||hdr==='maintopic'||hdr==='chapter') colMap.topic=hi;
+            else if(hdr==='subtopic'||hdr==='subchapter') colMap.subTopic=hi;
+            else if(hdr==='question'||hdr==='ques'||hdr==='q') colMap.question=hi;
+            else if(hdr==='optiona'||hdr==='opta'||hdr==='a') colMap.optA=hi;
+            else if(hdr==='optionb'||hdr==='optb'||hdr==='b') colMap.optB=hi;
+            else if(hdr==='optionc'||hdr==='optc'||hdr==='c') colMap.optC=hi;
+            else if(hdr==='optiond'||hdr==='optd'||hdr==='d') colMap.optD=hi;
+            else if(hdr==='correct'||hdr==='answer'||hdr==='ans') colMap.correct=hi;
+            else if(hdr==='explanation'||hdr==='exp') colMap.explanation=hi;
+          }
         }
 
-        var safeSubSubjSlug = info.subSubject.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
-        var safeTopicSlug = info.topic.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
-        var safeSubTopicSlug = info.subTopic.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
-        var key = info.group.replace(/\s+/g,'_') + '__' + info.stage.replace(/\s+/g,'_') + '__' + info.subject.replace(/\s+/g,'_') + '__' + safeSubSubjSlug + '__' + safeTopicSlug + (safeSubTopicSlug ? ('___' + safeSubTopicSlug) : '');
+        csvRows = [];
+        var errors = [];
+        var startRow = hasHeader ? 1 : 0;
+        window.skippedRowsData = (hasHeader ? rows[0] : 'Group\tStage\tSubject\tSubSubject\tTopic\tSubTopic\tQuestion\tOption A\tOption B\tOption C\tOption D\tCorrect\tExplanation') + delimiter + '"Error_Reason"\n';
 
-        csvRows.push({
-          key:key, group:info.group, stage:info.stage, subject:info.subject, subSubject:info.subSubject, topic:info.topic, subTopic:info.subTopic,
-          question:question, optionA:optA, optionB:optB, optionC:optC, optionD:optD, correctAnswer:ans, explanation:exp||''
-        });
+        for(var l=startRow; l<rows.length; l++){
+          var cols = window.smartSplitLine(rows[l], delimiter);
+          if(cols.length < 5){
+            errors.push('Row '+(l+1)+': too few columns ('+cols.length+')');
+            window.skippedRowsData += rows[l] + delimiter + '"Too few columns"\n';
+            continue;
+          }
+
+          // Dynamic row-level column detection by locating the Correct Answer column ('A','B','C','D') near the end!
+          var rowColMap = Object.assign({}, colMap);
+          if (!hasHeader || rowColMap.question === -1) {
+            // Find which column from the right is single letter A/B/C/D
+            var ansIdx = -1;
+            for (var ci = cols.length - 1; ci >= 5; ci--) {
+              var cellVal = String(cols[ci] || '').trim().toUpperCase();
+              if (cellVal === 'A' || cellVal === 'B' || cellVal === 'C' || cellVal === 'D') {
+                ansIdx = ci;
+                break;
+              }
+            }
+            if (ansIdx >= 7) {
+              // Working backwards from Correct Answer column:
+              // ansIdx-4 = Option A, ansIdx-3 = Option B, ansIdx-2 = Option C, ansIdx-1 = Option D, ansIdx-5 = Question!
+              var qIdx = ansIdx - 5;
+              rowColMap.question = qIdx;
+              rowColMap.optA = ansIdx - 4;
+              rowColMap.optB = ansIdx - 3;
+              rowColMap.optC = ansIdx - 2;
+              rowColMap.optD = ansIdx - 1;
+              rowColMap.correct = ansIdx;
+              rowColMap.explanation = (ansIdx + 1 < cols.length) ? (ansIdx + 1) : -1;
+              rowColMap.group = 0;
+              rowColMap.stage = 1;
+              rowColMap.subject = 2;
+              if (qIdx === 6) {
+                rowColMap.subSubject = 3;
+                rowColMap.topic = 4;
+                rowColMap.subTopic = 5;
+              } else if (qIdx === 5) {
+                rowColMap.subSubject = 3;
+                rowColMap.topic = 4;
+                rowColMap.subTopic = -1;
+              } else {
+                rowColMap.subSubject = -1;
+                rowColMap.topic = 3;
+                rowColMap.subTopic = -1;
+              }
+            } else if (cols.length >= 13) {
+              rowColMap = {group:0, stage:1, subject:2, subSubject:3, topic:4, subTopic:5, question:6, optA:7, optB:8, optC:9, optD:10, correct:11, explanation:12};
+            } else if (cols.length === 12) {
+              rowColMap = {group:0, stage:1, subject:2, subSubject:3, topic:4, subTopic:-1, question:5, optA:6, optB:7, optC:8, optD:9, correct:10, explanation:11};
+            } else {
+              rowColMap = {group:0, stage:1, subject:2, subSubject:-1, topic:3, subTopic:-1, question:4, optA:5, optB:6, optC:7, optD:8, correct:9, explanation:10};
+            }
+          }
+
+          var rawGroup = window.getCol(cols, rowColMap.group) || 'Group 2';
+          var rawStage = window.getCol(cols, rowColMap.stage) || 'Prelims';
+          var rawSubj = window.getCol(cols, rowColMap.subject) || 'History';
+          var rawSubSubj = rowColMap.subSubject !== -1 ? window.getCol(cols, rowColMap.subSubject) : '';
+          var rawTopic = rowColMap.topic !== -1 ? window.getCol(cols, rowColMap.topic) : '';
+          var rawSubTopic = rowColMap.subTopic !== -1 ? window.getCol(cols, rowColMap.subTopic) : '';
+
+          var info = (typeof parseSmartRowHierarchy === 'function')
+            ? parseSmartRowHierarchy(rawGroup, rawStage, rawSubj, rawSubSubj, rawTopic, rawSubTopic)
+            : { group: rawGroup.trim(), stage: rawStage.trim(), subject: mapKeyToSubject(rawSubj), subSubject: (rawSubSubj || rawSubj).trim(), topic: (rawTopic || 'General').trim(), subTopic: rawSubTopic.trim() };
+
+          var question = window.getCol(cols, rowColMap.question);
+          var optA = window.getCol(cols, rowColMap.optA);
+          var optB = window.getCol(cols, rowColMap.optB);
+          var optC = window.getCol(cols, rowColMap.optC);
+          var optD = window.getCol(cols, rowColMap.optD);
+          var ans = String(window.getCol(cols, rowColMap.correct) || '').toUpperCase().trim().charAt(0);
+          var exp = rowColMap.explanation !== -1 ? window.getCol(cols, rowColMap.explanation) : '';
+
+          var errorMsg = "";
+          if(!question || !optA || !optB || !ans) errorMsg = "Missing Q/A/B/Correct";
+          else if(['A','B','C','D'].indexOf(ans) === -1) errorMsg = "Correct must be A/B/C/D (found: " + ans + ")";
+
+          if(errorMsg !== "") {
+            errors.push('Row '+(l+1)+': ' + errorMsg);
+            window.skippedRowsData += rows[l] + delimiter + '"' + errorMsg + '"\n';
+            continue;
+          }
+
+          var safeSubSubjSlug = String(info.subSubject || 'General').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
+          var safeTopicSlug = String(info.topic || 'General').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
+          var safeSubTopicSlug = String(info.subTopic || '').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u0C00-\u0C7F]/g,'');
+          var key = String(info.group).replace(/\s+/g,'_') + '__' + String(info.stage).replace(/\s+/g,'_') + '__' + String(info.subject).replace(/\s+/g,'_') + '__' + safeSubSubjSlug + '__' + safeTopicSlug + (safeSubTopicSlug ? ('___' + safeSubTopicSlug) : '');
+
+          csvRows.push({
+            key:key, group:info.group, stage:info.stage, subject:info.subject, subSubject:info.subSubject, topic:info.topic, subTopic:info.subTopic,
+            question:question, optionA:optA, optionB:optB, optionC:optC, optionD:optD, correctAnswer:ans, explanation:exp||''
+          });
+        }
+        window.showCSVPreview(errors, sourceName+' ('+(delimiter==='\t'?'TSV':'CSV')+')');
+      } catch (err) {
+        console.error('Parse error:', err);
+        toast('Parse Error: ' + (err.message || err), 'error');
       }
-      window.showCSVPreview(errors, sourceName+' ('+(delimiter==='\t'?'TSV':'CSV')+')');
     }
 
     window.parseJSONData = function(jsonData){
